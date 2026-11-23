@@ -88,8 +88,9 @@ test("image compressor handles a small local PNG", async ({ page }) => {
 
 test("privacy and terms pages are accessible from the footer", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByRole("link", { name: "Privacy policy" })).toHaveAttribute("href", "/privacy");
-  await expect(page.getByRole("link", { name: "Terms of use" })).toHaveAttribute("href", "/terms");
+  await expect(page.locator("#tool-search")).toHaveAttribute("action", "/search/");
+  await expect(page.getByRole("link", { name: "Privacy policy" })).toHaveAttribute("href", "/privacy/");
+  await expect(page.getByRole("link", { name: "Terms of use" })).toHaveAttribute("href", "/terms/");
   await page.goto("/privacy/");
   await expect(page.getByRole("heading", { level: 1, name: "Privacy Policy" })).toBeVisible();
   await page.goto("/terms/");
@@ -305,4 +306,123 @@ test("internal navigation uses canonical trailing-slash routes", async ({ page }
     links.map((link) => new URL((link as HTMLAnchorElement).href).pathname).filter((path) => !path.endsWith("/"))
   );
   expect(nonCanonical).toEqual([]);
+});
+
+
+async function makePngFixture(page: import("@playwright/test").Page, width = 2, height = 2) {
+  const base64 = await page.evaluate(({ width, height }) => {
+    const canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
+    const context = canvas.getContext("2d");
+    if (!context) throw new Error("Canvas unavailable in browser test.");
+    context.fillStyle = "#2563eb";
+    context.fillRect(0, 0, width, height);
+    return canvas.toDataURL("image/png").split(",")[1];
+  }, { width, height });
+  return Buffer.from(base64, "base64");
+}
+
+function makeTinyPdfFixture() {
+  const objects = [
+    "<< /Type /Catalog /Pages 2 0 R >>",
+    "<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
+    "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 100 100] /Resources << >> /Contents 4 0 R >>",
+    "<< /Length 0 >>\nstream\n\nendstream"
+  ];
+  let pdf = "%PDF-1.4\n";
+  const offsets = [0];
+  for (let i = 0; i < objects.length; i++) {
+    offsets.push(Buffer.byteLength(pdf, "binary"));
+    pdf += (i + 1) + " 0 obj\n" + objects[i] + "\nendobj\n";
+  }
+  const xrefOffset = Buffer.byteLength(pdf, "binary");
+  pdf += "xref\n0 " + (objects.length + 1) + "\n0000000000 65535 f \n";
+  for (const offset of offsets.slice(1)) pdf += offset.toString().padStart(10, "0") + " 00000 n \n";
+  pdf += "trailer\n<< /Size " + (objects.length + 1) + " /Root 1 0 R >>\nstartxref\n" + xrefOffset + "\n%%EOF";
+  return Buffer.from(pdf, "binary");
+}
+
+test("Lorem Ipsum generator creates the requested paragraph count", async ({ page }) => {
+  await page.goto("/tools/lorem-ipsum-generator/");
+  await page.locator("#tool-input").fill("2");
+  await page.getByRole("button", { name: /run tool/i }).click();
+  const result = await page.locator("#tool-output").inputValue();
+  expect(result.split("\n\n")).toHaveLength(2);
+});
+
+test("password strength checker evaluates length and character classes", async ({ page }) => {
+  await page.goto("/tools/password-strength-checker/");
+  await page.locator("#tool-input").fill("StrongPass123!");
+  await page.getByRole("button", { name: /run tool/i }).click();
+  await expect(page.locator("#tool-output")).toHaveValue(/Estimated strength: Strong/);
+});
+
+test("bio generator creates multiple usable profile styles", async ({ page }) => {
+  await page.goto("/tools/bio-generator/");
+  await page.locator("#tool-input").fill("designer");
+  await page.getByRole("button", { name: /run tool/i }).click();
+  await expect(page.locator("#tool-output")).toHaveValue(/Creative: designer/);
+  await expect(page.locator("#tool-output")).toHaveValue(/Professional: designer/);
+});
+
+test("QR generator loads its pinned library and renders a downloadable code", async ({ page }) => {
+  await page.goto("/tools/qr-generator/");
+  await page.locator("#tool-input").fill("https://toolora.example/");
+  await page.getByRole("button", { name: /run tool/i }).click();
+  await expect(page.locator("#qr-preview canvas")).toBeVisible({ timeout: 20000 });
+  await expect(page.locator("#result-meta")).toHaveText("QR code ready");
+});
+
+test("image converter exports WebP and image cropper produces requested dimensions", async ({ page }) => {
+  await page.goto("/tools/image-converter/");
+  await page.locator("#file-input").setInputFiles({ name: "source.png", mimeType: "image/png", buffer: await makePngFixture(page) });
+  await page.locator("#image-format").selectOption("image/webp");
+  await page.getByRole("button", { name: /run tool/i }).click();
+  await expect(page.locator("#tool-output")).toHaveValue(/Format: image\/webp/);
+
+  await page.goto("/tools/image-cropper/");
+  await page.locator("#file-input").setInputFiles({ name: "wide.png", mimeType: "image/png", buffer: await makePngFixture(page, 4, 2) });
+  await page.locator("#image-width").fill("2");
+  await page.locator("#image-height").fill("2");
+  await page.getByRole("button", { name: /run tool/i }).click();
+  await expect(page.locator("#tool-output")).toHaveValue(/Output: 2 × 2/);
+});
+
+test("images to PDF loads its pinned library and creates a PDF locally", async ({ page }) => {
+  await page.goto("/tools/images-to-pdf/");
+  await page.locator("#file-input").setInputFiles({ name: "page.png", mimeType: "image/png", buffer: await makePngFixture(page) });
+  await page.getByRole("button", { name: /run tool/i }).click();
+  await expect(page.locator("#tool-status")).toContainText("PDF created in your browser.", { timeout: 20000 });
+  await expect(page.locator("#tool-output")).toHaveValue(/combined into a PDF/);
+});
+
+test("PDF to images enforces browser rendering and exports a page", async ({ page }) => {
+  await page.goto("/tools/pdf-to-images/");
+  await page.locator("#file-input").setInputFiles({ name: "tiny.pdf", mimeType: "application/pdf", buffer: makeTinyPdfFixture() });
+  const download = page.waitForEvent("download");
+  await page.getByRole("button", { name: /run tool/i }).click();
+  const file = await download;
+  expect(file.suggestedFilename()).toBe("toolora-page-1.png");
+  await expect(page.locator("#tool-status")).toContainText("PDF pages converted locally.", { timeout: 20000 });
+});
+
+test("text to speech invokes the browser speech API without a server upload", async ({ page }) => {
+  await page.goto("/tools/text-to-speech/");
+  await page.locator("#tool-input").fill("Hello from Toolora");
+  await page.evaluate(() => {
+    Object.defineProperty(window, "speechSynthesis", { configurable: true, value: { cancel() {}, speak() {} } });
+  });
+  await page.getByRole("button", { name: /run tool/i }).click();
+  await expect(page.locator("#tool-status")).toContainText("Speech playback started");
+});
+
+test("typing speed test starts, measures and resets its timer", async ({ page }) => {
+  await page.goto("/tools/typing-speed-test/");
+  await page.locator("#tool-input").fill("one two three four five");
+  await page.getByRole("button", { name: /run tool/i }).click();
+  await expect(page.locator("#tool-status")).toContainText("Timer started");
+  await page.waitForTimeout(1100);
+  await page.getByRole("button", { name: /run tool/i }).click();
+  await expect(page.locator("#tool-output")).toHaveValue(/Elapsed: [1-9]\d* seconds[\s\S]*Words per minute:/);
 });

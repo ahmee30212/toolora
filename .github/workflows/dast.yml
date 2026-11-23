@@ -22,6 +22,10 @@ jobs:
     name: Passive OWASP ZAP scan
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout the tested source revision
+        uses: actions/checkout@v5
+        with:
+          ref: \${{ github.event.workflow_run.head_sha || github.sha }}
       - name: Allow the production edge deployment to settle
         if: github.event_name == 'workflow_run'
         run: sleep 60
@@ -33,3 +37,5 @@ jobs:
           allow_issue_writing: false
           fail_action: true
           artifact_name: toolora-zap-baseline
+      - name: Fail on actionable ZAP findings
+        run: node scripts/check-zap-report.mjs
