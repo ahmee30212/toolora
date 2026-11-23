@@ -11,7 +11,7 @@ test("homepage and mobile navigation are branded and usable", async ({ page }) =
   await expect(menu).toBeVisible();
   await menu.click();
   await expect(page.getByRole("navigation", { name: "Mobile navigation" })).toBeVisible();
-  await expect(page.getByRole("link", { name: "Search tools" })).toBeVisible();
+  await expect(page.getByRole("contentinfo").getByRole("link", { name: "Search tools" })).toBeVisible();
 });
 
 for (const category of categories) {
