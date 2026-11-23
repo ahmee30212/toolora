@@ -45,7 +45,9 @@ if (root) {
     if (slug === "case-converter") field("case-mode","Conversion","UPPERCASE");
     if (slug === "lorem-ipsum-generator") { input.placeholder = "Optional: enter number of paragraphs (default 3)"; document.querySelector("#input-label")!.textContent = "Paragraph count (optional)"; }
     if (slug === "text-diff-checker") field("compare-text","Second text to compare","","text");
-    if (slug === "number-system-converter") { field("from-base","From base","10","number"); field("to-base","To base","2","number"); }\n    if (slug === "bmi-calculator") { field("weight-kg","Weight (kg)","70","number"); field("height-cm","Height (cm)","175","number"); }\n    if (slug === "percentage-calculator") { field("percent-value","Percentage","15","number"); field("percent-total","Number","200","number"); }
+    if (slug === "number-system-converter") { field("from-base","From base","10","number"); field("to-base","To base","2","number"); }
+    if (slug === "bmi-calculator") { field("weight-kg","Weight (kg)","70","number"); field("height-cm","Height (cm)","175","number"); }
+    if (slug === "percentage-calculator") { field("percent-value","Percentage","15","number"); field("percent-total","Number","200","number"); }
     if (slug === "keyword-density-checker") field("keyword","Keyword to analyze","","text");\n    if (slug === "age-calculator") { input.type = "date"; input.placeholder = "Select your date of birth"; }
     if (slug === "password-generator") { field("pass-length","Password length","20","number"); field("pass-symbols","Include symbols","yes"); }
     if (slug === "qr-generator") input.placeholder = "Enter a URL or text to encode as a QR code.";
@@ -141,7 +143,8 @@ if (root) {
     field("image-width","Output width (px)","1200","number");field("image-height","Output height (px)","800","number");
     if(slug==="image-converter")field("image-format","Output format","image/png");
   }
-  if(slug==="qr-generator"){ input.placeholder="Enter a URL or text to encode."; const preview=document.createElement("div");preview.id="qr-preview";preview.className="mt-5 flex justify-center";extra.append(preview); }\n  if(slug==="text-to-speech")input.placeholder="Enter the text you want to hear.";
+  if(slug==="qr-generator"){ input.placeholder="Enter a URL or text to encode."; const preview=document.createElement("div");preview.id="qr-preview";preview.className="mt-5 flex justify-center";extra.append(preview); }
+  if(slug==="text-to-speech")input.placeholder="Enter the text you want to hear.";
   if(slug==="typing-speed-test")input.placeholder="Click Run tool to start, then type your text and click again.";
   copy.addEventListener("click", async()=>{if(!output.value){setStatus("There is no result to copy.",true);return;}try{await navigator.clipboard.writeText(output.value);setStatus("Result copied to clipboard.");}catch{setStatus("Clipboard access was blocked by the browser.",true);}});
   download.addEventListener("click",()=>{if(downloadBlob){downloadFile(downloadBlob, (download as HTMLButtonElement).dataset.filename ?? `toolora-${slug}.txt`);return;}if(!output.value){setStatus("There is no result to download.",true);return;}downloadFile(new Blob([output.value],{type:"text/plain;charset=utf-8"}),`toolora-${slug}.txt`);});
