@@ -25,7 +25,7 @@ jobs:
       - name: Checkout the tested source revision
         uses: actions/checkout@v5
         with:
-          ref: \${{ github.event.workflow_run.head_sha || github.sha }}
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
       - name: Allow the production edge deployment to settle
         if: github.event_name == 'workflow_run'
         run: sleep 60
