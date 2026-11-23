@@ -46,7 +46,7 @@ if (root) {
     if (slug === "lorem-ipsum-generator") { input.placeholder = "Optional: enter number of paragraphs (default 3)"; document.querySelector("#input-label")!.textContent = "Paragraph count (optional)"; }
     if (slug === "text-diff-checker") field("compare-text","Second text to compare","","text");
     if (slug === "number-system-converter") { field("from-base","From base","10","number"); field("to-base","To base","2","number"); }\n    if (slug === "bmi-calculator") { field("weight-kg","Weight (kg)","70","number"); field("height-cm","Height (cm)","175","number"); }\n    if (slug === "percentage-calculator") { field("percent-value","Percentage","15","number"); field("percent-total","Number","200","number"); }
-    if (slug === "keyword-density-checker") field("keyword","Keyword to analyze","","text");\n    if (slug === "age-calculator") input.type = "date";
+    if (slug === "keyword-density-checker") field("keyword","Keyword to analyze","","text");\n    if (slug === "age-calculator") { input.type = "date"; input.placeholder = "Select your date of birth"; }
     if (slug === "password-generator") { field("pass-length","Password length","20","number"); field("pass-symbols","Include symbols","yes"); }
     if (slug === "qr-generator") input.placeholder = "Enter a URL or text to encode as a QR code.";
   }
@@ -89,7 +89,7 @@ if (root) {
       case "text-binary-converter": return setResult(value.startsWith("decode:") ? value.slice(7).trim().split(/\s+/).map(x=>String.fromCodePoint(parseInt(x,2))).join("") : Array.from(value).map(c=>c.codePointAt(0)!.toString(2).padStart(8,"0")).join(" "));
       case "password-generator": { const len=Math.max(8,Math.min(128,Number(get("pass-length"))||20)); const chars="ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%&*_-+="; const random=new Uint32Array(len); crypto.getRandomValues(random); return setResult(Array.from(random,n=>chars[n%chars.length]).join(""),`${len} characters · generated with Web Crypto`); }
       case "password-strength-checker": { const score=[value.length>=12,value.length>=16,/[a-z]/.test(value)&&/[A-Z]/.test(value),/\d/.test(value),/[^A-Za-z0-9]/.test(value)].filter(Boolean).length; return setResult(`Estimated strength: ${["Very weak","Weak","Fair","Strong","Very strong","Excellent"][score]}\nLength: ${value.length}\nLowercase and uppercase: ${/[a-z]/.test(value)&&/[A-Z]/.test(value)?"Yes":"No"}\nNumbers: ${/\d/.test(value)?"Yes":"No"}\nSymbols: ${/[^A-Za-z0-9]/.test(value)?"Yes":"No"}\n\nThis is a local heuristic, not a breach or crack-time check.`); }
-      case "qr-generator": throw new Error("QR rendering is being added with a dedicated local QR library. This tool is not enabled yet.");
+      case "qr-generator": throw new Error("QR generation needs the QR workspace renderer; use the text result for now.");
       case "bio-generator": return setResult([`Creative: ${value} | Creating every day ✨`,`Professional: ${value} | Sharing ideas, experience and inspiration.`,`Minimal: ${value} • Create. Learn. Grow.`].join("\n\n"));
       case "caption-generator": return setResult([`A little moment, a lasting memory. ✨\n\n${value}`,`POV: You needed this today. 💫\n\n${value}`,`Good vibes, great moments. ❤️\n\n${value}`].join("\n\n---\n\n"));
       case "hashtag-generator": { const tags=value.toLowerCase().match(/[\p{L}\p{N}]+/gu)??[]; const unique=[...new Set(tags)].filter(t=>t.length>2); return setResult([...unique,...["foryou","trending","contentcreator","explorepage","dailyinspiration"]].slice(0,20).map(t=>"#"+t).join(" "),"Suggested tags · review relevance before posting"); }
@@ -107,14 +107,14 @@ if (root) {
       if (["image-compressor","image-converter","image-cropper","image-resizer","images-to-pdf","pdf-to-images","typing-speed-test","text-to-speech"].includes(slug)) {
         await runSpecial();
       } else {
-        if (!input.value.trim() && !["uuid-generator","lorem-ipsum-generator"].includes(slug)) throw new Error("Please enter some input first.");
+        if (!input.value.trim() && !["uuid-generator","lorem-ipsum-generator","age-calculator","bmi-calculator","percentage-calculator"].includes(slug)) throw new Error("Please enter some input first.");
         runText();
       }
     } catch (error) { setStatus(error instanceof Error ? error.message : "Something went wrong.", true); }
   });
 
   async function runSpecial() {
-    if (["image-compressor","image-converter","image-cropper","image-resizer"].includes(slug)) {
+    if (["image-compressor","image-converter","image-cropper","image-resizer","images-to-pdf","pdf-to-images"].includes(slug)) {
       const file = (document.querySelector<HTMLInputElement>("#file-input")?.files?.[0]);
       if (!file) throw new Error("Choose an image file first.");
       const img = new Image(); const url=URL.createObjectURL(file);
@@ -135,8 +135,8 @@ if (root) {
 
   if(["image-compressor","image-converter","image-cropper","image-resizer"].includes(slug)) {
     input.classList.add("hidden");
-    const fileLabel=document.createElement("label");fileLabel.className="block text-sm font-bold mb-2";fileLabel.textContent="Choose image";
-    const file=document.createElement("input");file.type="file";file.accept="image/*";file.id="file-input";file.className="block w-full rounded-xl border border-slate-200 p-3 text-sm";
+    const fileLabel=document.createElement("label");fileLabel.className="block text-sm font-bold mb-2";fileLabel.textContent=slug==="images-to-pdf"?"Choose images":slug==="pdf-to-images"?"Choose PDF":"Choose image";
+    const file=document.createElement("input");file.type="file";file.accept=slug==="pdf-to-images"?"application/pdf":"image/*";file.multiple=slug==="images-to-pdf";file.id="file-input";file.className="block w-full rounded-xl border border-slate-200 p-3 text-sm";
     document.querySelector("#input-label")!.replaceWith(fileLabel);fileLabel.append(file);
     field("image-width","Output width (px)","1200","number");field("image-height","Output height (px)","800","number");
     if(slug==="image-converter")field("image-format","Output format","image/png");
