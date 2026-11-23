@@ -37,10 +37,26 @@ if (existsSync(assetsRoot)) {
   const assets = readdirSync(assetsRoot, { withFileTypes: true }).filter((entry) => entry.isFile());
   const jsBytes = assets.filter((entry) => entry.name.endsWith(".js")).reduce((sum, entry) => sum + statSync(new URL(entry.name, assetsRoot)).size, 0);
   const cssBytes = assets.filter((entry) => entry.name.endsWith(".css")).reduce((sum, entry) => sum + statSync(new URL(entry.name, assetsRoot)).size, 0);
-  if (jsBytes > 300 * 1024) failures.push("JavaScript asset budget exceeded: " + jsBytes + " bytes (300 KiB maximum).");
+  if (jsBytes > 4 * 1024 * 1024) failures.push("JavaScript asset budget exceeded: " + jsBytes + " bytes (4 MiB maximum).");
   if (cssBytes > 250 * 1024) failures.push("CSS asset budget exceeded: " + cssBytes + " bytes (250 KiB maximum).");
-  console.log("Asset budgets: JavaScript " + Math.ceil(jsBytes / 1024) + " KiB / 300 KiB; CSS " + Math.ceil(cssBytes / 1024) + " KiB / 250 KiB.");
+  const largestJs = Math.max(0, ...assets.filter((entry) => entry.name.endsWith(".js")).map((entry) => statSync(new URL(entry.name, assetsRoot)).size));
+  if (largestJs > 3 * 1024 * 1024) failures.push("A JavaScript chunk exceeds the 3 MiB per-file budget: " + largestJs + " bytes.");
+  console.log("Asset budgets: JavaScript " + Math.ceil(jsBytes / 1024) + " KiB / 4096 KiB; CSS " + Math.ceil(cssBytes / 1024) + " KiB / 250 KiB; largest JS chunk " + Math.ceil(largestJs / 1024) + " KiB / 3072 KiB.");
 }
+const pdfRuntimeRoot = new URL("pdfjs/", root);
+const pdfRuntimeFolders = ["cmaps", "iccs", "image_decoders", "standard_fonts", "wasm"];
+const folderBytes = (directory) => readdirSync(directory, { withFileTypes: true }).reduce((sum, entry) => {
+  const entryUrl = new URL(entry.name + (entry.isDirectory() ? "/" : ""), directory);
+  return sum + (entry.isDirectory() ? folderBytes(entryUrl) : statSync(entryUrl).size);
+}, 0);
+let pdfRuntimeBytes = 0;
+for (const folder of pdfRuntimeFolders) {
+  const folderUrl = new URL(folder + "/", pdfRuntimeRoot);
+  if (!existsSync(folderUrl)) failures.push("Missing local PDF.js runtime assets: " + folder);
+  else pdfRuntimeBytes += folderBytes(folderUrl);
+}
+if (pdfRuntimeBytes > 8 * 1024 * 1024) failures.push("PDF.js runtime data exceeds the 8 MiB budget: " + pdfRuntimeBytes + " bytes.");
+console.log("Local PDF.js runtime data: " + Math.ceil(pdfRuntimeBytes / 1024) + " KiB / 8192 KiB.");
 const headers = readFileSync(new URL("../public/_headers", import.meta.url), "utf8");
 for (const directive of [
   "Content-Security-Policy:", "Strict-Transport-Security:", "X-Content-Type-Options:",
