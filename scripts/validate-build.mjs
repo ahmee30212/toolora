@@ -30,8 +30,8 @@ for (const route of routes) {
   if (!html.includes("Created by Muhammad Ahmad")) failures.push("Missing creator credit: /" + route);
 }
 const sitemap = read("sitemap.xml");
-for (const slug of categories) if (!sitemap.includes("/categories/" + slug)) failures.push("Sitemap missing category: " + slug);
-for (const slug of tools) if (!sitemap.includes("/tools/" + slug)) failures.push("Sitemap missing tool: " + slug);
+for (const slug of categories) if (!sitemap.includes("/categories/" + slug + "/")) failures.push("Sitemap missing category: " + slug);
+for (const slug of tools) if (!sitemap.includes("/tools/" + slug + "/")) failures.push("Sitemap missing tool: " + slug);
 const assetsRoot = new URL("_astro/", root);
 if (existsSync(assetsRoot)) {
   const assets = readdirSync(assetsRoot, { withFileTypes: true }).filter((entry) => entry.isFile());
