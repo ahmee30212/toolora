@@ -317,9 +317,8 @@ if (root) {
       const pdfjs=await import("pdfjs-dist");
       const workerModule=await import("pdfjs-dist/build/pdf.worker.mjs?url");
       pdfjs.GlobalWorkerOptions.workerSrc=workerModule.default;
-      const doc=await pdfjs.getDocument({
+      const loadingTask=pdfjs.getDocument({
         data:new Uint8Array(await file.arrayBuffer()),
-        isEvalSupported:false,
         enableXfa:false,
         maxImageSize:40000000,
         cMapUrl:"/pdfjs/cmaps/",
@@ -327,8 +326,9 @@ if (root) {
         standardFontDataUrl:"/pdfjs/standard_fonts/",
         wasmUrl:"/pdfjs/wasm/",
         iccUrl:"/pdfjs/iccs/"
-      }).promise;
-      if(doc.numPages>100){await doc.destroy();throw new Error("This PDF has more than 100 pages. Split it into smaller files first.");}
+      });
+      const doc=await loadingTask.promise;
+      if(doc.numPages>100){await loadingTask.destroy();throw new Error("This PDF has more than 100 pages. Split it into smaller files first.");}
       try {
         let totalPixels=0;
         for(let p=1;p<=doc.numPages;p++){
@@ -340,7 +340,7 @@ if (root) {
           const canvas=document.createElement("canvas");
           try {
             canvas.width=Math.ceil(viewport.width);canvas.height=Math.ceil(viewport.height);
-            const pageContext=canvas.getContext("2d");if(!pageContext)throw new Error("Canvas is unavailable.");await page.render({canvasContext:pageContext,viewport}).promise;
+            const pageContext=canvas.getContext("2d");if(!pageContext)throw new Error("Canvas is unavailable.");await page.render({canvas,canvasContext:pageContext,viewport}).promise;
             const blob=await new Promise<Blob>((resolve,reject)=>canvas.toBlob(b=>b?resolve(b):reject(new Error("Page export failed.")),"image/png"));
             downloadFile(blob,"toolora-page-"+p+".png");
           } finally {
@@ -350,7 +350,7 @@ if (root) {
         }
         output.value=doc.numPages+" page(s) exported as PNG images. Your browser may show multiple downloads.";meta.textContent="PDF pages exported";setStatus("PDF pages converted locally.");
       } finally {
-        await doc.destroy();
+        await loadingTask.destroy();
       }
       return;
     }
