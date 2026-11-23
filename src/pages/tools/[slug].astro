@@ -28,6 +28,7 @@ const category = categories.find((item) => item.slug === tool.category);
           <div class="result-area mt-6 pt-5 border-t border-slate-100">
             <div class="flex justify-between items-center gap-3 mb-2"><label class="text-sm font-bold" for="tool-output">Your result</label><span class="result-badge" id="result-meta">Waiting for input</span></div>
             <textarea id="tool-output" rows="8" readonly class="tool-textarea w-full rounded-xl border border-slate-200 bg-white p-4 text-sm outline-none" placeholder="Your result will appear here..."></textarea>
+            {tool.slug === "markdown-editor" && <div id="markdown-preview" class="markdown-preview hidden" aria-live="polite"></div>}
           </div>
         </div>
       </div>
