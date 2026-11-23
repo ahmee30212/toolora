@@ -286,3 +286,9 @@ body{background:#f5f7fc;color:#101a30}
 @media(max-width:760px){.desktop-nav{display:none}.mobile-menu{display:block}.header-cta{font-size:11px}.site-header{height:68px}.header-inner{gap:10px}.brand-name{font-size:20px}}
 @media(max-width:420px){.header-cta{padding:10px 11px}.header-cta svg{display:none}.brand-lockup{gap:8px}.brand-mark{width:34px;height:34px}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+
+
+/* Keyboard accessibility */
+.skip-link{position:fixed;left:16px;top:12px;z-index:1000;transform:translateY(-160%);padding:12px 16px;border-radius:10px;background:#10264a;color:#fff;font-size:13px;font-weight:800;box-shadow:0 8px 24px #10264a35}
+.skip-link:focus{transform:translateY(0);outline:3px solid #8bb5ff;outline-offset:3px}
+:focus-visible{outline:3px solid #3978f6;outline-offset:3px}
