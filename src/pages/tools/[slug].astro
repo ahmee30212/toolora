@@ -1,6 +1,7 @@
 ---
 import SiteLayout from "../../layouts/SiteLayout.astro";
 import Icon from "../../components/Icon.astro";
+import SocialLinks from "../../components/SocialLinks.astro";
 import { tools, categories } from "../../data/tools";
 export function getStaticPaths() { return tools.map((tool) => ({ params: { slug: tool.slug }, props: { tool } })); }
 const { tool } = Astro.props;
@@ -36,6 +37,6 @@ const category = categories.find((item) => item.slug === tool.category);
       </div>
     </div></section>
   </main>
-  <footer class="site-footer"><div class="container"><a href="/" class="brand-lockup"><span class="brand-mark">T</span><span class="brand-name">toolora.</span></a><p>Created by Muhammad Ahmad ❤️</p><div class="footer-bottom"><span>© {new Date().getFullYear()} Toolora. All rights reserved.</span><a href={`/categories/${tool.category}`}>Back to {category?.name} ↑</a></div></div></footer>
+  <footer class="site-footer"><div class="container"><a href="/" class="brand-lockup"><span class="brand-mark">T</span><span class="brand-name">toolora.</span></a><p>Created by Muhammad Ahmad ❤️</p><SocialLinks /><div class="footer-bottom"><span>© {new Date().getFullYear()} Toolora. All rights reserved.</span><a href={`/categories/${tool.category}`}>Back to {category?.name} ↑</a></div></div></footer>
   <script>import "../../scripts/tool-engine";</script>
 </SiteLayout>
