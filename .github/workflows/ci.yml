@@ -17,13 +17,13 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           node-version: 24
-      - run: npm install
+      - name: Install dependencies\n        run: npm install
       - name: Dependency security report
         run: |
           npm audit --json > npm-audit.json || true
           node --input-type=commonjs -e "const a=require('./npm-audit.json'); console.log('Dependency audit:', JSON.stringify(a.metadata?.vulnerabilities ?? {}, null, 2)); for (const [name,v] of Object.entries(a.vulnerabilities ?? {})) console.log(name + ': ' + v.severity + '; direct=' + v.isDirect + '; fix=' + JSON.stringify(v.fixAvailable));"
       - name: Enforce dependency security policy
-        run: npm audit --audit-level=high
+        run: npm audit --audit-level=low
       - run: npm run build
       - name: Install Chromium for browser tests
         run: npx playwright install --with-deps chromium
