@@ -270,3 +270,19 @@ body{background:#f5f7fc;color:#101a30}
 .markdown-preview em{font-style:italic}
 .markdown-preview ul{padding-left:22px;list-style:disc}
 .markdown-preview li{margin:5px 0}
+
+
+/* Shared navigation and responsive layout */
+.header-actions{display:flex;align-items:center;gap:12px}
+.header-back{display:inline-flex;align-items:center;gap:7px}
+.mobile-menu{display:none;position:relative}
+.mobile-menu summary{display:grid;place-items:center;width:42px;height:42px;border:1px solid #dce5f1;border-radius:12px;background:#fff;color:#1d3153;cursor:pointer;list-style:none;font-size:19px}
+.mobile-menu summary::-webkit-details-marker{display:none}
+.mobile-menu nav{position:absolute;right:0;top:calc(100% + 12px);z-index:50;display:grid;gap:4px;width:220px;padding:10px;border:1px solid #dce5f1;border-radius:15px;background:#fff;box-shadow:0 18px 45px #15294b20}
+.mobile-menu nav a{padding:11px 12px;border-radius:9px;color:#34445e;font-size:13px;font-weight:700}
+.mobile-menu nav a:hover{background:#eff4ff;color:#245ee7}
+.site-footer .footer-main{align-items:start}
+.site-footer .footer-social{min-width:150px}
+@media(max-width:760px){.desktop-nav{display:none}.mobile-menu{display:block}.header-cta{font-size:11px}.site-header{height:68px}.header-inner{gap:10px}.brand-name{font-size:20px}}
+@media(max-width:420px){.header-cta{padding:10px 11px}.header-cta svg{display:none}.brand-lockup{gap:8px}.brand-mark{width:34px;height:34px}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
