@@ -254,6 +254,7 @@ if (root) {
     try {
       if (slug === "qr-generator") {
         if (!input.value.trim()) throw new Error("Enter text or a URL first.");
+        if (input.value.length > 4000) throw new Error("QR content is limited to 4,000 characters.");
         await loadScript("https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js");
         const QR=(window as any).QRCode;
         if(!QR) throw new Error("QR library failed to load.");
@@ -266,6 +267,7 @@ if (root) {
         downloadBlob=await new Promise<Blob>((resolve,reject)=>canvas.toBlob(blob=>blob?resolve(blob):reject(new Error("QR export failed."))));
         output.value="QR code generated successfully.";meta.textContent="QR code ready";(download as HTMLButtonElement).dataset.filename="toolora-qr.png";setStatus("QR code generated in your browser.");return;
       }
+      if (input.value.length > 1000000) throw new Error("Text input is limited to 1,000,000 characters to protect browser memory.");
       if (["image-compressor","image-converter","image-cropper","image-resizer","images-to-pdf","pdf-to-images","typing-speed-test","text-to-speech"].includes(slug)) {
         await runSpecial();
       } else {
@@ -281,14 +283,18 @@ if (root) {
       if(!files.length) throw new Error("Choose one or more images first.");
       if(files.length>40) throw new Error("Choose no more than 40 images per PDF.");
       if(files.some((file)=>file.size>25*1024*1024)) throw new Error("Each image must be smaller than 25 MB.");
+      if(files.reduce((total,file)=>total+file.size,0)>50*1024*1024) throw new Error("The combined image size must be under 50 MB.");
       await loadScript("https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js");
       const jsPDF=(window as any).jspdf?.jsPDF;
       if(!jsPDF) throw new Error("PDF library failed to initialize.");
       const pdf=new jsPDF({orientation:"portrait",unit:"pt",format:"a4"});
+      let totalPixels=0;
       for(let i=0;i<files.length;i++){
         const data=await new Promise<string>((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(String(reader.result));reader.onerror=()=>reject(new Error("Could not read image."));reader.readAsDataURL(files[i]);});
         const image=new Image();await new Promise<void>((resolve,reject)=>{image.onload=()=>resolve();image.onerror=()=>reject(new Error("Invalid image file."));image.src=data;});
         if(image.width>12000||image.height>12000||image.width*image.height>40000000) throw new Error("An image exceeds the 40-megapixel safety limit.");
+        totalPixels+=image.width*image.height;
+        if(totalPixels>100000000) throw new Error("The combined images exceed the 100-megapixel processing limit.");
         const pageW=595.28,pageH=841.89,ratio=Math.min(pageW/image.width,pageH/image.height);
         if(i>0)pdf.addPage();
         pdf.addImage(data,files[i].type==="image/png"?"PNG":"JPEG",(pageW-image.width*ratio)/2,(pageH-image.height*ratio)/2,image.width*ratio,image.height*ratio);
