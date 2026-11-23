@@ -7,7 +7,7 @@ on:
     branches: [main]
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build:
@@ -17,14 +17,26 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           node-version: 24
-      - name: Install dependencies
-        run: npm install
+      - name: Generate reproducible dependency lockfile
+        run: npm install --package-lock-only --ignore-scripts
       - name: Dependency security report
         run: |
           npm audit --json > npm-audit.json || true
           node --input-type=commonjs -e "const a=require('./npm-audit.json'); console.log('Dependency audit:', JSON.stringify(a.metadata?.vulnerabilities ?? {}, null, 2)); for (const [name,v] of Object.entries(a.vulnerabilities ?? {})) console.log(name + ': ' + v.severity + '; direct=' + v.isDirect + '; fix=' + JSON.stringify(v.fixAvailable));"
-      - name: Enforce dependency security policy
+      - name: Enforce zero-vulnerability dependency policy
         run: npm audit --audit-level=low
+      - name: Commit dependency lockfile on main
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          if [ -n "$(git status --porcelain package-lock.json)" ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add package-lock.json
+            git commit -m "chore: lock npm dependency tree"
+            git push
+          fi
+      - name: Install dependencies from lockfile
+        run: npm ci
       - run: npm run build
       - name: Install Chromium for browser tests
         run: npx playwright install --with-deps chromium
