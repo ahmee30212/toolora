@@ -1,5 +1,3 @@
-import { z } from "zod";
-
 const root = document.querySelector<HTMLElement>("#tool-form");
 if (root) {
   const slug = root.dataset.tool ?? "";
@@ -14,7 +12,6 @@ if (root) {
   const reset = document.querySelector<HTMLButtonElement>("#reset-tool")!;
   let downloadBlob: Blob | null = null;
   let typingStarted = 0;
-  let typingTimer: number | undefined;
 
   const setStatus = (message: string, error = false) => {
     status.textContent = message;
@@ -40,7 +37,6 @@ if (root) {
     a.href = url; a.download = name; a.click(); URL.revokeObjectURL(url);
   };
 
-  const textTools = new Set(["case-converter","lorem-ipsum-generator","markdown-editor","remove-duplicate-lines","slug-generator","text-analyzer","text-cleaner","text-diff-checker","text-sorter","word-counter","keyword-density-checker","bio-generator","caption-generator","hashtag-generator","base64-converter","html-encoder-decoder","json-formatter","csv-to-json","json-to-csv","number-system-converter","unix-timestamp-converter","url-encoder-decoder","uuid-generator","xml-formatter","text-binary-converter","password-generator","password-strength-checker","qr-generator"]);
   if (textTools.has(slug)) {
     if (slug === "case-converter") field("case-mode","Conversion","UPPERCASE");
     if (slug === "lorem-ipsum-generator") { input.placeholder = "Optional: enter number of paragraphs (default 3)"; document.querySelector("#input-label")!.textContent = "Paragraph count (optional)"; }
@@ -83,7 +79,7 @@ if (root) {
       case "json-formatter": { const parsed=JSON.parse(value); return setResult(JSON.stringify(parsed,null,2)); }
       case "csv-to-json": { const lines=value.trim().split(/\r?\n/); if(lines.length<2)throw new Error("Provide a header row and at least one data row."); const parse=(line:string)=>line.split(/,(?=(?:[^"]*"[^"]*")*[^"]*$)/).map(x=>x.trim().replace(/^"|"$/g,"").replace(/""/g,'"')); const headers=parse(lines[0]); return setResult(JSON.stringify(lines.slice(1).map(line=>Object.fromEntries(parse(line).map((v,i)=>[headers[i]??`column${i+1}`,v]))),null,2)); }
       case "json-to-csv": { const data=JSON.parse(value); if(!Array.isArray(data)||!data.length||typeof data[0]!=="object")throw new Error("Input must be a non-empty JSON array of objects."); const headers=[...new Set(data.flatMap((row:Record<string,unknown>)=>Object.keys(row)))]; const cell=(v:unknown)=>{const s=String(v??"");return /[",\n]/.test(s)?`"${s.replace(/"/g,'""')}"`:s;}; return setResult([headers.map(cell).join(","),...data.map((row:Record<string,unknown>)=>headers.map(h=>cell(row[h])).join(","))].join("\n")); }
-      case "number-system-converter": { const from=Number(get("from-base")),to=Number(get("to-base")); if(![2,8,10,16].includes(from)||![2,8,10,16].includes(to))throw new Error("Bases must be 2, 8, 10 or 16."); const n=BigInt(parseInt(value.trim(),from)); return setResult(n.toString(to).toUpperCase()); }
+      case "number-system-converter": { const from=Number(get("from-base")),to=Number(get("to-base")); if(![2,8,10,16].includes(from)||![2,8,10,16].includes(to))throw new Error("Bases must be 2, 8, 10 or 16."); const raw=value.trim().toLowerCase();if(!raw)throw new Error("Enter a number to convert.");let sign=1n,body=raw;if(body.startsWith("-")){sign=-1n;body=body.slice(1);}const digits="0123456789abcdefghijklmnopqrstuvwxyz";let n=0n;for(const ch of body){const d=digits.indexOf(ch);if(d<0||d>=from)throw new Error(`The value is not valid in base ${from}.`);n=n*BigInt(from)+BigInt(d);}return setResult((n*sign).toString(to).toUpperCase()); }
       case "unix-timestamp-converter": { const raw=Number(value.trim()); if(!Number.isFinite(raw))throw new Error("Enter a valid Unix timestamp or date string."); const d= /^\d+(\.\d+)?$/.test(value.trim()) ? new Date(raw*(raw>1e12?1:1000)) : new Date(value); if(Number.isNaN(d.getTime()))throw new Error("Could not parse this date."); return setResult(`ISO: ${d.toISOString()}\nLocal: ${d.toLocaleString()}\nUnix seconds: ${Math.floor(d.getTime()/1000)}\nUnix milliseconds: ${d.getTime()}`); }
       case "url-encoder-decoder": return setResult(value.startsWith("decode:") ? decodeURIComponent(value.slice(7)) : encodeURIComponent(value));
       case "uuid-generator": return setResult(Array.from({length:10},()=>crypto.randomUUID()).join("\n"),"10 UUID v4 identifiers");
@@ -157,7 +153,7 @@ if (root) {
       for(let p=1;p<=doc.numPages;p++){
         const page=await doc.getPage(p),viewport=page.getViewport({scale:1.5}),canvas=document.createElement("canvas");
         canvas.width=viewport.width;canvas.height=viewport.height;
-        await page.render({canvasContext:canvas.getContext("2d"),viewport}).promise;
+        const pageContext=canvas.getContext("2d");if(!pageContext)throw new Error("Canvas is unavailable.");await page.render({canvasContext:pageContext,viewport}).promise;
         const blob=await new Promise<Blob>((resolve,reject)=>canvas.toBlob(b=>b?resolve(b):reject(new Error("Page export failed.")),"image/png"));
         downloadFile(blob,`toolora-page-${p}.png`);
       }
@@ -176,7 +172,7 @@ if (root) {
       const blob=await new Promise<Blob>((resolve,reject)=>canvas.toBlob(b=>b?resolve(b):reject(new Error("Image export failed.")),type,0.82));
       downloadBlob=blob;output.value=`Original: ${img.width} × ${img.height}\nOutput: ${canvas.width} × ${canvas.height}\nOriginal size: ${file.size.toLocaleString()} bytes\nOutput size: ${blob.size.toLocaleString()} bytes`;meta.textContent="Image processed";(download as HTMLButtonElement).dataset.filename="toolora-image";setStatus("Image processed locally. Use Download to save it.");URL.revokeObjectURL(url);return;
     }
-    if(slug==="text-to-speech"){if(!("speechSynthesis" in window))throw new Error("Speech synthesis is not supported in this browser.");speechSynthesis.cancel();speechSynthesis.speak(new SpeechSynthesisUtterance(input.value));setStatus("Speech playback started using your browser voice.");return;}
+    if(slug==="text-to-speech"){if(!input.value.trim())throw new Error("Enter text to read aloud.");if(!("speechSynthesis" in window))throw new Error("Speech synthesis is not supported in this browser.");speechSynthesis.cancel();speechSynthesis.speak(new SpeechSynthesisUtterance(input.value));setStatus("Speech playback started using your browser voice.");return;}
     if(slug==="typing-speed-test"){if(!typingStarted){typingStarted=Date.now();setStatus("Timer started. Type your text in the box, then click Run tool again.");return;}const mins=(Date.now()-typingStarted)/60000,wpm=Math.round(words(input.value).length/Math.max(mins,.01));setResult(`Elapsed: ${Math.round((Date.now()-typingStarted)/1000)} seconds\nWords per minute: ${wpm}\nCharacters: ${input.value.length}`);typingStarted=0;return;}
     throw new Error("This tool mode is not available.");
   }
