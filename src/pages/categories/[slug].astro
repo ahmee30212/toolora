@@ -1,6 +1,7 @@
 ---
 import SiteLayout from "../../layouts/SiteLayout.astro";
 import Icon from "../../components/Icon.astro";
+import SocialLinks from "../../components/SocialLinks.astro";
 import { categories, getCategoryTools } from "../../data/tools";
 export function getStaticPaths() { return categories.map((category) => ({ params: { slug: category.slug } })); }
 const { slug } = Astro.params;
@@ -16,5 +17,5 @@ const categoryTools = getCategoryTools(category.slug);
       <div class="tool-list">{categoryTools.map((tool) => <a class="tool-row" href={`/tools/${tool.slug}`}><span class={`category-icon tool-icon tool-icon-${tool.slug}`}><Icon name={tool.icon} size={21} /></span><span><strong>{tool.name}</strong><p>{tool.description}</p></span><span class="arrow"><Icon name="arrow-up-right" size={18} /></span></a>)}</div>
     </div></section>
   </main>
-  <footer class="site-footer"><div class="container"><div class="flex items-center gap-3"><span class="brand-mark">T</span><span class="brand-name">toolora.</span></div><p>Created by Muhammad Ahmad ❤️</p><div class="footer-bottom"><span>© {new Date().getFullYear()} Toolora. All rights reserved.</span><a href="/">Back to home ↑</a></div></div></footer>
+  <footer class="site-footer"><div class="container"><div class="flex items-center gap-3"><span class="brand-mark">T</span><span class="brand-name">toolora.</span></div><p>Created by Muhammad Ahmad ❤️</p><SocialLinks /><div class="footer-bottom"><span>© {new Date().getFullYear()} Toolora. All rights reserved.</span><a href="/">Back to home ↑</a></div></div></footer>
 </SiteLayout>
