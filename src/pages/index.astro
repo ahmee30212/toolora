@@ -1,19 +1,14 @@
 ---
 import SiteLayout from "../layouts/SiteLayout.astro";
 import Icon from "../components/Icon.astro";
-import SocialLinks from "../components/SocialLinks.astro";
+import SiteHeader from "../components/SiteHeader.astro";
+import SiteFooter from "../components/SiteFooter.astro";
 import { categories, tools } from "../data/tools";
 const featuredSlugs = ["image-compressor","pdf-to-images","word-counter","json-formatter","password-generator","qr-generator"];
 const featuredTools = featuredSlugs.map((slug) => tools.find((tool) => tool.slug === slug)).filter(Boolean);
 ---
 <SiteLayout title="Toolora — Free Online Tools for Everyone" description="A modern collection of free online tools for images, PDFs, writing, calculations, security and developer workflows. Fast, simple and easy to use.">
-  <header class="site-header">
-    <div class="container header-inner">
-      <a href="/" class="brand-lockup" aria-label="Toolora home"><span class="brand-mark">T</span><span class="brand-name">toolora<span class="text-brand-600">.</span></span></a>
-      <nav class="desktop-nav" aria-label="Main navigation"><a class="nav-link active" href="/">Home</a><a class="nav-link" href="#categories">Categories</a><a class="nav-link" href="#popular">Popular tools</a><a class="nav-link" href="#about">About</a></nav>
-      <a class="btn-primary header-cta" href="#categories">Explore tools <Icon name="arrow-up-right" size={16} /></a>
-    </div>
-  </header>
+  <SiteHeader active="home" />
   <main>
     <section class="hero hero-premium">
       <div class="container hero-layout">
@@ -72,13 +67,7 @@ const featuredTools = featuredSlugs.map((slug) => tools.find((tool) => tool.slug
       <div class="about-decoration"><span>TOOLS</span><span>MADE</span><span>SIMPLE.</span></div>
     </div></section>
   </main>
-  <footer class="site-footer"><div class="container">
-    <div class="footer-main"><div><a href="/" class="brand-lockup"><span class="brand-mark">T</span><span class="brand-name">toolora<span class="text-brand-600">.</span></span></a><p class="footer-tagline">Free Online Tools for Everyone.</p><p class="footer-credit">Created by Muhammad Ahmad ❤️</p></div>
-      <div class="footer-links"><div><b>Explore</b><a href="#categories">Categories</a><a href="#popular">Popular tools</a><a href="/search">Search tools</a></div><div><b>Toolora</b><a href="#about">About us</a><a href="/">Home</a></div></div>
-      <SocialLinks />
-    </div>
-    <div class="footer-bottom"><span>© {new Date().getFullYear()} Toolora. All rights reserved.</span><span>Designed to make everyday work easier.</span></div>
-  </div></footer>
+  <SiteFooter />
   <script>
     const form = document.querySelector<HTMLFormElement>("#tool-search");
     const input = document.querySelector<HTMLInputElement>("#search-input");
