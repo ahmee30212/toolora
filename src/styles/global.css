@@ -188,3 +188,30 @@ body{color:var(--ink);background:#fbfcff}
 .help-icon{position:absolute;left:19px;top:20px;width:29px;height:29px;display:grid;place-items:center;border-radius:9px;background:#eff4ff;color:#326cf4}
 .help-card strong{font:800 12px Manrope}.help-card p{font-size:10px;line-height:1.8;color:#8794a8;margin:7px 0 0}
 @media(max-width:640px){.workspace-panel{padding:18px}.workspace-heading h2{font-size:19px}.workspace-actions button{flex:1;min-width:calc(50% - 6px)}.help-grid{grid-template-columns:1fr}.page-hero{padding:40px 0 32px}}
+
+/* Brand-color social links and refined per-tool icon treatment */
+.socials a{width:42px;height:42px;border-radius:13px;background:#17243b;border:1px solid #2a3b57;color:#fff}
+.socials a svg{width:20px;height:20px}
+.socials .social-facebook{background:#1877f2;border-color:#1877f2;color:#fff}
+.socials .social-instagram{background:radial-gradient(circle at 30% 108%,#fdf497 0%,#fdf497 5%,#fd5949 45%,#d6249f 65%,#285aeb 90%);border-color:transparent;color:#fff}
+.socials .social-tiktok{background:#090b10;border-color:#30343d;color:#fff}
+.socials .social-facebook:hover{background:#0866df;border-color:#0866df}
+.socials .social-instagram:hover{filter:saturate(1.2) brightness(1.08)}
+.socials .social-tiktok:hover{background:#20242d;border-color:#25f4ee;box-shadow:0 0 0 2px #fe2c551c}
+.category-grid .category-card:nth-child(1) .category-icon{background:#edf4ff;color:#2871e8}
+.category-grid .category-card:nth-child(2) .category-icon{background:#fff0f0;color:#e05252}
+.category-grid .category-card:nth-child(3) .category-icon{background:#f3efff;color:#8056d9}
+.category-grid .category-card:nth-child(4) .category-icon{background:#ecfbf5;color:#159b70}
+.category-grid .category-card:nth-child(5) .category-icon{background:#fff7e9;color:#ce8a25}
+.category-grid .category-card:nth-child(6) .category-icon{background:#edf8ff;color:#2785b8}
+.category-grid .category-card:nth-child(7) .category-icon{background:#eff1ff;color:#5964d8}
+.category-grid .category-card:nth-child(8) .category-icon{background:#fff0f8;color:#d04b9c}
+.category-grid .category-card:nth-child(9) .category-icon{background:#eaf9f8;color:#168f8a}
+.tool-icon{width:44px;height:44px;flex:none;border-radius:13px;background:linear-gradient(145deg,#f2f6ff,#eaf0ff);color:#356ce2}
+.tool-row:nth-child(6n+2) .tool-icon{background:#f3efff;color:#8056d9}
+.tool-row:nth-child(6n+3) .tool-icon{background:#eaf8f2;color:#159b70}
+.tool-row:nth-child(6n+4) .tool-icon{background:#fff4e9;color:#d17d28}
+.tool-row:nth-child(6n+5) .tool-icon{background:#fff0f4;color:#d34c75}
+.tool-row:nth-child(6n) .tool-icon{background:#eaf6ff;color:#287fb6}
+.tool-icon svg{width:22px;height:22px;stroke-width:1.9}
+a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:3px solid #7da5ff;outline-offset:3px}
