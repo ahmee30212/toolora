@@ -40,7 +40,8 @@ if (root) {
 
   const escapeHtml = (s: string) => s.replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c] ?? c));
   const words = (s: string) => s.trim() ? s.trim().match(/\S+/gu) ?? [] : [];
-  const loadScript = (src: string) => new Promise<void>((resolve,reject) => { const existing=document.querySelector<HTMLScriptElement>(`script[src="${src}"]`); if(existing){ if(existing.dataset.loaded==="true")resolve(); else {existing.addEventListener("load",()=>resolve(),{once:true});existing.addEventListener("error",()=>reject(new Error("A required library could not be loaded.")),{once:true});} return;} const script=document.createElement("script");script.src=src;script.async=true;script.onload=()=>{script.dataset.loaded="true";resolve();};script.onerror=()=>reject(new Error("A required library could not be loaded. Check your connection and try again."));document.head.append(script); });\n  const downloadFile = (blob: Blob, name: string) => {
+  const loadScript = (src: string) => new Promise<void>((resolve,reject) => { const existing=document.querySelector<HTMLScriptElement>(`script[src="${src}"]`); if(existing){ if(existing.dataset.loaded==="true")resolve(); else {existing.addEventListener("load",()=>resolve(),{once:true});existing.addEventListener("error",()=>reject(new Error("A required library could not be loaded.")),{once:true});} return;} const script=document.createElement("script");script.src=src;script.async=true;script.onload=()=>{script.dataset.loaded="true";resolve();};script.onerror=()=>reject(new Error("A required library could not be loaded. Check your connection and try again."));document.head.append(script); });
+  const downloadFile = (blob: Blob, name: string) => {
     const url = URL.createObjectURL(blob); const a = document.createElement("a");
     a.href = url; a.download = name; a.click(); URL.revokeObjectURL(url);
   };
