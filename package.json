@@ -8,20 +8,16 @@
     "validate": "node scripts/validate-catalog.mjs",
     "build": "npm run validate && astro check && astro build",
     "preview": "astro preview",
-    "check": "astro check"
+    "check": "astro check",
+    "audit": "npm audit --audit-level=high"
   },
   "dependencies": {
-    "@astrojs/check": "^0.9.4",
-    "@astrojs/react": "^4.2.0",
-    "@astrojs/tailwind": "^6.0.2",
-    "astro": "^5.7.0",
-    "lucide-react": "^0.468.0",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
-    "typescript": "^5.7.3",
-    "zod": "^3.24.2"
+    "astro": "7.4.13"
   },
   "devDependencies": {
-    "tailwindcss": "^3.4.17"
+    "@astrojs/check": "0.9.12",
+    "@tailwindcss/vite": "4.3.5",
+    "tailwindcss": "4.3.5",
+    "typescript": "5.9.3"
   }
 }
