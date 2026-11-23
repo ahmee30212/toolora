@@ -1,7 +1,8 @@
 ---
 import SiteLayout from "../../layouts/SiteLayout.astro";
 import Icon from "../../components/Icon.astro";
-import SocialLinks from "../../components/SocialLinks.astro";
+import SiteHeader from "../../components/SiteHeader.astro";
+import SiteFooter from "../../components/SiteFooter.astro";
 import { categories, getCategoryTools } from "../../data/tools";
 export function getStaticPaths() { return categories.map((category) => ({ params: { slug: category.slug } })); }
 const { slug } = Astro.params;
@@ -10,12 +11,12 @@ if (!category) throw new Error("Category not found");
 const categoryTools = getCategoryTools(category.slug);
 ---
 <SiteLayout title={`${category.name} — Toolora`} description={category.description}>
-  <header class="site-header"><div class="container flex items-center justify-between"><a href="/" class="flex items-center gap-3"><span class="brand-mark">T</span><span class="brand-name">toolora<span class="text-brand-600">.</span></span></a><nav class="desktop-nav flex gap-8"><a class="nav-link" href="/">Home</a><a class="nav-link" href="/#categories">Categories</a><a class="nav-link" href="/#about">About</a></nav><a class="btn-primary" href="/#categories">All categories</a></div></header>
+  <SiteHeader backHref="/" backLabel="All categories" />
   <main>
     <section class="page-hero"><div class="container"><div class="breadcrumb"><a href="/">Home</a> / <a href="/#categories">Categories</a> / {category.name}</div><span class="eyebrow">Tool collection</span><h1 class="display text-4xl md:text-5xl font-extrabold mt-3">{category.name}</h1><p class="text-slate-500 mt-3 text-sm">{category.description}. Choose a tool to get started.</p><span class="pill mt-5">{categoryTools.length} tools in this category</span></div></section>
     <section class="section"><div class="container"><div class="section-heading"><div><span class="eyebrow">Available tools</span><h2>Choose your tool</h2></div><a class="btn-secondary" href="/#categories">← Back to categories</a></div>
       <div class="tool-list">{categoryTools.map((tool) => <a class="tool-row" href={`/tools/${tool.slug}`}><span class={`category-icon tool-icon tool-icon-${tool.slug}`}><Icon name={tool.icon} size={21} /></span><span><strong>{tool.name}</strong><p>{tool.description}</p></span><span class="arrow"><Icon name="arrow-up-right" size={18} /></span></a>)}</div>
     </div></section>
   </main>
-  <footer class="site-footer"><div class="container"><div class="flex items-center gap-3"><span class="brand-mark">T</span><span class="brand-name">toolora.</span></div><p>Created by Muhammad Ahmad ❤️</p><SocialLinks /><div class="footer-bottom"><span>© {new Date().getFullYear()} Toolora. All rights reserved.</span><a href="/">Back to home ↑</a></div></div></footer>
+  <SiteFooter />
 </SiteLayout>
