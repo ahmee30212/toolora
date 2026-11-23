@@ -14,7 +14,7 @@ const { active = "", backHref = "", backLabel = "" } = Astro.props;
       <a class="nav-link" href="/#about">About</a>
     </nav>
     <div class="header-actions">
-      {backHref ? <a class="btn-secondary header-back" href={backHref}>← {backLabel || "Back"}</a> : <a class="btn-primary header-cta" href="/#categories">Explore tools <Icon name="arrow-up-right" size={16}/></a>}
+      {backHref ? <a class="btn-secondary header-back" href={backHref}>← {backLabel || "Back"}</a> : <a class="btn-primary header-cta" href="/#categories">Explore tools ↗</a>}
       <details class="mobile-menu">
         <summary aria-label="Open navigation menu">☰</summary>
         <nav aria-label="Mobile navigation">
