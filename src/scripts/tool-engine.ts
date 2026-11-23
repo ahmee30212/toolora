@@ -46,6 +46,12 @@ if (root) {
     a.href = url; a.download = name; a.click(); URL.revokeObjectURL(url);
   };
 
+  const textTools = new Set([
+    "case-converter", "lorem-ipsum-generator", "text-diff-checker",
+    "number-system-converter", "bmi-calculator", "percentage-calculator",
+    "keyword-density-checker", "age-calculator", "password-generator", "qr-generator"
+  ]);
+
   if (textTools.has(slug)) {
     if (slug === "case-converter") selectField("case-mode","Conversion",[{label:"UPPERCASE",value:"UPPERCASE"},{label:"lowercase",value:"lowercase"},{label:"Title Case",value:"Title Case"},{label:"Sentence case",value:"Sentence case"}]);
     if (slug === "lorem-ipsum-generator") { input.placeholder = "Optional: enter number of paragraphs (default 3)"; document.querySelector("#input-label")!.textContent = "Paragraph count (optional)"; }
@@ -70,7 +76,7 @@ if (root) {
       case "lorem-ipsum-generator": {
         const n = Math.max(1, Math.min(20, Number(value) || 3));
         const sample = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer posuere, sapien at facilisis tincidunt, justo erat feugiat risus, vitae consequat nibh massa non erat.";
-        return setResult(Array.from({length:n},(_,i)=>sample).join("\n\n"), `${n} paragraphs`);
+        return setResult(Array.from({length:n},()=>sample).join("\n\n"), `${n} paragraphs`);
       }
       case "markdown-editor": {
         const html = value.split("\n").map(line => line.startsWith("# ") ? `<h1>${escapeHtml(line.slice(2))}</h1>` : line.startsWith("## ") ? `<h2>${escapeHtml(line.slice(3))}</h2>` : line.startsWith("- ") ? `<p>• ${escapeHtml(line.slice(2))}</p>` : `<p>${escapeHtml(line).replace(/\*\*(.+?)\*\*/g,"<strong>$1</strong>").replace(/\*(.+?)\*/g,"<em>$1</em>")}</p>`).join("");
@@ -84,7 +90,15 @@ if (root) {
       case "text-sorter": return setResult(value.split(/\r?\n/).sort((a,b)=>a.localeCompare(b,undefined,{numeric:true,sensitivity:"base"})).join("\n"));
       case "word-counter": return setResult([`Words: ${words(value).length}`,`Characters: ${value.length}`,`Characters without spaces: ${value.replace(/\s/g,"").length}`,`Lines: ${value ? value.split(/\r?\n/).length : 0}`,`Paragraphs: ${value.split(/\n\s*\n/).filter(x=>x.trim()).length}`].join("\n"));
       case "keyword-density-checker": { const k=get("keyword").trim().toLowerCase(); if(!k)throw new Error("Enter a keyword in the Keyword field."); const total=words(value).length; const count=(value.toLowerCase().match(new RegExp(k.replace(/[.*+?^${}()|[\]\\]/g,"\\$&"),"gu"))??[]).length; return setResult(`Keyword: ${k}\nOccurrences: ${count}\nTotal words: ${total}\nDensity: ${total ? (count/total*100).toFixed(2) : "0.00"}%\n\nNote: simple exact phrase count; not a search-engine ranking metric.`); }
-      case "base64-converter": return setResult(value.startsWith("decode:") ? decodeURIComponent(escape(atob(value.slice(7).trim()))) : btoa(unescape(encodeURIComponent(value))));
+      case "base64-converter": {
+        if (value.startsWith("decode:")) {
+          const bytes = Uint8Array.from(atob(value.slice(7).trim()), c => c.charCodeAt(0));
+          return setResult(new TextDecoder().decode(bytes));
+        }
+        const bytes = new TextEncoder().encode(value);
+        const binary = Array.from(bytes, byte => String.fromCharCode(byte)).join("");
+        return setResult(btoa(binary));
+      }
       case "html-encoder-decoder": return setResult(value.startsWith("decode:") ? new DOMParser().parseFromString(value.slice(7),"text/html").documentElement.textContent ?? "" : escapeHtml(value));
       case "json-formatter": { const parsed=JSON.parse(value); return setResult(JSON.stringify(parsed,null,2)); }
       case "csv-to-json": { const lines=value.trim().split(/\r?\n/); if(lines.length<2)throw new Error("Provide a header row and at least one data row."); const parse=(line:string)=>line.split(/,(?=(?:[^"]*"[^"]*")*[^"]*$)/).map(x=>x.trim().replace(/^"|"$/g,"").replace(/""/g,'"')); const headers=parse(lines[0]); return setResult(JSON.stringify(lines.slice(1).map(line=>Object.fromEntries(parse(line).map((v,i)=>[headers[i]??`column${i+1}`,v]))),null,2)); }
