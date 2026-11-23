@@ -30,6 +30,14 @@ if (root) {
     extra.append(wrap);
   };
   const get = (id: string) => document.querySelector<HTMLInputElement>(`#${id}`)?.value ?? "";
+  const selectField = (id: string, label: string, options: {label:string;value:string}[]) => {
+    const wrap=document.createElement("label");wrap.className="block text-xs font-semibold text-slate-600";
+    const title=document.createElement("span");title.textContent=label;wrap.append(title);
+    const select=document.createElement("select");select.id=id;select.className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-3 text-sm outline-none focus:border-blue-400";
+    for(const option of options){const item=document.createElement("option");item.value=option.value;item.textContent=option.label;select.append(item);}
+    wrap.append(select);extra.append(wrap);
+  };
+
   const escapeHtml = (s: string) => s.replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c] ?? c));
   const words = (s: string) => s.trim() ? s.trim().match(/\S+/gu) ?? [] : [];
   const loadScript = (src: string) => new Promise<void>((resolve,reject) => { const existing=document.querySelector<HTMLScriptElement>(`script[src="${src}"]`); if(existing){ if(existing.dataset.loaded==="true")resolve(); else {existing.addEventListener("load",()=>resolve(),{once:true});existing.addEventListener("error",()=>reject(new Error("A required library could not be loaded.")),{once:true});} return;} const script=document.createElement("script");script.src=src;script.async=true;script.onload=()=>{script.dataset.loaded="true";resolve();};script.onerror=()=>reject(new Error("A required library could not be loaded. Check your connection and try again."));document.head.append(script); });\n  const downloadFile = (blob: Blob, name: string) => {
@@ -38,7 +46,7 @@ if (root) {
   };
 
   if (textTools.has(slug)) {
-    if (slug === "case-converter") field("case-mode","Conversion","UPPERCASE");
+    if (slug === "case-converter") selectField("case-mode","Conversion",[{label:"UPPERCASE",value:"UPPERCASE"},{label:"lowercase",value:"lowercase"},{label:"Title Case",value:"Title Case"},{label:"Sentence case",value:"Sentence case"}]);
     if (slug === "lorem-ipsum-generator") { input.placeholder = "Optional: enter number of paragraphs (default 3)"; document.querySelector("#input-label")!.textContent = "Paragraph count (optional)"; }
     if (slug === "text-diff-checker") field("compare-text","Second text to compare","","text");
     if (slug === "number-system-converter") { field("from-base","From base","10","number"); field("to-base","To base","2","number"); }
@@ -181,5 +189,5 @@ if (root) {
   if(slug==="typing-speed-test")input.placeholder="Click Run tool to start, then type your text and click again.";
   copy.addEventListener("click", async()=>{if(!output.value){setStatus("There is no result to copy.",true);return;}try{await navigator.clipboard.writeText(output.value);setStatus("Result copied to clipboard.");}catch{setStatus("Clipboard access was blocked by the browser.",true);}});
   download.addEventListener("click",()=>{if(downloadBlob){downloadFile(downloadBlob, (download as HTMLButtonElement).dataset.filename ?? `toolora-${slug}.txt`);return;}if(!output.value){setStatus("There is no result to download.",true);return;}downloadFile(new Blob([output.value],{type:"text/plain;charset=utf-8"}),`toolora-${slug}.txt`);});
-  reset.addEventListener("click",()=>{input.value="";output.value="";extra.querySelectorAll("input").forEach(el=>{if(el instanceof HTMLInputElement)el.value=el.defaultValue;});downloadBlob=null;typingStarted=0;meta.textContent="Waiting for input";setStatus("Ready for new input.");});
+  reset.addEventListener("click",()=>{input.value="";output.value="";extra.querySelectorAll("input,select").forEach(el=>{if(el instanceof HTMLInputElement)el.value=el.defaultValue;else if(el instanceof HTMLSelectElement)el.selectedIndex=0;});downloadBlob=null;typingStarted=0;meta.textContent="Waiting for input";setStatus("Ready for new input.");});
 }
