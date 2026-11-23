@@ -23,7 +23,7 @@ const extraBlock = iconSource.match(/const extraIcons: Record<string, string\[]>
 const keys = (block) => [...block.matchAll(/["']?([a-zA-Z0-9-]+)["']?\s*:/g)].map((match) => match[1]);
 const iconNames = new Set([...keys(aliasBlock), ...keys(iconBlock)]);
 const extraNames = new Set(keys(extraBlock));
-const engineCases = new Set([...engineSource.matchAll(/case\\s+"([^"]+)"/g)].map((match) => match[1]));
+const engineCases = new Set([...engineSource.matchAll(/case\s+"([^"]+)"/g)].map((match) => match[1]));
 const specialHandlers = new Set([
   "image-compressor", "image-converter", "image-cropper", "image-resizer",
   "images-to-pdf", "pdf-to-images", "typing-speed-test", "text-to-speech"
