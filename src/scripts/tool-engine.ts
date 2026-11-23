@@ -35,7 +35,7 @@ if (root) {
   const get = (id: string) => document.querySelector<HTMLInputElement>(`#${id}`)?.value ?? "";
   const escapeHtml = (s: string) => s.replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c] ?? c));
   const words = (s: string) => s.trim() ? s.trim().match(/\S+/gu) ?? [] : [];
-  const downloadFile = (blob: Blob, name: string) => {
+  const loadScript = (src: string) => new Promise<void>((resolve,reject) => { const existing=document.querySelector<HTMLScriptElement>(`script[src="${src}"]`); if(existing){ if(existing.dataset.loaded==="true")resolve(); else {existing.addEventListener("load",()=>resolve(),{once:true});existing.addEventListener("error",()=>reject(new Error("A required library could not be loaded.")),{once:true});} return;} const script=document.createElement("script");script.src=src;script.async=true;script.onload=()=>{script.dataset.loaded="true";resolve();};script.onerror=()=>reject(new Error("A required library could not be loaded. Check your connection and try again."));document.head.append(script); });\n  const downloadFile = (blob: Blob, name: string) => {
     const url = URL.createObjectURL(blob); const a = document.createElement("a");
     a.href = url; a.download = name; a.click(); URL.revokeObjectURL(url);
   };
@@ -89,7 +89,7 @@ if (root) {
       case "text-binary-converter": return setResult(value.startsWith("decode:") ? value.slice(7).trim().split(/\s+/).map(x=>String.fromCodePoint(parseInt(x,2))).join("") : Array.from(value).map(c=>c.codePointAt(0)!.toString(2).padStart(8,"0")).join(" "));
       case "password-generator": { const len=Math.max(8,Math.min(128,Number(get("pass-length"))||20)); const chars="ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%&*_-+="; const random=new Uint32Array(len); crypto.getRandomValues(random); return setResult(Array.from(random,n=>chars[n%chars.length]).join(""),`${len} characters · generated with Web Crypto`); }
       case "password-strength-checker": { const score=[value.length>=12,value.length>=16,/[a-z]/.test(value)&&/[A-Z]/.test(value),/\d/.test(value),/[^A-Za-z0-9]/.test(value)].filter(Boolean).length; return setResult(`Estimated strength: ${["Very weak","Weak","Fair","Strong","Very strong","Excellent"][score]}\nLength: ${value.length}\nLowercase and uppercase: ${/[a-z]/.test(value)&&/[A-Z]/.test(value)?"Yes":"No"}\nNumbers: ${/\d/.test(value)?"Yes":"No"}\nSymbols: ${/[^A-Za-z0-9]/.test(value)?"Yes":"No"}\n\nThis is a local heuristic, not a breach or crack-time check.`); }
-      case "qr-generator": throw new Error("QR generation needs the QR workspace renderer; use the text result for now.");
+      case "qr-generator": throw new Error("Use the QR code preview control below to generate your code.");
       case "bio-generator": return setResult([`Creative: ${value} | Creating every day ✨`,`Professional: ${value} | Sharing ideas, experience and inspiration.`,`Minimal: ${value} • Create. Learn. Grow.`].join("\n\n"));
       case "caption-generator": return setResult([`A little moment, a lasting memory. ✨\n\n${value}`,`POV: You needed this today. 💫\n\n${value}`,`Good vibes, great moments. ❤️\n\n${value}`].join("\n\n---\n\n"));
       case "hashtag-generator": { const tags=value.toLowerCase().match(/[\p{L}\p{N}]+/gu)??[]; const unique=[...new Set(tags)].filter(t=>t.length>2); return setResult([...unique,...["foryou","trending","contentcreator","explorepage","dailyinspiration"]].slice(0,20).map(t=>"#"+t).join(" "),"Suggested tags · review relevance before posting"); }
@@ -141,7 +141,7 @@ if (root) {
     field("image-width","Output width (px)","1200","number");field("image-height","Output height (px)","800","number");
     if(slug==="image-converter")field("image-format","Output format","image/png");
   }
-  if(slug==="text-to-speech")input.placeholder="Enter the text you want to hear.";
+  if(slug==="qr-generator"){ input.placeholder="Enter a URL or text to encode."; const preview=document.createElement("div");preview.id="qr-preview";preview.className="mt-5 flex justify-center";extra.append(preview); }\n  if(slug==="text-to-speech")input.placeholder="Enter the text you want to hear.";
   if(slug==="typing-speed-test")input.placeholder="Click Run tool to start, then type your text and click again.";
   copy.addEventListener("click", async()=>{if(!output.value){setStatus("There is no result to copy.",true);return;}try{await navigator.clipboard.writeText(output.value);setStatus("Result copied to clipboard.");}catch{setStatus("Clipboard access was blocked by the browser.",true);}});
   download.addEventListener("click",()=>{if(downloadBlob){downloadFile(downloadBlob, (download as HTMLButtonElement).dataset.filename ?? `toolora-${slug}.txt`);return;}if(!output.value){setStatus("There is no result to download.",true);return;}downloadFile(new Blob([output.value],{type:"text/plain;charset=utf-8"}),`toolora-${slug}.txt`);});
