@@ -10,7 +10,7 @@ const category = categories.find((item) => item.slug === tool.category);
 ---
 <SiteLayout title={`${tool.name} — Toolora`} description={tool.description}>
   <SiteHeader backHref={`/categories/${tool.category}`} backLabel={category?.name ?? "Category"} />
-  <main>
+  <main id="main-content">
     <section class="page-hero"><div class="container"><div class="breadcrumb"><a href="/">Home</a> / <a href={`/categories/${tool.category}`}>{category?.name}</a> / {tool.name}</div><span class="eyebrow">Free online utility</span><h1 class="display text-4xl md:text-5xl font-extrabold mt-3">{tool.name}</h1><p class="text-slate-500 mt-3 text-sm max-w-2xl">{tool.description}</p><div class="flex flex-wrap gap-2 mt-5"><span class="pill"><Icon name="check" size={12}/> Free to use</span><span class="pill"><Icon name="shield-check" size={12}/> Browser-based</span><span class="pill"><Icon name="zap" size={12}/> No account required</span></div></div></section>
     <section class="section pt-10"><div class="container max-w-4xl">
       <div class="tool-panel workspace-panel">
