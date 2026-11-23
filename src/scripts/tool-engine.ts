@@ -106,6 +106,20 @@ if (root) {
 
   run.addEventListener("click", async () => {
     try {
+      if (slug === "qr-generator") {
+        if (!input.value.trim()) throw new Error("Enter text or a URL first.");
+        await loadScript("https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js");
+        const QR=(window as any).QRCode;
+        if(!QR) throw new Error("QR library failed to load.");
+        const preview=document.querySelector("#qr-preview")!;
+        preview.innerHTML="";
+        new QR(preview,{text:input.value,width:256,height:256,colorDark:"#111827",colorLight:"#ffffff",correctLevel:QR.CorrectLevel.H});
+        await new Promise(resolve=>setTimeout(resolve,150));
+        const canvas=preview.querySelector("canvas");
+        if(!canvas) throw new Error("QR image could not be rendered.");
+        downloadBlob=await new Promise<Blob>((resolve,reject)=>canvas.toBlob(blob=>blob?resolve(blob):reject(new Error("QR export failed."))));
+        output.value="QR code generated successfully.";meta.textContent="QR code ready";(download as HTMLButtonElement).dataset.filename="toolora-qr.png";setStatus("QR code generated in your browser.");return;
+      }
       if (["image-compressor","image-converter","image-cropper","image-resizer","images-to-pdf","pdf-to-images","typing-speed-test","text-to-speech"].includes(slug)) {
         await runSpecial();
       } else {
