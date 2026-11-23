@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "astro dev",
-    "build": "astro check && astro build",
+    "validate": "node scripts/validate-catalog.mjs",
+    "build": "npm run validate && astro check && astro build",
     "preview": "astro preview",
     "check": "astro check"
   },
