@@ -273,6 +273,7 @@ if (root) {
       for(let i=0;i<files.length;i++){
         const data=await new Promise<string>((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(String(reader.result));reader.onerror=()=>reject(new Error("Could not read image."));reader.readAsDataURL(files[i]);});
         const image=new Image();await new Promise<void>((resolve,reject)=>{image.onload=()=>resolve();image.onerror=()=>reject(new Error("Invalid image file."));image.src=data;});
+        if(image.width>12000||image.height>12000||image.width*image.height>40000000) throw new Error("An image exceeds the 40-megapixel safety limit.");
         const pageW=595.28,pageH=841.89,ratio=Math.min(pageW/image.width,pageH/image.height);
         if(i>0)pdf.addPage();
         pdf.addImage(data,files[i].type==="image/png"?"PNG":"JPEG",(pageW-image.width*ratio)/2,(pageH-image.height*ratio)/2,image.width*ratio,image.height*ratio);
@@ -288,52 +289,22 @@ if (root) {
       if(!pdfjs) throw new Error("PDF renderer failed to load.");
       pdfjs.GlobalWorkerOptions.workerSrc="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
       const doc=await pdfjs.getDocument({data:await file.arrayBuffer()}).promise;
-      for(let p=1;p<=doc.numPages;p++){
-        const page=await doc.getPage(p),viewport=page.getViewport({scale:1.5}),canvas=document.createElement("canvas");
-        canvas.width=viewport.width;canvas.height=viewport.height;
-        const pageContext=canvas.getContext("2d");if(!pageContext)throw new Error("Canvas is unavailable.");await page.render({canvasContext:pageContext,viewport}).promise;
-        const blob=await new Promise<Blob>((resolve,reject)=>canvas.toBlob(b=>b?resolve(b):reject(new Error("Page export failed.")),"image/png"));
-        downloadFile(blob,`toolora-page-${p}.png`);
-      }
-      output.value=`${doc.numPages} page(s) exported as PNG images. Your browser may show multiple downloads.`;meta.textContent="PDF pages exported";setStatus("PDF pages converted locally.");return;
-    }
-    if (["image-compressor","image-converter","image-cropper","image-resizer"].includes(slug)) {
-      const file=document.querySelector<HTMLInputElement>("#file-input")?.files?.[0];
-      if(!file) throw new Error("Choose an image file first.");
-      if (file.size > 25 * 1024 * 1024) throw new Error("Choose an image smaller than 25 MB.");
-      const img=new Image(),url=URL.createObjectURL(file);
+      if(doc.numPages>100){await doc.destroy();throw new Error("This PDF has more than 100 pages. Split it into smaller files first.");}
       try {
-        await new Promise<void>((resolve,reject)=>{img.onload=()=>resolve();img.onerror=()=>reject(new Error("Could not open this image."));img.src=url;});
-        const canvas=document.createElement("canvas"),ctx=canvas.getContext("2d");if(!ctx)throw new Error("Canvas is unavailable.");
-        const width=Math.max(1,Number(get("image-width"))||img.width),height=Math.max(1,Number(get("image-height"))||img.height);
-        canvas.width=slug==="image-cropper"?Math.min(img.width,width):width;canvas.height=slug==="image-cropper"?Math.min(img.height,height):height;
-        if (canvas.width > 12000 || canvas.height > 12000 || canvas.width * canvas.height > 40000000) throw new Error("Output dimensions are too large. Keep each side under 12,000 px and total pixels under 40 million.");
-        if (slug === "image-cropper") {
-          const targetAspect = canvas.width / canvas.height;
-          const sourceAspect = img.width / img.height;
-          if (sourceAspect > targetAspect) {
-            const sourceWidth = img.height * targetAspect;
-            const sourceX = (img.width - sourceWidth) / 2;
-            ctx.drawImage(img, sourceX, 0, sourceWidth, img.height, 0, 0, canvas.width, canvas.height);
-          } else {
-            const sourceHeight = img.width / targetAspect;
-            const sourceY = (img.height - sourceHeight) / 2;
-            ctx.drawImage(img, 0, sourceY, img.width, sourceHeight, 0, 0, canvas.width, canvas.height);
-          }
-        } else {
-          ctx.drawImage(img,0,0,canvas.width,canvas.height);
+        for(let p=1;p<=doc.numPages;p++){
+          const page=await doc.getPage(p),viewport=page.getViewport({scale:1.5});
+          if(viewport.width>12000||viewport.height>12000||viewport.width*viewport.height>40000000) throw new Error("A PDF page exceeds the 40-megapixel safety limit.");
+          const canvas=document.createElement("canvas");
+          canvas.width=viewport.width;canvas.height=viewport.height;
+          const pageContext=canvas.getContext("2d");if(!pageContext)throw new Error("Canvas is unavailable.");await page.render({canvasContext:pageContext,viewport}).promise;
+          const blob=await new Promise<Blob>((resolve,reject)=>canvas.toBlob(b=>b?resolve(b):reject(new Error("Page export failed.")),"image/png"));
+          downloadFile(blob,"toolora-page-"+p+".png");
+          page.cleanup();
+          canvas.width=0;canvas.height=0;
         }
-        const type=slug==="image-converter"?(get("image-format")||"image/png"):"image/jpeg";
-        const quality = Math.min(1, Math.max(0.1, Number(get("image-quality")) || 0.82));
-        const blob=await new Promise<Blob>((resolve,reject)=>canvas.toBlob(b=>b?resolve(b):reject(new Error("Image export failed.")),type,quality));
-        downloadBlob=blob;
-        const extension=type==="image/jpeg"?"jpg":type.split("/")[1]||"png";
-        output.value=`Original: ${img.width} × ${img.height}\nOutput: ${canvas.width} × ${canvas.height}\nOriginal size: ${file.size.toLocaleString()} bytes\nOutput size: ${blob.size.toLocaleString()} bytes\nFormat: ${type}`;
-        meta.textContent="Image processed";
-        (download as HTMLButtonElement).dataset.filename=`toolora-${slug}.${extension}`;
-        setStatus("Image processed locally. Use Download to save it.");
+        output.value=doc.numPages+" page(s) exported as PNG images. Your browser may show multiple downloads.";meta.textContent="PDF pages exported";setStatus("PDF pages converted locally.");
       } finally {
-        URL.revokeObjectURL(url);
+        await doc.destroy();
       }
       return;
     }
