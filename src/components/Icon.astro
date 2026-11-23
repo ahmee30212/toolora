@@ -25,16 +25,51 @@ const icons: Record<string, string[]> = {
   "list-checks": ["M10 6h11","M10 12h11","M10 18h11","m3 6 1 1 2-2","m3 12 1 1 2-2","m3 18 1 1 2-2"]
 };
 const aliases: Record<string, string> = {
-  images: "image", crop: "image", maximize: "gauge", "file-image": "file-text", files: "file-text",
-  "case-sensitive": "type", text: "type", "file-pen-line": "file-text", "list-filter": "list-checks",
-  link: "arrow-up-right", "chart-no-axes-combined": "gauge", "arrow-down-wide-narrow": "list-checks",
-  "volume-2": "sparkles", "align-left": "type", "calendar-days": "calculator", activity: "gauge",
-  percent: "calculator", keyboard: "type", "key-round": "shield-check", binary: "code", table: "grid-2x2",
-  "code-xml": "code", braces: "code", "file-spreadsheet": "file-text", "clock-3": "calculator",
-  globe: "at-sign", fingerprint: "shield-check", "file-code": "code", pipette: "palette", blend: "palette",
-  "user-round": "at-sign", "message-square-text": "file-text", hash: "code", "qr-code": "code"
+  images: "images", "file-image": "file-image", files: "files", "case-sensitive": "case-sensitive",
+  text: "text", "file-pen-line": "file-pen-line", "list-filter": "list-filter", link: "link",
+  "chart-no-axes-combined": "chart", "git-compare": "git-compare", "arrow-down-wide-narrow": "sort",
+  "volume-2": "volume", "align-left": "align-left", "calendar-days": "calendar", activity: "activity",
+  percent: "percent", keyboard: "keyboard", "key-round": "key", binary: "binary", table: "table",
+  "code-xml": "code-xml", braces: "braces", "file-spreadsheet": "spreadsheet", "clock-3": "clock",
+  globe: "globe", fingerprint: "fingerprint", "file-code": "file-code", pipette: "pipette",
+  blend: "blend", "user-round": "user", "message-square-text": "message", hash: "hash", "qr-code": "qr"
 };
-const paths = icons[name] ?? icons[aliases[name] ?? "sparkles"] ?? icons.sparkles;
+const extraIcons: Record<string, string[]> = {
+  images:["M4 4h13a2 2 0 0 1 2 2v12","M8 8h12a2 2 0 0 1 2 2v9H8z","m9 17 3-3 2 2 2-2 4 4"],
+  "file-image":["M5 2h10l5 5v15H5z","M15 2v5h5","M8 13h.01","m8 19 3-3 2 2 2-2 3 3"],
+  files:["M7 3h10l4 4v14H7z","M17 3v4h4","M3 7v14h12","M10 12h7","M10 16h7"],
+  "case-sensitive":["M4 19 10 5l6 14","M6 15h8","M16 13h5","M18.5 10v8","M17 16h3"],
+  text:["M4 6h16","M4 12h16","M4 18h10"],
+  "file-pen-line":["M12 20h9","M16.5 3.5a2.1 2.1 0 0 1 3 3L9 17l-4 1 1-4Z","M4 3h8"],
+  "list-filter":["M4 6h16","M7 12h10","M10 18h4","M4 6l2 2"],
+  link:["M10 13a5 5 0 0 0 7.1 0l3-3a5 5 0 0 0-7.1-7.1l-1.7 1.7","M14 11a5 5 0 0 0-7.1 0l-3 3a5 5 0 0 0 7.1 7.1l1.7-1.7"],
+  chart:["M3 3v18h18","M7 14l4-4 4 3 6-7","M17 6h4v4"],
+  "git-compare":["M6 3v12","M18 9v12","M3 6l3-3 3 3","M15 18l3 3 3-3","M6 15a3 3 0 1 0 0 6","M18 3a3 3 0 1 0 0 6"],
+  sort:["M8 6h13","M8 12h9","M8 18h5","m3 8 2-2 2 2","M5 6v14"],
+  volume:["M11 5 6 9H3v6h3l5 4z","M15 9a5 5 0 0 1 0 6","M18 5a10 10 0 0 1 0 14"],
+  "align-left":["M4 6h16","M4 10h11","M4 14h16","M4 18h8"],
+  calendar:["M4 5h16v16H4z","M8 3v4","M16 3v4","M4 10h16","M8 14h.01","M12 14h.01","M16 14h.01"],
+  activity:["M3 12h4l3-8 4 16 3-8h4"],
+  percent:["M19 5 5 19","M7 7h.01","M17 17h.01","M9 7a2 2 0 1 1-4 0 2 2 0 0 1 4 0Z","M19 17a2 2 0 1 1-4 0 2 2 0 0 1 4 0Z"],
+  keyboard:["M3 6h18v12H3z","M7 10h.01","M11 10h.01","M15 10h.01","M17 14H7"],
+  key:["M21 2 11 12","M16 7l3 3","M13 10l3 3","M7 14a5 5 0 1 0 0 10 5 5 0 0 0 0-10Z"],
+  binary:["M7 5h3v5H7z","M14 5h3v5h-3z","M7 14h3v5H7z","M14 14h3v5h-3z"],
+  table:["M3 4h18v16H3z","M3 10h18","M9 4v16","M15 4v16"],
+  "code-xml":["m8 8-4 4 4 4","m16 8 4 4-4 4","m14 4-4 16"],
+  braces:["M8 4H6a2 2 0 0 0-2 2v3a3 3 0 0 1-2 3 3 3 0 0 1 2 3v3a2 2 0 0 0 2 2h2","M16 4h2a2 2 0 0 1 2 2v3a3 3 0 0 0 2 3 3 3 0 0 0-2 3v3a2 2 0 0 1-2 2h-2"],
+  spreadsheet:["M4 3h16v18H4z","M4 8h16","M4 13h16","M9 8v13","M15 8v13"],
+  clock:["M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20Z","M12 6v6l4 2"],
+  globe:["M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20Z","M2 12h20","M12 2a15 15 0 0 1 0 20","M12 2a15 15 0 0 0 0 20"],
+  fingerprint:["M12 11a2 2 0 0 0-2 2v2","M16 13v2a4 4 0 0 1-8 0v-3a4 4 0 0 1 8 0Z","M6 11a6 6 0 0 1 12 0","M4 10a8 8 0 0 1 16 0","M12 19v3"],
+  "file-code":["M5 2h10l5 5v15H5z","M15 2v5h5","m9 13-2 2 2 2","m15 13 2 2-2 2"],
+  pipette:["m2 22 1-5 11-11","m14 4 6 6","m12 6 6 6","M3 17l4 4"],
+  blend:["M12 3a9 9 0 1 0 9 9","M12 3v9h9","M7 17l3-3"],
+  user:["M20 21a8 8 0 0 0-16 0","M12 13a5 5 0 1 0 0-10 5 5 0 0 0 0 10Z"],
+  message:["M21 11.5a8.5 8.5 0 0 1-8.5 8.5H5l-3 2v-7.5A8.5 8.5 0 1 1 21 11.5Z","M8 11h8","M8 15h5"],
+  hash:["M4 9h16","M3 15h16","M10 3 8 21","M16 3l-2 18"],
+  qr:["M3 3h7v7H3z","M14 3h7v7h-7z","M3 14h7v7H3z","M14 14h3v3h-3z","M19 14v2","M14 19h7v2h-7z"]
+};
+const paths = extraIcons[aliases[name] ?? ""] ?? icons[name] ?? icons[aliases[name] ?? "sparkles"] ?? icons.sparkles;
 ---
 <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width={strokeWidth} stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
   {paths.map((d) => <path d={d} />)}
