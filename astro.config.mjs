@@ -1,9 +1,10 @@
 import { defineConfig } from "astro/config";
-import react from "@astrojs/react";
-import tailwind from "@astrojs/tailwind";
+import tailwindcss from "@tailwindcss/vite";
 
 export default defineConfig({
-  integrations: [react(), tailwind({ applyBaseStyles: false })],
+  vite: {
+    plugins: [tailwindcss()]
+  },
   output: "static",
   site: "https://toolora.m-ahmad30212.workers.dev"
 });
