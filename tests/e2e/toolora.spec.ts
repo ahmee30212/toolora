@@ -213,7 +213,7 @@ test("password generator uses the requested length and cryptographic API", async
   await page.getByRole("button", { name: /run tool/i }).click();
   const result = await page.locator("#tool-output").inputValue();
   expect(result).toHaveLength(24);
-  await expect(page.locator("#tool-status")).toContainText("Web Crypto");
+  await expect(page.locator("#result-meta")).toContainText("Web Crypto");
 });
 
 test("URL, binary and XML utilities process valid data", async ({ page }) => {
@@ -228,7 +228,7 @@ test("URL, binary and XML utilities process valid data", async ({ page }) => {
   await page.goto("/tools/text-binary-converter/");
   await page.locator("#tool-input").fill("Hi");
   await page.getByRole("button", { name: /run tool/i }).click();
-  await expect(page.locator("#tool-output")).toHaveValue("1001000 1101001");
+  await expect(page.locator("#tool-output")).toHaveValue("01001000 01101001");
 
   await page.goto("/tools/xml-formatter/");
   await page.locator("#tool-input").fill("<root><item>1</item></root>");
@@ -264,7 +264,7 @@ test("social and design generators return usable output", async ({ page }) => {
   await page.goto("/tools/caption-generator/");
   await page.locator("#tool-input").fill("A sunny day");
   await page.getByRole("button", { name: /run tool/i }).click();
-  await expect(page.locator("#tool-output")).toContainText("A sunny day");
+  await expect(page.locator("#tool-output")).toHaveValue(/A sunny day/);
 });
 
 test("image resizer preserves aspect ratio when only one dimension is supplied", async ({ page }) => {
@@ -284,4 +284,25 @@ test("image resizer preserves aspect ratio when only one dimension is supplied",
   await page.locator("#image-height").fill("0");
   await page.getByRole("button", { name: /run tool/i }).click();
   await expect(page.locator("#tool-output")).toHaveValue(/Output: 8 × 4/);
+});
+
+
+test("search filters the tool catalog on the client and updates the query URL", async ({ page }) => {
+  await page.goto("/search/?q=word");
+  await expect(page.locator("#search-summary")).toContainText("result(s) for");
+  await expect(page.locator('#search-results a[href="/tools/word-counter/"]')).toBeVisible();
+  await page.locator("#tool-search-input").fill("PDF");
+  await expect(page.locator("#search-results .tool-row").first()).toBeVisible();
+  await page.getByRole("button", { name: /search/i }).click();
+  await expect(page).toHaveURL(/q=PDF/);
+  await page.locator("#tool-search-input").fill("zzzz-no-tool-match");
+  await expect(page.locator("#search-state-title")).toHaveText("No matching tools found");
+});
+
+test("internal navigation uses canonical trailing-slash routes", async ({ page }) => {
+  await page.goto("/");
+  const nonCanonical = await page.locator('a[href^="/categories/"], a[href^="/tools/"], a[href^="/search"], a[href^="/privacy"], a[href^="/terms"]').evaluateAll((links) =>
+    links.map((link) => new URL((link as HTMLAnchorElement).href).pathname).filter((path) => !path.endsWith("/"))
+  );
+  expect(nonCanonical).toEqual([]);
 });

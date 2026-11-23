@@ -41,6 +41,19 @@ if (root) {
     wrap.append(title, control);
     extra.append(wrap);
   };
+  const textareaField = (id: string, label: string, value: string) => {
+    const wrap = document.createElement("label");
+    wrap.className = "block text-xs font-semibold text-slate-600";
+    const title = document.createElement("span");
+    title.textContent = label;
+    const control = document.createElement("textarea");
+    control.id = id;
+    control.rows = 5;
+    control.value = value;
+    control.className = "mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-3 text-sm outline-none focus:border-blue-400";
+    wrap.append(title, control);
+    extra.append(wrap);
+  };
   const get = (id: string) => document.querySelector<HTMLInputElement>(`#${id}`)?.value ?? "";
   const selectField = (id: string, label: string, options: {label:string;value:string}[]) => {
     const wrap=document.createElement("label");wrap.className="block text-xs font-semibold text-slate-600";
@@ -144,7 +157,7 @@ if (root) {
   if (textTools.has(slug)) {
     if (slug === "case-converter") selectField("case-mode","Conversion",[{label:"UPPERCASE",value:"UPPERCASE"},{label:"lowercase",value:"lowercase"},{label:"Title Case",value:"Title Case"},{label:"Sentence case",value:"Sentence case"}]);
     if (slug === "lorem-ipsum-generator") { input.placeholder = "Optional: enter number of paragraphs (default 3)"; document.querySelector("#input-label")!.textContent = "Paragraph count (optional)"; }
-    if (slug === "text-diff-checker") field("compare-text","Second text to compare","","text");
+    if (slug === "text-diff-checker") textareaField("compare-text","Second text to compare","");
     if (slug === "number-system-converter") { field("from-base","From base","10","number"); field("to-base","To base","2","number"); }
     if (slug === "bmi-calculator") { field("weight-kg","Weight (kg)","70","number"); field("height-cm","Height (cm)","175","number"); }
     if (slug === "percentage-calculator") { field("percent-value","Percentage","15","number"); field("percent-total","Number","200","number"); }

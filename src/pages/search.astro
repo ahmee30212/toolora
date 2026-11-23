@@ -3,15 +3,119 @@ import SiteLayout from "../layouts/SiteLayout.astro";
 import Icon from "../components/Icon.astro";
 import SiteHeader from "../components/SiteHeader.astro";
 import SiteFooter from "../components/SiteFooter.astro";
-import { tools, categories } from "../data/tools";
-const query = (Astro.url.searchParams.get("q") ?? "").trim();
-const normalized = query.toLowerCase();
-const results = normalized ? tools.filter((tool) => `${tool.name} ${tool.description} ${tool.category}`.toLowerCase().includes(normalized)) : [];
-const categoryName = (slug: string) => categories.find((category) => category.slug === slug)?.name ?? slug;
 ---
-<SiteLayout title={`Search ${query ? `“${query}”` : "Tools"} — Toolora`} description="Search Toolora's free online tools and utilities.">
+<SiteLayout title="Search tools — Toolora" description="Search Toolora's free online tools and utilities by name, task or category.">
   <SiteHeader backHref="/" backLabel="Home" />
-  <main id="main-content"><section class="page-hero"><div class="container"><div class="breadcrumb"><a href="/">Home</a> / Search</div><span class="eyebrow">Find what you need</span><h1 class="display text-4xl md:text-5xl font-extrabold mt-3">Search Toolora.</h1><p class="text-slate-500 mt-3 text-sm">Search across our collection of practical online utilities.</p><form class="search-shell mx-0 max-w-2xl" action="/search" method="get"><span class="search-icon"><Icon name="search" size={19}/></span><input name="q" value={query} placeholder="Try “image”, “PDF”, “word counter”..." aria-label="Search tools"/><button class="btn-primary">Search</button></form><p class="text-sm text-slate-500">{query ? `${results.length} result(s) for “${query}”` : "Enter a keyword to find a tool."}</p></div></section>
-  <section class="section"><div class="container"><div class="tool-list">{results.map((tool)=><a class="tool-row" href={`/tools/${tool.slug}`}><span class="category-icon"><Icon name={tool.icon} size={21}/></span><span><strong>{tool.name}</strong><p>{categoryName(tool.category)} · {tool.description}</p></span><span class="arrow"><Icon name="arrow-up-right" size={18}/></span></a>)}</div>{query && results.length===0 && <div class="tool-panel text-center py-14"><span class="category-icon mx-auto mb-4"><Icon name="search" size={22}/></span><h2 class="display text-2xl font-bold">No matching tools found</h2><p class="text-sm text-slate-500 mt-2">Try a different keyword or browse our categories.</p><a class="btn-primary mt-5" href="/#categories">Browse categories</a></div>}{!query && <div class="tool-panel text-center py-12"><h2 class="display text-xl font-bold">Find your next useful tool</h2><p class="text-sm text-slate-500 mt-2">Search by task, category or tool name.</p><a class="btn-primary mt-5" href="/#categories">Browse categories</a></div>}</div></section></main>
+  <main id="main-content">
+    <section class="page-hero">
+      <div class="container">
+        <div class="breadcrumb"><a href="/">Home</a> / Search</div>
+        <span class="eyebrow">Find what you need</span>
+        <h1 class="display text-4xl md:text-5xl font-extrabold mt-3">Search Toolora.</h1>
+        <p class="text-slate-500 mt-3 text-sm">Search across our collection of practical online utilities.</p>
+        <form class="search-shell mx-0 max-w-2xl" action="/search/" method="get" id="tool-search-form">
+          <span class="search-icon"><Icon name="search" size={19}/></span>
+          <input id="tool-search-input" name="q" type="search" placeholder="Try “image”, “PDF”, “word counter”..." aria-label="Search tools" autocomplete="off"/>
+          <button class="btn-primary" type="submit">Search</button>
+        </form>
+        <p id="search-summary" class="text-sm text-slate-500" role="status" aria-live="polite">Enter a keyword to find a tool.</p>
+      </div>
+    </section>
+    <section class="section">
+      <div class="container">
+        <div id="search-results" class="tool-list" aria-live="polite" aria-relevant="additions removals"></div>
+        <div id="search-state" class="tool-panel text-center py-14">
+          <span class="category-icon mx-auto mb-4"><Icon name="search" size={22}/></span>
+          <h2 id="search-state-title" class="display text-2xl font-bold">Find your next useful tool</h2>
+          <p id="search-state-copy" class="text-sm text-slate-500 mt-2">Search by task, category or tool name.</p>
+          <a class="btn-primary mt-5" href="/#categories">Browse categories</a>
+        </div>
+        <noscript><p class="tool-panel mt-5 text-sm text-slate-600">Enable JavaScript to search the Toolora catalog.</p></noscript>
+      </div>
+    </section>
+  </main>
   <SiteFooter />
+  <script>
+    import { tools, categories } from "../data/tools";
+
+    const form = document.querySelector<HTMLFormElement>("#tool-search-form");
+    const input = document.querySelector<HTMLInputElement>("#tool-search-input");
+    const summary = document.querySelector<HTMLElement>("#search-summary");
+    const results = document.querySelector<HTMLElement>("#search-results");
+    const state = document.querySelector<HTMLElement>("#search-state");
+    const stateTitle = document.querySelector<HTMLElement>("#search-state-title");
+    const stateCopy = document.querySelector<HTMLElement>("#search-state-copy");
+    const categoryNames = new Map(categories.map((category) => [category.slug, category.name]));
+
+    const renderResults = () => {
+      if (!input || !summary || !results || !state || !stateTitle || !stateCopy) return;
+      const query = input.value.trim();
+      const normalized = query.toLocaleLowerCase();
+      results.replaceChildren();
+
+      if (!normalized) {
+        summary.textContent = "Enter a keyword to find a tool.";
+        state.hidden = false;
+        stateTitle.textContent = "Find your next useful tool";
+        stateCopy.textContent = "Search by task, category or tool name.";
+        return;
+      }
+
+      const matches = tools.filter((tool) => {
+        const category = categoryNames.get(tool.category) ?? tool.category;
+        return [tool.name, tool.slug, tool.description, tool.category, category]
+          .join(" ")
+          .toLocaleLowerCase()
+          .includes(normalized);
+      });
+      summary.textContent = matches.length + " result(s) for “" + query + "”";
+
+      if (!matches.length) {
+        state.hidden = false;
+        stateTitle.textContent = "No matching tools found";
+        stateCopy.textContent = "Try a different keyword or browse our categories.";
+        return;
+      }
+
+      state.hidden = true;
+      for (const tool of matches) {
+        const link = document.createElement("a");
+        link.className = "tool-row";
+        link.href = "/tools/" + tool.slug + "/";
+
+        const icon = document.createElement("span");
+        icon.className = "category-icon";
+        icon.setAttribute("aria-hidden", "true");
+        icon.textContent = tool.name.slice(0, 1).toUpperCase();
+
+        const copy = document.createElement("span");
+        const title = document.createElement("strong");
+        title.textContent = tool.name;
+        const description = document.createElement("p");
+        description.textContent = (categoryNames.get(tool.category) ?? tool.category) + " · " + tool.description;
+        copy.append(title, description);
+
+        const arrow = document.createElement("span");
+        arrow.className = "arrow";
+        arrow.setAttribute("aria-hidden", "true");
+        arrow.textContent = "↗";
+        link.append(icon, copy, arrow);
+        results.append(link);
+      }
+    };
+
+    if (form && input) {
+      input.value = new URLSearchParams(window.location.search).get("q") ?? "";
+      input.addEventListener("input", renderResults);
+      form.addEventListener("submit", (event) => {
+        event.preventDefault();
+        const url = new URL(window.location.href);
+        if (input.value.trim()) url.searchParams.set("q", input.value.trim());
+        else url.searchParams.delete("q");
+        window.history.replaceState({}, "", url);
+        renderResults();
+      });
+      renderResults();
+    }
+  </script>
 </SiteLayout>
