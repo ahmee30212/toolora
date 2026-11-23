@@ -116,32 +116,55 @@ if (root) {
   });
 
   async function runSpecial() {
-    if (["image-compressor","image-converter","image-cropper","image-resizer","images-to-pdf","pdf-to-images"].includes(slug)) {
-      const file = (document.querySelector<HTMLInputElement>("#file-input")?.files?.[0]);
-      if (!file) throw new Error("Choose an image file first.");
-      const img = new Image(); const url=URL.createObjectURL(file);
-      await new Promise<void>((resolve,reject)=>{img.onload=()=>resolve();img.onerror=()=>reject(new Error("Could not open this image."));img.src=url;});
-      const canvas=document.createElement("canvas"); const ctx=canvas.getContext("2d"); if(!ctx)throw new Error("Canvas is unavailable.");
-      const width=Math.max(1,Number(get("image-width"))||img.width),height=Math.max(1,Number(get("image-height"))||img.height);
-      canvas.width=slug==="image-cropper"?Math.min(img.width,width):width; canvas.height=slug==="image-cropper"?Math.min(img.height,height):height;
-      if(slug==="image-cropper")ctx.drawImage(img,0,0,canvas.width,canvas.height,0,0,canvas.width,canvas.height);else ctx.drawImage(img,0,0,canvas.width,canvas.height);
-      const type=slug==="image-converter"?(get("image-format")||"image/png"): "image/jpeg";
-      const blob=await new Promise<Blob>((resolve,reject)=>canvas.toBlob(b=>b?resolve(b):reject(new Error("Image export failed.")),type,0.82));
-      downloadBlob=blob; output.value=`Original: ${img.width} × ${img.height}\nOutput: ${canvas.width} × ${canvas.height}\nOriginal size: ${file.size.toLocaleString()} bytes\nOutput size: ${blob.size.toLocaleString()} bytes\n\nUse Download to save the processed image.`; meta.textContent="Image processed"; setStatus("Image processed locally. Use Download to save it."); (download as HTMLButtonElement).dataset.filename="toolora-image";
-      URL.revokeObjectURL(url); (download as HTMLButtonElement).dataset.image="true"; return;
+    if (slug === "images-to-pdf") {
+      const files=Array.from(document.querySelector<HTMLInputElement>("#file-input")?.files??[]);
+      if(!files.length) throw new Error("Choose one or more images first.");
+      await loadScript("https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js");
+      const jsPDF=(window as any).jspdf?.jsPDF;
+      if(!jsPDF) throw new Error("PDF library failed to initialize.");
+      const pdf=new jsPDF({orientation:"portrait",unit:"pt",format:"a4"});
+      for(let i=0;i<files.length;i++){
+        const data=await new Promise<string>((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(String(reader.result));reader.onerror=()=>reject(new Error("Could not read image."));reader.readAsDataURL(files[i]);});
+        const image=new Image();await new Promise<void>((resolve,reject)=>{image.onload=()=>resolve();image.onerror=()=>reject(new Error("Invalid image file."));image.src=data;});
+        const pageW=595.28,pageH=841.89,ratio=Math.min(pageW/image.width,pageH/image.height);
+        if(i>0)pdf.addPage();
+        pdf.addImage(data,"JPEG",(pageW-image.width*ratio)/2,(pageH-image.height*ratio)/2,image.width*ratio,image.height*ratio);
+      }
+      downloadBlob=pdf.output("blob");output.value=`${files.length} image(s) combined into a PDF. Use Download to save it.`;meta.textContent="PDF created";(download as HTMLButtonElement).dataset.filename="toolora-images.pdf";setStatus("PDF created in your browser.");return;
     }
-    if(slug==="text-to-speech") { if(!("speechSynthesis" in window))throw new Error("Speech synthesis is not supported in this browser."); speechSynthesis.cancel(); speechSynthesis.speak(new SpeechSynthesisUtterance(input.value)); setStatus("Speech playback started using your browser voice."); return; }
-    if(slug==="typing-speed-test") { if(!typingStarted){typingStarted=Date.now();setStatus("Timer started. Type the displayed sample into the input.");input.placeholder="Start typing the sample text here...";return;} const mins=(Date.now()-typingStarted)/60000;const wpm=Math.round(words(input.value).length/Math.max(mins,.01));return setResult(`Elapsed: ${Math.round((Date.now()-typingStarted)/1000)} seconds\nWords per minute: ${wpm}\nCharacters: ${input.value.length}`); }
-    throw new Error("This file conversion mode is not enabled yet.");
-  }
-
-  if(["image-compressor","image-converter","image-cropper","image-resizer"].includes(slug)) {
-    input.classList.add("hidden");
-    const fileLabel=document.createElement("label");fileLabel.className="block text-sm font-bold mb-2";fileLabel.textContent=slug==="images-to-pdf"?"Choose images":slug==="pdf-to-images"?"Choose PDF":"Choose image";
-    const file=document.createElement("input");file.type="file";file.accept=slug==="pdf-to-images"?"application/pdf":"image/*";file.multiple=slug==="images-to-pdf";file.id="file-input";file.className="block w-full rounded-xl border border-slate-200 p-3 text-sm";
-    document.querySelector("#input-label")!.replaceWith(fileLabel);fileLabel.append(file);
-    field("image-width","Output width (px)","1200","number");field("image-height","Output height (px)","800","number");
-    if(slug==="image-converter")field("image-format","Output format","image/png");
+    if (slug === "pdf-to-images") {
+      const file=document.querySelector<HTMLInputElement>("#file-input")?.files?.[0];
+      if(!file) throw new Error("Choose a PDF file first.");
+      await loadScript("https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js");
+      const pdfjs=(window as any).pdfjsLib;
+      if(!pdfjs) throw new Error("PDF renderer failed to load.");
+      pdfjs.GlobalWorkerOptions.workerSrc="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+      const doc=await pdfjs.getDocument({data:await file.arrayBuffer()}).promise;
+      for(let p=1;p<=doc.numPages;p++){
+        const page=await doc.getPage(p),viewport=page.getViewport({scale:1.5}),canvas=document.createElement("canvas");
+        canvas.width=viewport.width;canvas.height=viewport.height;
+        await page.render({canvasContext:canvas.getContext("2d"),viewport}).promise;
+        const blob=await new Promise<Blob>((resolve,reject)=>canvas.toBlob(b=>b?resolve(b):reject(new Error("Page export failed.")),"image/png"));
+        downloadFile(blob,`toolora-page-${p}.png`);
+      }
+      output.value=`${doc.numPages} page(s) exported as PNG images. Your browser may show multiple downloads.`;meta.textContent="PDF pages exported";setStatus("PDF pages converted locally.");return;
+    }
+    if (["image-compressor","image-converter","image-cropper","image-resizer"].includes(slug)) {
+      const file=document.querySelector<HTMLInputElement>("#file-input")?.files?.[0];
+      if(!file) throw new Error("Choose an image file first.");
+      const img=new Image(),url=URL.createObjectURL(file);
+      await new Promise<void>((resolve,reject)=>{img.onload=()=>resolve();img.onerror=()=>reject(new Error("Could not open this image."));img.src=url;});
+      const canvas=document.createElement("canvas"),ctx=canvas.getContext("2d");if(!ctx)throw new Error("Canvas is unavailable.");
+      const width=Math.max(1,Number(get("image-width"))||img.width),height=Math.max(1,Number(get("image-height"))||img.height);
+      canvas.width=slug==="image-cropper"?Math.min(img.width,width):width;canvas.height=slug==="image-cropper"?Math.min(img.height,height):height;
+      ctx.drawImage(img,0,0,canvas.width,canvas.height);
+      const type=slug==="image-converter"?(get("image-format")||"image/png"):"image/jpeg";
+      const blob=await new Promise<Blob>((resolve,reject)=>canvas.toBlob(b=>b?resolve(b):reject(new Error("Image export failed.")),type,0.82));
+      downloadBlob=blob;output.value=`Original: ${img.width} × ${img.height}\nOutput: ${canvas.width} × ${canvas.height}\nOriginal size: ${file.size.toLocaleString()} bytes\nOutput size: ${blob.size.toLocaleString()} bytes`;meta.textContent="Image processed";(download as HTMLButtonElement).dataset.filename="toolora-image";setStatus("Image processed locally. Use Download to save it.");URL.revokeObjectURL(url);return;
+    }
+    if(slug==="text-to-speech"){if(!("speechSynthesis" in window))throw new Error("Speech synthesis is not supported in this browser.");speechSynthesis.cancel();speechSynthesis.speak(new SpeechSynthesisUtterance(input.value));setStatus("Speech playback started using your browser voice.");return;}
+    if(slug==="typing-speed-test"){if(!typingStarted){typingStarted=Date.now();setStatus("Timer started. Type your text in the box, then click Run tool again.");return;}const mins=(Date.now()-typingStarted)/60000,wpm=Math.round(words(input.value).length/Math.max(mins,.01));setResult(`Elapsed: ${Math.round((Date.now()-typingStarted)/1000)} seconds\nWords per minute: ${wpm}\nCharacters: ${input.value.length}`);typingStarted=0;return;}
+    throw new Error("This tool mode is not available.");
   }
   if(slug==="qr-generator"){ input.placeholder="Enter a URL or text to encode."; const preview=document.createElement("div");preview.id="qr-preview";preview.className="mt-5 flex justify-center";extra.append(preview); }
   if(slug==="text-to-speech")input.placeholder="Enter the text you want to hear.";
