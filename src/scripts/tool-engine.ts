@@ -314,7 +314,7 @@ if (root) {
       const file=document.querySelector<HTMLInputElement>("#file-input")?.files?.[0];
       if(!file) throw new Error("Choose a PDF file first.");
       if(file.size>30*1024*1024) throw new Error("Choose a PDF smaller than 30 MB.");
-      const pdfjs=await import("pdfjs-dist/build/pdf.mjs");
+      const pdfjs=await import("pdfjs-dist");
       const workerModule=await import("pdfjs-dist/build/pdf.worker.mjs?url");
       pdfjs.GlobalWorkerOptions.workerSrc=workerModule.default;
       const doc=await pdfjs.getDocument({
