@@ -24,7 +24,17 @@ const icons: Record<string, string[]> = {
   info: ["M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20Z","M12 11v5","M12 7h.01"],
   "list-checks": ["M10 6h11","M10 12h11","M10 18h11","m3 6 1 1 2-2","m3 12 1 1 2-2","m3 18 1 1 2-2"]
 };
-const paths = icons[name] ?? icons.sparkles;
+const aliases: Record<string, string> = {
+  images: "image", crop: "image", maximize: "gauge", "file-image": "file-text", files: "file-text",
+  "case-sensitive": "type", text: "type", "file-pen-line": "file-text", "list-filter": "list-checks",
+  link: "arrow-up-right", "chart-no-axes-combined": "gauge", "arrow-down-wide-narrow": "list-checks",
+  "volume-2": "sparkles", "align-left": "type", "calendar-days": "calculator", activity: "gauge",
+  percent: "calculator", keyboard: "type", "key-round": "shield-check", binary: "code", table: "grid-2x2",
+  "code-xml": "code", braces: "code", "file-spreadsheet": "file-text", "clock-3": "calculator",
+  globe: "at-sign", fingerprint: "shield-check", "file-code": "code", pipette: "palette", blend: "palette",
+  "user-round": "at-sign", "message-square-text": "file-text", hash: "code", "qr-code": "code"
+};
+const paths = icons[name] ?? icons[aliases[name] ?? "sparkles"] ?? icons.sparkles;
 ---
 <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width={strokeWidth} stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
   {paths.map((d) => <path d={d} />)}
