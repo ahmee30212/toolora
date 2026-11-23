@@ -1,5 +1,5 @@
-[assets]
-directory = "./dist"
-
 name = "toolora"
 compatibility_date = "2026-11-24"
+
+[assets]
+directory = "./dist"
