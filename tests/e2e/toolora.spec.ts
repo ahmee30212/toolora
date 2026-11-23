@@ -370,7 +370,7 @@ test("QR generator loads its pinned library and renders a downloadable code", as
   await page.goto("/tools/qr-generator/");
   await page.locator("#tool-input").fill("https://toolora.example/");
   await page.getByRole("button", { name: /run tool/i }).click();
-  await expect(page.locator("#qr-preview canvas")).toBeVisible({ timeout: 20000 });
+  await expect(page.locator("#qr-preview img")).toBeVisible({ timeout: 20000 });
   await expect(page.locator("#result-meta")).toHaveText("QR code ready");
 });
 

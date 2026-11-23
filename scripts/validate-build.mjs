@@ -1,4 +1,4 @@
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 
 const root = new URL("../dist/", import.meta.url);
 const read = (path) => readFileSync(new URL(path, root), "utf8");
@@ -32,6 +32,15 @@ for (const route of routes) {
 const sitemap = read("sitemap.xml");
 for (const slug of categories) if (!sitemap.includes("/categories/" + slug)) failures.push("Sitemap missing category: " + slug);
 for (const slug of tools) if (!sitemap.includes("/tools/" + slug)) failures.push("Sitemap missing tool: " + slug);
+const assetsRoot = new URL("_astro/", root);
+if (existsSync(assetsRoot)) {
+  const assets = readdirSync(assetsRoot, { withFileTypes: true }).filter((entry) => entry.isFile());
+  const jsBytes = assets.filter((entry) => entry.name.endsWith(".js")).reduce((sum, entry) => sum + statSync(new URL(entry.name, assetsRoot)).size, 0);
+  const cssBytes = assets.filter((entry) => entry.name.endsWith(".css")).reduce((sum, entry) => sum + statSync(new URL(entry.name, assetsRoot)).size, 0);
+  if (jsBytes > 300 * 1024) failures.push("JavaScript asset budget exceeded: " + jsBytes + " bytes (300 KiB maximum).");
+  if (cssBytes > 250 * 1024) failures.push("CSS asset budget exceeded: " + cssBytes + " bytes (250 KiB maximum).");
+  console.log("Asset budgets: JavaScript " + Math.ceil(jsBytes / 1024) + " KiB / 300 KiB; CSS " + Math.ceil(cssBytes / 1024) + " KiB / 250 KiB.");
+}
 const headers = readFileSync(new URL("../public/_headers", import.meta.url), "utf8");
 for (const directive of [
   "Content-Security-Policy:", "Strict-Transport-Security:", "X-Content-Type-Options:",
