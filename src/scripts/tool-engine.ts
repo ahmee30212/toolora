@@ -31,7 +31,14 @@ if (root) {
   const field = (id: string, label: string, value: string, type = "text") => {
     const wrap = document.createElement("label");
     wrap.className = "block text-xs font-semibold text-slate-600";
-    wrap.innerHTML = `${label}<input id="${id}" type="${type}" value="${value}" class="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-3 text-sm outline-none focus:border-blue-400" /></label>`;
+    const title = document.createElement("span");
+    title.textContent = label;
+    const control = document.createElement("input");
+    control.id = id;
+    control.type = type;
+    control.value = value;
+    control.className = "mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-3 text-sm outline-none focus:border-blue-400";
+    wrap.append(title, control);
     extra.append(wrap);
   };
   const get = (id: string) => document.querySelector<HTMLInputElement>(`#${id}`)?.value ?? "";
@@ -231,36 +238,41 @@ if (root) {
     if (["image-compressor","image-converter","image-cropper","image-resizer"].includes(slug)) {
       const file=document.querySelector<HTMLInputElement>("#file-input")?.files?.[0];
       if(!file) throw new Error("Choose an image file first.");
+      if (file.size > 25 * 1024 * 1024) throw new Error("Choose an image smaller than 25 MB.");
       const img=new Image(),url=URL.createObjectURL(file);
-      await new Promise<void>((resolve,reject)=>{img.onload=()=>resolve();img.onerror=()=>reject(new Error("Could not open this image."));img.src=url;});
-      const canvas=document.createElement("canvas"),ctx=canvas.getContext("2d");if(!ctx)throw new Error("Canvas is unavailable.");
-      const width=Math.max(1,Number(get("image-width"))||img.width),height=Math.max(1,Number(get("image-height"))||img.height);
-      canvas.width=slug==="image-cropper"?Math.min(img.width,width):width;canvas.height=slug==="image-cropper"?Math.min(img.height,height):height;
-      if (slug === "image-cropper") {
-        const targetAspect = canvas.width / canvas.height;
-        const sourceAspect = img.width / img.height;
-        if (sourceAspect > targetAspect) {
-          const sourceWidth = img.height * targetAspect;
-          const sourceX = (img.width - sourceWidth) / 2;
-          ctx.drawImage(img, sourceX, 0, sourceWidth, img.height, 0, 0, canvas.width, canvas.height);
+      try {
+        await new Promise<void>((resolve,reject)=>{img.onload=()=>resolve();img.onerror=()=>reject(new Error("Could not open this image."));img.src=url;});
+        const canvas=document.createElement("canvas"),ctx=canvas.getContext("2d");if(!ctx)throw new Error("Canvas is unavailable.");
+        const width=Math.max(1,Number(get("image-width"))||img.width),height=Math.max(1,Number(get("image-height"))||img.height);
+        canvas.width=slug==="image-cropper"?Math.min(img.width,width):width;canvas.height=slug==="image-cropper"?Math.min(img.height,height):height;
+        if (canvas.width > 12000 || canvas.height > 12000 || canvas.width * canvas.height > 40000000) throw new Error("Output dimensions are too large. Keep each side under 12,000 px and total pixels under 40 million.");
+        if (slug === "image-cropper") {
+          const targetAspect = canvas.width / canvas.height;
+          const sourceAspect = img.width / img.height;
+          if (sourceAspect > targetAspect) {
+            const sourceWidth = img.height * targetAspect;
+            const sourceX = (img.width - sourceWidth) / 2;
+            ctx.drawImage(img, sourceX, 0, sourceWidth, img.height, 0, 0, canvas.width, canvas.height);
+          } else {
+            const sourceHeight = img.width / targetAspect;
+            const sourceY = (img.height - sourceHeight) / 2;
+            ctx.drawImage(img, 0, sourceY, img.width, sourceHeight, 0, 0, canvas.width, canvas.height);
+          }
         } else {
-          const sourceHeight = img.width / targetAspect;
-          const sourceY = (img.height - sourceHeight) / 2;
-          ctx.drawImage(img, 0, sourceY, img.width, sourceHeight, 0, 0, canvas.width, canvas.height);
+          ctx.drawImage(img,0,0,canvas.width,canvas.height);
         }
-      } else {
-        ctx.drawImage(img,0,0,canvas.width,canvas.height);
+        const type=slug==="image-converter"?(get("image-format")||"image/png"):"image/jpeg";
+        const quality = Math.min(1, Math.max(0.1, Number(get("image-quality")) || 0.82));
+        const blob=await new Promise<Blob>((resolve,reject)=>canvas.toBlob(b=>b?resolve(b):reject(new Error("Image export failed.")),type,quality));
+        downloadBlob=blob;
+        const extension=type==="image/jpeg"?"jpg":type.split("/")[1]||"png";
+        output.value=`Original: ${img.width} × ${img.height}\nOutput: ${canvas.width} × ${canvas.height}\nOriginal size: ${file.size.toLocaleString()} bytes\nOutput size: ${blob.size.toLocaleString()} bytes\nFormat: ${type}`;
+        meta.textContent="Image processed";
+        (download as HTMLButtonElement).dataset.filename=`toolora-${slug}.${extension}`;
+        setStatus("Image processed locally. Use Download to save it.");
+      } finally {
+        URL.revokeObjectURL(url);
       }
-      const type=slug==="image-converter"?(get("image-format")||"image/png"):"image/jpeg";
-      const quality = Math.min(1, Math.max(0.1, Number(get("image-quality")) || 0.82));
-      const blob=await new Promise<Blob>((resolve,reject)=>canvas.toBlob(b=>b?resolve(b):reject(new Error("Image export failed.")),type,quality));
-      downloadBlob=blob;
-      const extension=type==="image/jpeg"?"jpg":type.split("/")[1]||"png";
-      output.value=`Original: ${img.width} × ${img.height}\nOutput: ${canvas.width} × ${canvas.height}\nOriginal size: ${file.size.toLocaleString()} bytes\nOutput size: ${blob.size.toLocaleString()} bytes\nFormat: ${type}`;
-      meta.textContent="Image processed";
-      (download as HTMLButtonElement).dataset.filename=`toolora-${slug}.${extension}`;
-      setStatus("Image processed locally. Use Download to save it.");
-      URL.revokeObjectURL(url);
       return;
     }
     if(slug==="text-to-speech"){if(!input.value.trim())throw new Error("Enter text to read aloud.");if(!("speechSynthesis" in window))throw new Error("Speech synthesis is not supported in this browser.");speechSynthesis.cancel();speechSynthesis.speak(new SpeechSynthesisUtterance(input.value));setStatus("Speech playback started using your browser voice.");return;}
