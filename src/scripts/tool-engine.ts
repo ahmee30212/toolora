@@ -86,6 +86,28 @@ if (root) {
   if (slug === "pdf-to-images") fileField("application/pdf,.pdf");
   const escapeHtml = (s: string) => s.replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c] ?? c));
   const words = (s: string) => s.trim() ? s.trim().match(/\S+/gu) ?? [] : [];
+  const parseCsv = (source: string): string[][] => {
+    const rows: string[][] = [];
+    let row: string[] = [];
+    let cell = "";
+    let quoted = false;
+    const csv = source.replace(/^\uFEFF/, "");
+    for (let i = 0; i < csv.length; i++) {
+      const char = csv[i];
+      if (char === '"' && (quoted || cell.length === 0)) {
+        if (quoted && csv[i + 1] === '"' ) { cell += '"' ; i++; }
+        else quoted = !quoted;
+      } else if (char === "," && !quoted) {
+        row.push(cell); cell = "";
+      } else if ((char === "\n" || char === "\r") && !quoted) {
+        if (char === "\r" && csv[i + 1] === "\n") i++;
+        row.push(cell); rows.push(row); row = []; cell = "";
+      } else { cell += char; }
+    }
+    if (quoted) throw new Error("CSV contains an unclosed quoted field.");
+    if (cell.length || row.length || rows.length === 0) { row.push(cell); rows.push(row); }
+    return rows;
+  };
   const loadScript = (src: string) => new Promise<void>((resolve,reject) => { const existing=document.querySelector<HTMLScriptElement>(`script[src="${src}"]`); if(existing){ if(existing.dataset.loaded==="true")resolve(); else {existing.addEventListener("load",()=>resolve(),{once:true});existing.addEventListener("error",()=>reject(new Error("A required library could not be loaded.")),{once:true});} return;} const script=document.createElement("script");script.src=src;script.async=true;script.onload=()=>{script.dataset.loaded="true";resolve();};script.onerror=()=>reject(new Error("A required library could not be loaded. Check your connection and try again."));document.head.append(script); });
   const downloadFile = (blob: Blob, name: string) => {
     const url = URL.createObjectURL(blob);
@@ -153,22 +175,59 @@ if (root) {
       }
       case "html-encoder-decoder": return setResult(value.startsWith("decode:") ? new DOMParser().parseFromString(value.slice(7),"text/html").documentElement.textContent ?? "" : escapeHtml(value));
       case "json-formatter": { const parsed=JSON.parse(value); return setResult(JSON.stringify(parsed,null,2)); }
-      case "csv-to-json": { const lines=value.trim().split(/\r?\n/); if(lines.length<2)throw new Error("Provide a header row and at least one data row."); const parse=(line:string)=>line.split(/,(?=(?:[^"]*"[^"]*")*[^"]*$)/).map(x=>x.trim().replace(/^"|"$/g,"").replace(/""/g,'"')); const headers=parse(lines[0]); return setResult(JSON.stringify(lines.slice(1).map(line=>Object.fromEntries(parse(line).map((v,i)=>[headers[i]??`column${i+1}`,v]))),null,2)); }
-      case "json-to-csv": { const data=JSON.parse(value); if(!Array.isArray(data)||!data.length||typeof data[0]!=="object")throw new Error("Input must be a non-empty JSON array of objects."); const headers=[...new Set(data.flatMap((row:Record<string,unknown>)=>Object.keys(row)))]; const cell=(v:unknown)=>{const s=String(v??"");return /[",\n]/.test(s)?`"${s.replace(/"/g,'""')}"`:s;}; return setResult([headers.map(cell).join(","),...data.map((row:Record<string,unknown>)=>headers.map(h=>cell(row[h])).join(","))].join("\n")); }
+      case "csv-to-json": {
+        const rows = parseCsv(value);
+        if (rows.length < 2 || !rows[0].some((header) => header.trim())) throw new Error("Provide a header row and at least one data row.");
+        const width = Math.max(...rows.map((row) => row.length));
+        const headers = Array.from({ length: width }, (_, index) => rows[0][index]?.trim() || "column" + (index + 1));
+        if (new Set(headers).size !== headers.length) throw new Error("CSV column names must be unique.");
+        const records = rows.slice(1).filter((row) => row.some((cell) => cell.trim())).map((row) => Object.fromEntries(headers.map((header, index) => [header, row[index] ?? ""])));
+        if (!records.length) throw new Error("Provide at least one data row.");
+        return setResult(JSON.stringify(records, null, 2));
+      }
+      case "json-to-csv": {
+        const data = JSON.parse(value);
+        if (!Array.isArray(data) || !data.length || data.some((row) => !row || typeof row !== "object" || Array.isArray(row))) throw new Error("Input must be a non-empty JSON array of objects.");
+        const headers = [...new Set(data.flatMap((row: Record<string, unknown>) => Object.keys(row)))];
+        if (!headers.length) throw new Error("Each JSON object must contain at least one property.");
+        const cell = (item: unknown) => { const text = item !== null && typeof item === "object" ? JSON.stringify(item) : String(item ?? ""); return /[",\r\n]/.test(text) ? '"' + text.replace(/"/g, '""') + '"' : text; };
+        return setResult([headers.map(cell).join(","), ...data.map((row: Record<string, unknown>) => headers.map((header) => cell(row[header])).join(","))].join("\n"));
+      }
       case "number-system-converter": { const from=Number(get("from-base")),to=Number(get("to-base")); if(![2,8,10,16].includes(from)||![2,8,10,16].includes(to))throw new Error("Bases must be 2, 8, 10 or 16."); const raw=value.trim().toLowerCase();if(!raw)throw new Error("Enter a number to convert.");let sign=1n,body=raw;if(body.startsWith("-")){sign=-1n;body=body.slice(1);}const digits="0123456789abcdefghijklmnopqrstuvwxyz";let n=0n;for(const ch of body){const d=digits.indexOf(ch);if(d<0||d>=from)throw new Error(`The value is not valid in base ${from}.`);n=n*BigInt(from)+BigInt(d);}return setResult((n*sign).toString(to).toUpperCase()); }
       case "unix-timestamp-converter": { const raw=Number(value.trim()); if(!Number.isFinite(raw))throw new Error("Enter a valid Unix timestamp or date string."); const d= /^\d+(\.\d+)?$/.test(value.trim()) ? new Date(raw*(raw>1e12?1:1000)) : new Date(value); if(Number.isNaN(d.getTime()))throw new Error("Could not parse this date."); return setResult(`ISO: ${d.toISOString()}\nLocal: ${d.toLocaleString()}\nUnix seconds: ${Math.floor(d.getTime()/1000)}\nUnix milliseconds: ${d.getTime()}`); }
       case "url-encoder-decoder": return setResult(value.startsWith("decode:") ? decodeURIComponent(value.slice(7)) : encodeURIComponent(value));
       case "uuid-generator": return setResult(Array.from({length:10},()=>crypto.randomUUID()).join("\n"),"10 UUID v4 identifiers");
       case "xml-formatter": { const doc=new DOMParser().parseFromString(value,"application/xml"); if(doc.querySelector("parsererror"))throw new Error("Invalid XML. Check tags and nesting."); const serializer=new XMLSerializer(); return setResult(serializer.serializeToString(doc).replace(/></g,">\n<")); }
-      case "text-binary-converter": return setResult(value.startsWith("decode:") ? value.slice(7).trim().split(/\s+/).map(x=>String.fromCodePoint(parseInt(x,2))).join("") : Array.from(value).map(c=>c.codePointAt(0)!.toString(2).padStart(8,"0")).join(" "));
-      case "password-generator": { const len=Math.max(8,Math.min(128,Number(get("pass-length"))||20)); const chars="ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%&*_-+="; const random=new Uint32Array(len); crypto.getRandomValues(random); return setResult(Array.from(random,n=>chars[n%chars.length]).join(""),`${len} characters · generated with Web Crypto`); }
+      case "text-binary-converter": {
+        if (value.startsWith("decode:")) {
+          const groups = value.slice(7).trim().split(/\s+/).filter(Boolean);
+          if (!groups.length || groups.some((group) => !/^[01]{1,21}$/.test(group))) throw new Error("Enter binary code points separated by spaces, or use the Encode mode.");
+          const points = groups.map((group) => parseInt(group, 2));
+          if (points.some((point) => point > 0x10ffff || (point >= 0xd800 && point <= 0xdfff))) throw new Error("One or more binary values are not valid Unicode code points.");
+          return setResult(String.fromCodePoint(...points));
+        }
+        return setResult(Array.from(value).map((character) => character.codePointAt(0)!.toString(2).padStart(8, "0")).join(" "));
+      }
+      case "password-generator": {
+        const requestedLength = Number(get("pass-length"));
+        const len = Math.max(8, Math.min(128, Number.isFinite(requestedLength) && requestedLength > 0 ? Math.floor(requestedLength) : 20));
+        const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%&*_-+=";
+        const limit = Math.floor(0x100000000 / chars.length) * chars.length;
+        const password: string[] = [];
+        while (password.length < len) {
+          const random = new Uint32Array(Math.max(16, len - password.length));
+          crypto.getRandomValues(random);
+          for (const randomValue of random) if (randomValue < limit && password.length < len) password.push(chars[randomValue % chars.length]);
+        }
+        return setResult(password.join(""), len + " characters · generated with Web Crypto");
+      }
       case "password-strength-checker": { const score=[value.length>=12,value.length>=16,/[a-z]/.test(value)&&/[A-Z]/.test(value),/\d/.test(value),/[^A-Za-z0-9]/.test(value)].filter(Boolean).length; return setResult(`Estimated strength: ${["Very weak","Weak","Fair","Strong","Very strong","Excellent"][score]}\nLength: ${value.length}\nLowercase and uppercase: ${/[a-z]/.test(value)&&/[A-Z]/.test(value)?"Yes":"No"}\nNumbers: ${/\d/.test(value)?"Yes":"No"}\nSymbols: ${/[^A-Za-z0-9]/.test(value)?"Yes":"No"}\n\nThis is a local heuristic, not a breach or crack-time check.`); }
       case "qr-generator": throw new Error("Use the QR code preview control below to generate your code.");
       case "bio-generator": return setResult([`Creative: ${value} | Creating every day ✨`,`Professional: ${value} | Sharing ideas, experience and inspiration.`,`Minimal: ${value} • Create. Learn. Grow.`].join("\n\n"));
       case "caption-generator": return setResult([`A little moment, a lasting memory. ✨\n\n${value}`,`POV: You needed this today. 💫\n\n${value}`,`Good vibes, great moments. ❤️\n\n${value}`].join("\n\n---\n\n"));
       case "hashtag-generator": { const tags=value.toLowerCase().match(/[\p{L}\p{N}]+/gu)??[]; const unique=[...new Set(tags)].filter(t=>t.length>2); return setResult([...unique,...["foryou","trending","contentcreator","explorepage","dailyinspiration"]].slice(0,20).map(t=>"#"+t).join(" "),"Suggested tags · review relevance before posting"); }
       case "age-calculator": { const dob = new Date(get("dob")); if(Number.isNaN(dob.getTime()) || dob > new Date()) throw new Error("Enter a valid date of birth in the past."); const now=new Date(); let years=now.getFullYear()-dob.getFullYear(), months=now.getMonth()-dob.getMonth(), days=now.getDate()-dob.getDate(); if(days<0){months--;days+=new Date(now.getFullYear(),now.getMonth(),0).getDate();} if(months<0){years--;months+=12;} return setResult(`${years} years, ${months} months and ${days} days`); }
-      case "bmi-calculator": { const kg=Number(get("weight-kg")),cm=Number(get("height-cm")); if(!(kg>0&&cm>0))throw new Error("Enter a positive weight and height in the extra fields."); const bmi=kg/((cm/100)**2); const group=bmi<18.5?"Underweight":bmi<25?"Healthy range":bmi<30?"Overweight":"Obesity range"; return setResult(`BMI: ${bmi.toFixed(1)}\nCategory: ${group}\n\nBMI is a screening measure, not a diagnosis.`); }
+      case "bmi-calculator": { const kg=Number(get("weight-kg")),cm=Number(get("height-cm")); if(!Number.isFinite(kg)||!Number.isFinite(cm)||!(kg>0&&cm>0))throw new Error("Enter a valid positive weight and height in the extra fields."); const bmi=kg/((cm/100)**2); if(!Number.isFinite(bmi))throw new Error("The supplied measurements are outside the supported range."); const group=bmi<18.5?"Underweight":bmi<25?"Healthy range":bmi<30?"Overweight":"Obesity range"; return setResult("BMI: "+bmi.toFixed(1)+"\nCategory: "+group+"\n\nBMI is a screening measure, not a diagnosis."); }
       case "percentage-calculator": { const a=Number(get("percent-value")),b=Number(get("percent-total")); if(!Number.isFinite(a)||!Number.isFinite(b))throw new Error("Enter valid numbers in both fields."); return setResult(`${a}% of ${b} = ${(a/100*b).toLocaleString()}\n${a} is ${b===0?"undefined":(a/b*100).toFixed(2)+"%"} of ${b}`); }
       case "color-picker": { const hex=value.trim()||"#2563eb"; if(!/^#?[0-9a-f]{3}([0-9a-f]{3})?$/i.test(hex))throw new Error("Enter a valid 3- or 6-digit HEX color."); let h=hex.replace("#","");if(h.length===3)h=[...h].map(x=>x+x).join("");const n=parseInt(h,16),r=(n>>16)&255,g=(n>>8)&255,b=n&255;const [rr,gg,bb]=[r,g,b].map(x=>x/255);const max=Math.max(rr,gg,bb),min=Math.min(rr,gg,bb),d=max-min;let hue=0;if(d){if(max===rr)hue=((gg-bb)/d)%6;else if(max===gg)hue=(bb-rr)/d+2;else hue=(rr-gg)/d+4;hue=Math.round(hue*60);if(hue<0)hue+=360;}const light=(max+min)/2,sat=d?Math.round(d/(1-Math.abs(2*light-1))*100):0;return setResult(`HEX: #${h.toUpperCase()}\nRGB: rgb(${r}, ${g}, ${b})\nHSL: hsl(${hue}, ${sat}%, ${Math.round(light*100)}%)`); }
       case "gradient-generator": { const colors=value.match(/#[0-9a-f]{3,8}/gi)??[]; if(colors.length<2)throw new Error("Enter at least two HEX colors, e.g. #2563eb, #9333ea."); const css=`background: linear-gradient(135deg, ${colors.join(", ")});`;return setResult(css); }
@@ -195,7 +254,7 @@ if (root) {
       if (["image-compressor","image-converter","image-cropper","image-resizer","images-to-pdf","pdf-to-images","typing-speed-test","text-to-speech"].includes(slug)) {
         await runSpecial();
       } else {
-        if (!input.value.trim() && !["uuid-generator","lorem-ipsum-generator","age-calculator","bmi-calculator","percentage-calculator"].includes(slug)) throw new Error("Please enter some input first.");
+        if (!input.value.trim() && !["uuid-generator","lorem-ipsum-generator","age-calculator","bmi-calculator","percentage-calculator","password-generator"].includes(slug)) throw new Error("Please enter some input first.");
         runText();
       }
     } catch (error) { setStatus(error instanceof Error ? error.message : "Something went wrong.", true); }
