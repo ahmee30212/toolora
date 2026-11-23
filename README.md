@@ -14,7 +14,7 @@ Toolora is a modern, browser-first collection of **41 free online tools across 9
 - **Browser-first privacy:** text, image and PDF processing happens locally in the user's browser; files are not uploaded to a Toolora processing server.
 - **Responsive and accessible:** semantic controls, keyboard-visible focus, mobile navigation and reduced-motion support.
 - **Fast by design:** static Astro output, locally bundled PDF libraries, lazy-loaded tool dependencies and enforced JavaScript/CSS size budgets.
-- **Transparent:** read the [Privacy Policy](/privacy/) and [Terms of Use](/terms/).
+- **Transparent:** read the [Privacy Policy](https://toolora.m-ahmad30212.workers.dev/privacy/) and [Terms of Use](https://toolora.m-ahmad30212.workers.dev/terms/).
 
 ## Technology
 
@@ -35,7 +35,7 @@ Cloudflare may process technical request metadata for delivery, reliability and 
 
 ## Security and quality gates
 
-The repository uses layered checks:
+The repository uses layered checks. See the [Security Policy](SECURITY.md) for responsible disclosure guidance.
 
 - npm audit blocks known dependency advisories at every severity level.
 - CodeQL performs JavaScript and TypeScript static analysis; uploaded results are available in GitHub Security.
