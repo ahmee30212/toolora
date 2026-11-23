@@ -95,3 +95,193 @@ test("privacy and terms pages are accessible from the footer", async ({ page }) 
   await page.goto("/terms/");
   await expect(page.getByRole("heading", { level: 1, name: "Terms of Use" })).toBeVisible();
 });
+
+
+test("case converter applies the selected uppercase mode", async ({ page }) => {
+  await page.goto("/tools/case-converter/");
+  await page.locator("#tool-input").fill("hello toolora");
+  await page.locator("#case-mode").selectOption("UPPERCASE");
+  await page.getByRole("button", { name: /run tool/i }).click();
+  await expect(page.locator("#tool-output")).toHaveValue("HELLO TOOLORA");
+});
+
+test("text utilities clean, sort, deduplicate and slugify content", async ({ page }) => {
+  await page.goto("/tools/remove-duplicate-lines/");
+  await page.locator("#tool-input").fill("Apple\napple\nBanana");
+  await page.getByRole("button", { name: /run tool/i }).click();
+  await expect(page.locator("#tool-output")).toHaveValue("Apple\nBanana");
+
+  await page.goto("/tools/text-sorter/");
+  await page.locator("#tool-input").fill("zebra\napple\nBanana");
+  await page.getByRole("button", { name: /run tool/i }).click();
+  await expect(page.locator("#tool-output")).toHaveValue("apple\nBanana\nzebra");
+
+  await page.goto("/tools/slug-generator/");
+  await page.locator("#tool-input").fill("Café au lait");
+  await page.getByRole("button", { name: /run tool/i }).click();
+  await expect(page.locator("#tool-output")).toHaveValue("cafe-au-lait");
+});
+
+test("text cleaner and analyzer return consistent metrics", async ({ page }) => {
+  await page.goto("/tools/text-cleaner/");
+  await page.locator("#tool-input").fill("  alpha   beta  \n\n\n gamma ");
+  await page.getByRole("button", { name: /run tool/i }).click();
+  await expect(page.locator("#tool-output")).toHaveValue("alpha beta\ngamma");
+
+  await page.goto("/tools/text-analyzer/");
+  await page.locator("#tool-input").fill("one two. three");
+  await page.getByRole("button", { name: /run tool/i }).click();
+  await expect(page.locator("#tool-output")).toHaveValue(/Words: 3/);
+});
+
+test("line diff reports additions and removals", async ({ page }) => {
+  await page.goto("/tools/text-diff-checker/");
+  await page.locator("#tool-input").fill("alpha\nbeta");
+  await page.locator("#compare-text").fill("alpha\ngamma");
+  await page.getByRole("button", { name: /run tool/i }).click();
+  await expect(page.locator("#tool-output")).toHaveValue(/- beta[\s\S]*\+ gamma/);
+});
+
+test("base64 converter supports UTF-8 encode and decode", async ({ page }) => {
+  await page.goto("/tools/base64-converter/");
+  await page.locator("#tool-input").fill("Toolora");
+  await page.getByRole("button", { name: /run tool/i }).click();
+  await expect(page.locator("#tool-output")).toHaveValue("VG9vbG9yYQ==");
+  await page.locator("#tool-input").fill("decode:VG9vbG9yYQ==");
+  await page.getByRole("button", { name: /run tool/i }).click();
+  await expect(page.locator("#tool-output")).toHaveValue("Toolora");
+});
+
+test("HTML encoder escapes markup rather than rendering it", async ({ page }) => {
+  await page.goto("/tools/html-encoder-decoder/");
+  await page.locator("#tool-input").fill("<script>alert(1)</script>");
+  await page.getByRole("button", { name: /run tool/i }).click();
+  await expect(page.locator("#tool-output")).toHaveValue("&lt;script&gt;alert(1)&lt;/script&gt;");
+});
+
+test("JSON to CSV exports object properties as columns", async ({ page }) => {
+  await page.goto("/tools/json-to-csv/");
+  await page.locator("#tool-input").fill('[{"name":"Ahmad","city":"Islamabad"}]');
+  await page.getByRole("button", { name: /run tool/i }).click();
+  await expect(page.locator("#tool-output")).toHaveValue("name,city\nAhmad,Islamabad");
+});
+
+test("keyword density and number-system conversion calculate expected values", async ({ page }) => {
+  await page.goto("/tools/keyword-density-checker/");
+  await page.locator("#tool-input").fill("toolora toolora toolora");
+  await page.locator("#keyword").fill("toolora");
+  await page.getByRole("button", { name: /run tool/i }).click();
+  await expect(page.locator("#tool-output")).toHaveValue(/Density: 100.00%/);
+
+  await page.goto("/tools/number-system-converter/");
+  await page.locator("#tool-input").fill("255");
+  await page.locator("#to-base").fill("16");
+  await page.getByRole("button", { name: /run tool/i }).click();
+  await expect(page.locator("#tool-output")).toHaveValue("FF");
+});
+
+test("Unix timestamp converter accepts both ISO dates and numeric timestamps", async ({ page }) => {
+  await page.goto("/tools/unix-timestamp-converter/");
+  await page.locator("#tool-input").fill("2024-01-01T00:00:00Z");
+  await page.getByRole("button", { name: /run tool/i }).click();
+  await expect(page.locator("#tool-output")).toHaveValue(/ISO: 2024-01-01T00:00:00.000Z/);
+  await page.locator("#tool-input").fill("1704067200");
+  await page.getByRole("button", { name: /run tool/i }).click();
+  await expect(page.locator("#tool-output")).toHaveValue(/ISO: 2024-01-01T00:00:00.000Z/);
+});
+
+test("age calculator parses calendar dates in local time", async ({ page }) => {
+  await page.goto("/tools/age-calculator/");
+  await page.locator("#dob").fill("2000-01-01");
+  await page.getByRole("button", { name: /run tool/i }).click();
+  await expect(page.locator("#tool-output")).toHaveValue(/years, .* months and .* days/);
+});
+
+test("BMI and percentage calculators produce numeric results", async ({ page }) => {
+  await page.goto("/tools/bmi-calculator/");
+  await page.getByRole("button", { name: /run tool/i }).click();
+  await expect(page.locator("#tool-output")).toHaveValue(/BMI: 22.9/);
+
+  await page.goto("/tools/percentage-calculator/");
+  await page.getByRole("button", { name: /run tool/i }).click();
+  await expect(page.locator("#tool-output")).toHaveValue(/15% of 200 = 30/);
+});
+
+test("password generator uses the requested length and cryptographic API", async ({ page }) => {
+  await page.goto("/tools/password-generator/");
+  await page.locator("#pass-length").fill("24");
+  await page.getByRole("button", { name: /run tool/i }).click();
+  const result = await page.locator("#tool-output").inputValue();
+  expect(result).toHaveLength(24);
+  await expect(page.locator("#tool-status")).toContainText("Web Crypto");
+});
+
+test("URL, binary and XML utilities process valid data", async ({ page }) => {
+  await page.goto("/tools/url-encoder-decoder/");
+  await page.locator("#tool-input").fill("hello world");
+  await page.getByRole("button", { name: /run tool/i }).click();
+  await expect(page.locator("#tool-output")).toHaveValue("hello%20world");
+  await page.locator("#tool-input").fill("decode:hello%20world");
+  await page.getByRole("button", { name: /run tool/i }).click();
+  await expect(page.locator("#tool-output")).toHaveValue("hello world");
+
+  await page.goto("/tools/text-binary-converter/");
+  await page.locator("#tool-input").fill("Hi");
+  await page.getByRole("button", { name: /run tool/i }).click();
+  await expect(page.locator("#tool-output")).toHaveValue("1001000 1101001");
+
+  await page.goto("/tools/xml-formatter/");
+  await page.locator("#tool-input").fill("<root><item>1</item></root>");
+  await page.getByRole("button", { name: /run tool/i }).click();
+  await expect(page.locator("#tool-output")).toHaveValue("<root>\n<item>1</item>\n</root>");
+});
+
+test("UUID generator creates ten valid UUID v4 values", async ({ page }) => {
+  await page.goto("/tools/uuid-generator/");
+  await page.getByRole("button", { name: /run tool/i }).click();
+  const result = await page.locator("#tool-output").inputValue();
+  const values = result.split("\n");
+  expect(values).toHaveLength(10);
+  for (const value of values) expect(value).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i);
+});
+
+test("social and design generators return usable output", async ({ page }) => {
+  await page.goto("/tools/color-picker/");
+  await page.locator("#tool-input").fill("#ff0000");
+  await page.getByRole("button", { name: /run tool/i }).click();
+  await expect(page.locator("#tool-output")).toHaveValue(/RGB: rgb\(255, 0, 0\)/);
+
+  await page.goto("/tools/gradient-generator/");
+  await page.locator("#tool-input").fill("#ff0000, #0000ff");
+  await page.getByRole("button", { name: /run tool/i }).click();
+  await expect(page.locator("#tool-output")).toHaveValue(/linear-gradient/);
+
+  await page.goto("/tools/hashtag-generator/");
+  await page.locator("#tool-input").fill("Travel Photography");
+  await page.getByRole("button", { name: /run tool/i }).click();
+  await expect(page.locator("#tool-output")).toHaveValue(/#travel #photography/);
+
+  await page.goto("/tools/caption-generator/");
+  await page.locator("#tool-input").fill("A sunny day");
+  await page.getByRole("button", { name: /run tool/i }).click();
+  await expect(page.locator("#tool-output")).toContainText("A sunny day");
+});
+
+test("image resizer preserves aspect ratio when only one dimension is supplied", async ({ page }) => {
+  await page.goto("/tools/image-resizer/");
+  const pngBase64 = await page.evaluate(() => {
+    const canvas = document.createElement("canvas");
+    canvas.width = 4;
+    canvas.height = 2;
+    const context = canvas.getContext("2d");
+    if (!context) throw new Error("Canvas unavailable in browser test.");
+    context.fillStyle = "#2563eb";
+    context.fillRect(0, 0, 4, 2);
+    return canvas.toDataURL("image/png").split(",")[1];
+  });
+  await page.locator("#file-input").setInputFiles({ name: "ratio.png", mimeType: "image/png", buffer: Buffer.from(pngBase64, "base64") });
+  await page.locator("#image-width").fill("8");
+  await page.locator("#image-height").fill("0");
+  await page.getByRole("button", { name: /run tool/i }).click();
+  await expect(page.locator("#tool-output")).toHaveValue(/Output: 8 × 4/);
+});

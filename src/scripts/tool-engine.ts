@@ -209,7 +209,7 @@ if (root) {
         return setResult([headers.map(cell).join(","), ...data.map((row: Record<string, unknown>) => headers.map((header) => cell(row[header])).join(","))].join("\n"));
       }
       case "number-system-converter": { const from=Number(get("from-base")),to=Number(get("to-base")); if(![2,8,10,16].includes(from)||![2,8,10,16].includes(to))throw new Error("Bases must be 2, 8, 10 or 16."); const raw=value.trim().toLowerCase();if(!raw)throw new Error("Enter a number to convert.");let sign=1n,body=raw;if(body.startsWith("-")){sign=-1n;body=body.slice(1);}const digits="0123456789abcdefghijklmnopqrstuvwxyz";let n=0n;for(const ch of body){const d=digits.indexOf(ch);if(d<0||d>=from)throw new Error(`The value is not valid in base ${from}.`);n=n*BigInt(from)+BigInt(d);}return setResult((n*sign).toString(to).toUpperCase()); }
-      case "unix-timestamp-converter": { const raw=Number(value.trim()); if(!Number.isFinite(raw))throw new Error("Enter a valid Unix timestamp or date string."); const d= /^\d+(\.\d+)?$/.test(value.trim()) ? new Date(raw*(raw>1e12?1:1000)) : new Date(value); if(Number.isNaN(d.getTime()))throw new Error("Could not parse this date."); return setResult(`ISO: ${d.toISOString()}\nLocal: ${d.toLocaleString()}\nUnix seconds: ${Math.floor(d.getTime()/1000)}\nUnix milliseconds: ${d.getTime()}`); }
+      case "unix-timestamp-converter": { const raw=value.trim(); if(!raw)throw new Error("Enter a Unix timestamp or date string."); const numeric=/^-?\d+(?:\.\d+)?$/.test(raw), timestamp=Number(raw); const d=numeric?new Date(timestamp*(Math.abs(timestamp)>1e12?1:1000)):new Date(raw); if(Number.isNaN(d.getTime()))throw new Error("Could not parse this date or timestamp."); return setResult(`ISO: ${d.toISOString()}\nLocal: ${d.toLocaleString()}\nUnix seconds: ${Math.floor(d.getTime()/1000)}\nUnix milliseconds: ${d.getTime()}`); }
       case "url-encoder-decoder": return setResult(value.startsWith("decode:") ? decodeURIComponent(value.slice(7)) : encodeURIComponent(value));
       case "uuid-generator": return setResult(Array.from({length:10},()=>crypto.randomUUID()).join("\n"),"10 UUID v4 identifiers");
       case "xml-formatter": { const doc=new DOMParser().parseFromString(value,"application/xml"); if(doc.querySelector("parsererror"))throw new Error("Invalid XML. Check tags and nesting."); const serializer=new XMLSerializer(); return setResult(serializer.serializeToString(doc).replace(/></g,">\n<")); }
@@ -241,7 +241,7 @@ if (root) {
       case "bio-generator": return setResult([`Creative: ${value} | Creating every day ✨`,`Professional: ${value} | Sharing ideas, experience and inspiration.`,`Minimal: ${value} • Create. Learn. Grow.`].join("\n\n"));
       case "caption-generator": return setResult([`A little moment, a lasting memory. ✨\n\n${value}`,`POV: You needed this today. 💫\n\n${value}`,`Good vibes, great moments. ❤️\n\n${value}`].join("\n\n---\n\n"));
       case "hashtag-generator": { const tags=value.toLowerCase().match(/[\p{L}\p{N}]+/gu)??[]; const unique=[...new Set(tags)].filter(t=>t.length>2); return setResult([...unique,...["foryou","trending","contentcreator","explorepage","dailyinspiration"]].slice(0,20).map(t=>"#"+t).join(" "),"Suggested tags · review relevance before posting"); }
-      case "age-calculator": { const dob = new Date(get("dob")); if(Number.isNaN(dob.getTime()) || dob > new Date()) throw new Error("Enter a valid date of birth in the past."); const now=new Date(); let years=now.getFullYear()-dob.getFullYear(), months=now.getMonth()-dob.getMonth(), days=now.getDate()-dob.getDate(); if(days<0){months--;days+=new Date(now.getFullYear(),now.getMonth(),0).getDate();} if(months<0){years--;months+=12;} return setResult(`${years} years, ${months} months and ${days} days`); }
+      case "age-calculator": { const raw=get("dob"), parts=/^(\d{4})-(\d{2})-(\d{2})$/.exec(raw); const dob=parts?new Date(Number(parts[1]),Number(parts[2])-1,Number(parts[3])):new Date(raw); if(Number.isNaN(dob.getTime()) || (parts&&(dob.getFullYear()!==Number(parts[1])||dob.getMonth()!==Number(parts[2])-1||dob.getDate()!==Number(parts[3]))) || dob>new Date()) throw new Error("Enter a valid date of birth in the past."); const now=new Date(); let years=now.getFullYear()-dob.getFullYear(), months=now.getMonth()-dob.getMonth(), days=now.getDate()-dob.getDate(); if(days<0){months--;days+=new Date(now.getFullYear(),now.getMonth(),0).getDate();} if(months<0){years--;months+=12;} return setResult(`${years} years, ${months} months and ${days} days`); }
       case "bmi-calculator": { const kg=Number(get("weight-kg")),cm=Number(get("height-cm")); if(!Number.isFinite(kg)||!Number.isFinite(cm)||!(kg>0&&cm>0))throw new Error("Enter a valid positive weight and height in the extra fields."); const bmi=kg/((cm/100)**2); if(!Number.isFinite(bmi))throw new Error("The supplied measurements are outside the supported range."); const group=bmi<18.5?"Underweight":bmi<25?"Healthy range":bmi<30?"Overweight":"Obesity range"; return setResult("BMI: "+bmi.toFixed(1)+"\nCategory: "+group+"\n\nBMI is a screening measure, not a diagnosis."); }
       case "percentage-calculator": { const a=Number(get("percent-value")),b=Number(get("percent-total")); if(!Number.isFinite(a)||!Number.isFinite(b))throw new Error("Enter valid numbers in both fields."); return setResult(`${a}% of ${b} = ${(a/100*b).toLocaleString()}\n${a} is ${b===0?"undefined":(a/b*100).toFixed(2)+"%"} of ${b}`); }
       case "color-picker": { const hex=value.trim()||"#2563eb"; if(!/^#?[0-9a-f]{3}([0-9a-f]{3})?$/i.test(hex))throw new Error("Enter a valid 3- or 6-digit HEX color."); let h=hex.replace("#","");if(h.length===3)h=[...h].map(x=>x+x).join("");const n=parseInt(h,16),r=(n>>16)&255,g=(n>>8)&255,b=n&255;const [rr,gg,bb]=[r,g,b].map(x=>x/255);const max=Math.max(rr,gg,bb),min=Math.min(rr,gg,bb),d=max-min;let hue=0;if(d){if(max===rr)hue=((gg-bb)/d)%6;else if(max===gg)hue=(bb-rr)/d+2;else hue=(rr-gg)/d+4;hue=Math.round(hue*60);if(hue<0)hue+=360;}const light=(max+min)/2,sat=d?Math.round(d/(1-Math.abs(2*light-1))*100):0;return setResult(`HEX: #${h.toUpperCase()}\nRGB: rgb(${r}, ${g}, ${b})\nHSL: hsl(${hue}, ${sat}%, ${Math.round(light*100)}%)`); }
@@ -311,16 +311,23 @@ if (root) {
       const doc=await pdfjs.getDocument({data:await file.arrayBuffer(),disableWorker:true}).promise;
       if(doc.numPages>100){await doc.destroy();throw new Error("This PDF has more than 100 pages. Split it into smaller files first.");}
       try {
+        let totalPixels=0;
         for(let p=1;p<=doc.numPages;p++){
           const page=await doc.getPage(p),viewport=page.getViewport({scale:1.5});
-          if(viewport.width>12000||viewport.height>12000||viewport.width*viewport.height>40000000) throw new Error("A PDF page exceeds the 40-megapixel safety limit.");
+          const pagePixels=Math.ceil(viewport.width)*Math.ceil(viewport.height);
+          if(viewport.width>12000||viewport.height>12000||pagePixels>40000000) throw new Error("A PDF page exceeds the 40-megapixel safety limit.");
+          totalPixels+=pagePixels;
+          if(totalPixels>100000000) throw new Error("This PDF exceeds the 100-megapixel total processing limit. Split it into smaller files first.");
           const canvas=document.createElement("canvas");
-          canvas.width=viewport.width;canvas.height=viewport.height;
-          const pageContext=canvas.getContext("2d");if(!pageContext)throw new Error("Canvas is unavailable.");await page.render({canvasContext:pageContext,viewport}).promise;
-          const blob=await new Promise<Blob>((resolve,reject)=>canvas.toBlob(b=>b?resolve(b):reject(new Error("Page export failed.")),"image/png"));
-          downloadFile(blob,"toolora-page-"+p+".png");
-          page.cleanup();
-          canvas.width=0;canvas.height=0;
+          try {
+            canvas.width=Math.ceil(viewport.width);canvas.height=Math.ceil(viewport.height);
+            const pageContext=canvas.getContext("2d");if(!pageContext)throw new Error("Canvas is unavailable.");await page.render({canvasContext:pageContext,viewport}).promise;
+            const blob=await new Promise<Blob>((resolve,reject)=>canvas.toBlob(b=>b?resolve(b):reject(new Error("Page export failed.")),"image/png"));
+            downloadFile(blob,"toolora-page-"+p+".png");
+          } finally {
+            page.cleanup();
+            canvas.width=0;canvas.height=0;
+          }
         }
         output.value=doc.numPages+" page(s) exported as PNG images. Your browser may show multiple downloads.";meta.textContent="PDF pages exported";setStatus("PDF pages converted locally.");
       } finally {
@@ -340,8 +347,9 @@ if (root) {
         const requestedWidth=Number(get("image-width"))||image.width;
         const requestedHeight=Number(get("image-height"))||image.height;
         if(!Number.isFinite(requestedWidth)||!Number.isFinite(requestedHeight)||requestedWidth<1||requestedHeight<1) throw new Error("Enter valid positive output dimensions.");
-        const width=slug==="image-cropper"?Math.min(image.width,Math.floor(requestedWidth)):Math.floor(requestedWidth);
-        const height=slug==="image-cropper"?Math.min(image.height,Math.floor(requestedHeight)):Math.floor(requestedHeight);
+        let width=slug==="image-cropper"?Math.min(image.width,Math.floor(requestedWidth)):Math.floor(requestedWidth);
+        let height=slug==="image-cropper"?Math.min(image.height,Math.floor(requestedHeight)):Math.floor(requestedHeight);
+        if(slug==="image-resizer"){const hasWidth=Number(get("image-width"))>0,hasHeight=Number(get("image-height"))>0;if(hasWidth&&!hasHeight)height=Math.max(1,Math.round(image.height*(width/image.width)));else if(hasHeight&&!hasWidth)width=Math.max(1,Math.round(image.width*(height/image.height)));}
         if(width>12000||height>12000||width*height>40000000) throw new Error("Output dimensions exceed the 40-megapixel safety limit.");
         const canvas=document.createElement("canvas"),context=canvas.getContext("2d");
         if(!context) throw new Error("Canvas is unavailable in this browser.");
