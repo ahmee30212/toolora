@@ -5,7 +5,8 @@ export function getStaticPaths() { return categories.map((category) => ({ params
 const { slug } = Astro.params;
 const category = categories.find((item) => item.slug === slug);
 if (!category) throw new Error("Category not found");
-const categoryTools = getCategoryTools(category.slug);\nconst symbols: Record<string,string> = { image:"▧",pdf:"▤",text:"Aa",calculators:"%",speed:"⌁",security:"◈",developer:"{ }",design:"◉",social:"#" };
+const categoryTools = getCategoryTools(category.slug);
+const symbols: Record<string,string> = { image:"▧",pdf:"▤",text:"Aa",calculators:"%",speed:"⌁",security:"◈",developer:"{ }",design:"◉",social:"#" };
 ---
 <SiteLayout title={`${category.name} — Toolora`} description={category.description}>
   <header class="site-header"><div class="container flex items-center justify-between"><a href="/" class="flex items-center gap-3"><span class="brand-mark">T</span><span class="brand-name">toolora<span class="text-brand-600">.</span></span></a><nav class="desktop-nav flex gap-8"><a class="nav-link" href="/">Home</a><a class="nav-link" href="/#categories">Categories</a><a class="nav-link" href="/#about">About</a></nav><a class="btn-primary" href="/#categories">All categories</a></div></header>
