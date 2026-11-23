@@ -1,6 +1,7 @@
 ---
 import SiteLayout from "../layouts/SiteLayout.astro";
 import Icon from "../components/Icon.astro";
+import SocialLinks from "../components/SocialLinks.astro";
 import { categories, tools } from "../data/tools";
 const featuredSlugs = ["image-compressor","pdf-to-images","word-counter","json-formatter","password-generator","qr-generator"];
 const featuredTools = featuredSlugs.map((slug) => tools.find((tool) => tool.slug === slug)).filter(Boolean);
@@ -74,11 +75,7 @@ const featuredTools = featuredSlugs.map((slug) => tools.find((tool) => tool.slug
   <footer class="site-footer"><div class="container">
     <div class="footer-main"><div><a href="/" class="brand-lockup"><span class="brand-mark">T</span><span class="brand-name">toolora<span class="text-brand-600">.</span></span></a><p class="footer-tagline">Free Online Tools for Everyone.</p><p class="footer-credit">Created by Muhammad Ahmad ❤️</p></div>
       <div class="footer-links"><div><b>Explore</b><a href="#categories">Categories</a><a href="#popular">Popular tools</a><a href="/search">Search tools</a></div><div><b>Toolora</b><a href="#about">About us</a><a href="/">Home</a></div></div>
-      <div class="footer-social"><b>Stay connected</b><div class="socials" aria-label="Social media">
-        <a class="social-facebook" href="https://www.facebook.com/share/1EqQWrJG9J/" aria-label="Facebook" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13.5 21v-8h2.7l.4-3h-3.1V8.1c0-.9.3-1.5 1.6-1.5h1.7V3.9c-.3 0-1.3-.1-2.5-.1-2.5 0-4.2 1.5-4.2 4.3V10H7.3v3h2.8v8z" fill="currentColor"/></svg></a>
-        <a class="social-instagram" href="https://www.instagram.com/muhammad.ahmad_official0/" aria-label="Instagram" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="17.5" cy="6.8" r="1" fill="currentColor"/></svg></a>
-        <a class="social-tiktok" href="https://www.tiktok.com/@muhammadahmad_official0" aria-label="TikTok" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16.6 3c.3 2.2 1.5 3.6 3.4 3.8v3.1a8.2 8.2 0 0 1-3.4-.9v6.3a6.2 6.2 0 1 1-6.2-6.2c.4 0 .8 0 1.2.1v3.2a3.1 3.1 0 1 0 1.9 2.9V3z" fill="currentColor"/></svg></a>
-      </div></div>
+      <SocialLinks />
     </div>
     <div class="footer-bottom"><span>© {new Date().getFullYear()} Toolora. All rights reserved.</span><span>Designed to make everyday work easier.</span></div>
   </div></footer>
