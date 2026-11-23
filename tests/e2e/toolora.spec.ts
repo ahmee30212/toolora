@@ -69,7 +69,17 @@ test("Markdown preview escapes untrusted HTML", async ({ page }) => {
 
 test("image compressor handles a small local PNG", async ({ page }) => {
   await page.goto("/tools/image-compressor/");
-  const png = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/p2sAAAAASUVORK5CYII=", "base64");
+  const pngBase64 = await page.evaluate(() => {
+    const canvas = document.createElement("canvas");
+    canvas.width = 2;
+    canvas.height = 2;
+    const context = canvas.getContext("2d");
+    if (!context) throw new Error("Canvas unavailable in browser test.");
+    context.fillStyle = "#e11d48";
+    context.fillRect(0, 0, 2, 2);
+    return canvas.toDataURL("image/png").split(",")[1];
+  });
+  const png = Buffer.from(pngBase64, "base64");
   await page.locator("#file-input").setInputFiles({ name: "tiny.png", mimeType: "image/png", buffer: png });
   await page.getByRole("button", { name: /run tool/i }).click();
   await expect(page.locator("#tool-status")).toContainText("Image processed locally", { timeout: 15000 });
