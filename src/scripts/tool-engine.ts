@@ -55,6 +55,7 @@ if (root) {
 
   if (["image-compressor","image-converter","image-cropper","image-resizer"].includes(slug)) {
     fileField("image/*");
+    if (slug === "image-compressor") field("image-quality","Compression quality (0.1–1)","0.82","number");
     if (slug === "image-converter") selectField("image-format","Output format",[
       {label:"PNG",value:"image/png"},{label:"JPEG",value:"image/jpeg"},{label:"WebP",value:"image/webp"}
     ]);
@@ -63,14 +64,20 @@ if (root) {
       field("image-height","Output height (px)","0","number");
     }
   }
-  if (slug === "images-to-pdf") fileField("image/*", true);
+  if (slug === "images-to-pdf") fileField("image/png,image/jpeg", true);
   if (slug === "pdf-to-images") fileField("application/pdf,.pdf");
   const escapeHtml = (s: string) => s.replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c] ?? c));
   const words = (s: string) => s.trim() ? s.trim().match(/\S+/gu) ?? [] : [];
   const loadScript = (src: string) => new Promise<void>((resolve,reject) => { const existing=document.querySelector<HTMLScriptElement>(`script[src="${src}"]`); if(existing){ if(existing.dataset.loaded==="true")resolve(); else {existing.addEventListener("load",()=>resolve(),{once:true});existing.addEventListener("error",()=>reject(new Error("A required library could not be loaded.")),{once:true});} return;} const script=document.createElement("script");script.src=src;script.async=true;script.onload=()=>{script.dataset.loaded="true";resolve();};script.onerror=()=>reject(new Error("A required library could not be loaded. Check your connection and try again."));document.head.append(script); });
   const downloadFile = (blob: Blob, name: string) => {
-    const url = URL.createObjectURL(blob); const a = document.createElement("a");
-    a.href = url; a.download = name; a.click(); URL.revokeObjectURL(url);
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = name;
+    document.body.append(link);
+    link.click();
+    link.remove();
+    window.setTimeout(() => URL.revokeObjectURL(url), 1500);
   };
 
   const textTools = new Set([
@@ -234,7 +241,8 @@ if (root) {
         ctx.drawImage(img,0,0,canvas.width,canvas.height);
       }
       const type=slug==="image-converter"?(get("image-format")||"image/png"):"image/jpeg";
-      const blob=await new Promise<Blob>((resolve,reject)=>canvas.toBlob(b=>b?resolve(b):reject(new Error("Image export failed.")),type,0.82));
+      const quality = Math.min(1, Math.max(0.1, Number(get("image-quality")) || 0.82));
+      const blob=await new Promise<Blob>((resolve,reject)=>canvas.toBlob(b=>b?resolve(b):reject(new Error("Image export failed.")),type,quality));
       downloadBlob=blob;
       const extension=type==="image/jpeg"?"jpg":type.split("/")[1]||"png";
       output.value=`Original: ${img.width} × ${img.height}\nOutput: ${canvas.width} × ${canvas.height}\nOriginal size: ${file.size.toLocaleString()} bytes\nOutput size: ${blob.size.toLocaleString()} bytes\nFormat: ${type}`;
@@ -253,5 +261,5 @@ if (root) {
   if(slug==="typing-speed-test")input.placeholder="Click Run tool to start, then type your text and click again.";
   copy.addEventListener("click", async()=>{if(!output.value){setStatus("There is no result to copy.",true);return;}try{await navigator.clipboard.writeText(output.value);setStatus("Result copied to clipboard.");}catch{setStatus("Clipboard access was blocked by the browser.",true);}});
   download.addEventListener("click",()=>{if(downloadBlob){downloadFile(downloadBlob, (download as HTMLButtonElement).dataset.filename ?? `toolora-${slug}.txt`);return;}if(!output.value){setStatus("There is no result to download.",true);return;}downloadFile(new Blob([output.value],{type:"text/plain;charset=utf-8"}),`toolora-${slug}.txt`);});
-  reset.addEventListener("click",()=>{input.value="";output.value="";extra.querySelectorAll("input,select").forEach(el=>{if(el instanceof HTMLInputElement)el.value=el.defaultValue;else if(el instanceof HTMLSelectElement)el.selectedIndex=0;});downloadBlob=null;typingStarted=0;meta.textContent="Waiting for input";setStatus("Ready for new input.");});
+  reset.addEventListener("click",()=>{input.value="";output.value="";extra.querySelectorAll("input,select").forEach(el=>{if(el instanceof HTMLInputElement)el.value=el.type==="file"?"":el.defaultValue;else if(el instanceof HTMLSelectElement)el.selectedIndex=0;});document.querySelector("#qr-preview")?.replaceChildren();downloadBlob=null;delete download.dataset.filename;typingStarted=0;meta.textContent="Waiting for input";setStatus("Ready for new input.");});
 }
