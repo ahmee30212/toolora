@@ -25,3 +25,7 @@ jobs:
       - name: Enforce dependency security policy
         run: npm audit --audit-level=high
       - run: npm run build
+      - name: Install Chromium for browser tests
+        run: npx playwright install --with-deps chromium
+      - name: Run browser tests
+        run: npm run test:e2e
