@@ -123,7 +123,6 @@ if (root) {
   };
   const scriptIntegrity: Record<string, string> = {
     "https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js": "sha512-CNgIRecGo7nphbeZ04Sc13ka07paqdeTu0WR1IM4kNcpmBAUSHSQX0FslNhTDadL4O5SAGapGt4FodqL8My0mA==",
-    "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js": "sha512-qZvrmS2ekKPF2mSznTQsxqPgnpkI4DNTlrdUmTzrDgektczlKNRRhy5X5AAOnx5S09ydFYWWNSfcEqDTTHgtNA==",
     "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js": "sha512-q+4liFwdPC/bNdhUpZx6aXDx/h77yEQtn4I1slHydcbZK34nLaR3cAeYSJshoxIOq3mjEf7xJE8YWIUHMn+oCQ=="
   };
   const loadScript = (src: string) => new Promise<void>((resolve,reject) => {
@@ -297,9 +296,7 @@ if (root) {
       if(files.length>40) throw new Error("Choose no more than 40 images per PDF.");
       if(files.some((file)=>file.size>25*1024*1024)) throw new Error("Each image must be smaller than 25 MB.");
       if(files.reduce((total,file)=>total+file.size,0)>50*1024*1024) throw new Error("The combined image size must be under 50 MB.");
-      await loadScript("https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js");
-      const jsPDF=(window as any).jspdf?.jsPDF;
-      if(!jsPDF) throw new Error("PDF library failed to initialize.");
+      const { jsPDF } = await import("jspdf");
       const pdf=new jsPDF({orientation:"portrait",unit:"pt",format:"a4"});
       let totalPixels=0;
       for(let i=0;i<files.length;i++){
@@ -318,10 +315,20 @@ if (root) {
       const file=document.querySelector<HTMLInputElement>("#file-input")?.files?.[0];
       if(!file) throw new Error("Choose a PDF file first.");
       if(file.size>30*1024*1024) throw new Error("Choose a PDF smaller than 30 MB.");
-      await loadScript("https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js");
-      const pdfjs=(window as any).pdfjsLib;
-      if(!pdfjs) throw new Error("PDF renderer failed to load.");
-      const doc=await pdfjs.getDocument({data:await file.arrayBuffer(),disableWorker:true}).promise;
+      const pdfjs=await import("pdfjs-dist/build/pdf.mjs");
+      const workerModule=await import("pdfjs-dist/build/pdf.worker.mjs?url");
+      pdfjs.GlobalWorkerOptions.workerSrc=workerModule.default;
+      const doc=await pdfjs.getDocument({
+        data:new Uint8Array(await file.arrayBuffer()),
+        isEvalSupported:false,
+        enableXfa:false,
+        maxImageSize:40000000,
+        cMapUrl:"/pdfjs/cmaps/",
+        cMapPacked:true,
+        standardFontDataUrl:"/pdfjs/standard_fonts/",
+        wasmUrl:"/pdfjs/wasm/",
+        iccUrl:"/pdfjs/iccs/"
+      }).promise;
       if(doc.numPages>100){await doc.destroy();throw new Error("This PDF has more than 100 pages. Split it into smaller files first.");}
       try {
         let totalPixels=0;

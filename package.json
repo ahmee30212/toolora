@@ -6,14 +6,16 @@
   "scripts": {
     "dev": "astro dev",
     "validate": "node scripts/validate-catalog.mjs",
-    "build": "npm run validate && node scripts/generate-sitemap.mjs && astro check && astro build && node scripts/validate-build.mjs",
+    "build": "npm run validate && node scripts/generate-sitemap.mjs && astro check && node scripts/copy-pdfjs-assets.mjs && astro build && node scripts/validate-build.mjs",
     "preview": "astro preview",
     "check": "astro check",
-    "audit": "npm audit --audit-level=high",
+    "audit": "npm audit --audit-level=low",
     "test:e2e": "playwright test"
   },
   "dependencies": {
-    "astro": "7.4.13"
+    "astro": "7.4.13",
+    "jspdf": "4.2.1",
+    "pdfjs-dist": "6.5.438"
   },
   "devDependencies": {
     "@astrojs/check": "0.9.12",
