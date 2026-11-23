@@ -25,7 +25,7 @@ const icons: Record<string, string[]> = {
   "list-checks": ["M10 6h11","M10 12h11","M10 18h11","m3 6 1 1 2-2","m3 12 1 1 2-2","m3 18 1 1 2-2"]
 };
 const aliases: Record<string, string> = {
-  images: "images", "file-image": "file-image", files: "files", "case-sensitive": "case-sensitive",
+  images: "images", crop: "crop", maximize: "maximize", "file-image": "file-image", files: "files", "case-sensitive": "case-sensitive",
   text: "text", "file-pen-line": "file-pen-line", "list-filter": "list-filter", link: "link",
   "chart-no-axes-combined": "chart", "git-compare": "git-compare", "arrow-down-wide-narrow": "sort",
   "volume-2": "volume", "align-left": "align-left", "calendar-days": "calendar", activity: "activity",
@@ -36,6 +36,8 @@ const aliases: Record<string, string> = {
 };
 const extraIcons: Record<string, string[]> = {
   images:["M4 4h13a2 2 0 0 1 2 2v12","M8 8h12a2 2 0 0 1 2 2v9H8z","m9 17 3-3 2 2 2-2 4 4"],
+  crop:["M4 8V4h4","M4 4l6 6","M20 16v4h-4","M20 20l-6-6","M8 4h12v12","M4 8v12h12"],
+  maximize:["M8 3H5a2 2 0 0 0-2 2v3","M16 3h3a2 2 0 0 1 2 2v3","M21 16v3a2 2 0 0 1-2 2h-3","M8 21H5a2 2 0 0 1-2-2v-3"],
   "file-image":["M5 2h10l5 5v15H5z","M15 2v5h5","M8 13h.01","m8 19 3-3 2 2 2-2 3 3"],
   files:["M7 3h10l4 4v14H7z","M17 3v4h4","M3 7v14h12","M10 12h7","M10 16h7"],
   "case-sensitive":["M4 19 10 5l6 14","M6 15h8","M16 13h5","M18.5 10v8","M17 16h3"],
