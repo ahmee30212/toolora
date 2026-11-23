@@ -57,3 +57,11 @@ button{cursor:pointer}
 .tool-panel{background:#fff;border:1px solid #e6ebf2;border-radius:20px;padding:26px;box-shadow:0 10px 35px #1d35570b}
 @media(max-width:760px){.container{width:min(100% - 30px,600px)}.site-header{height:66px}.desktop-nav{display:none}.hero{padding:68px 0 54px}.category-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.section{padding:55px 0}.tool-list{grid-template-columns:1fr}.section-heading{align-items:start;flex-direction:column}.footer-bottom{flex-direction:column}}
 @media(max-width:460px){.category-grid{grid-template-columns:1fr}.feature-strip{grid-template-columns:1fr}.search-shell{padding:5px}.search-shell input{padding:0 8px;font-size:13px}.search-shell .btn-primary{padding:11px 12px}}
+
+/* Icon system */
+.category-icon svg{display:block;flex:none}
+.trust-item{display:inline-flex;align-items:center;gap:6px}
+.trust-item svg{color:#16a36a}
+.socials a{transition:background .2s,border-color .2s,color .2s,transform .2s}
+.socials a:hover{background:#2563eb;border-color:#2563eb;color:#fff;transform:translateY(-2px)}
+.socials a svg{display:block;width:17px;height:17px}
