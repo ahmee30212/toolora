@@ -1,0 +1,27 @@
+---
+import Icon from "./Icon.astro";
+const { active = "", backHref = "", backLabel = "" } = Astro.props;
+---
+<header class="site-header">
+  <div class="container header-inner">
+    <a href="/" class="brand-lockup" aria-label="Toolora home">
+      <span class="brand-mark" aria-hidden="true">T</span>
+      <span class="brand-name">toolora<span class="text-brand-600">.</span></span>
+    </a>
+    <nav class="desktop-nav" aria-label="Main navigation">
+      <a class={active === "home" ? "nav-link active" : "nav-link"} href="/">Home</a>
+      <a class="nav-link" href="/#categories">Categories</a>
+      <a class="nav-link" href="/#popular">Popular tools</a>
+      <a class="nav-link" href="/#about">About</a>
+    </nav>
+    <div class="header-actions">
+      {backHref ? <a class="btn-secondary header-back" href={backHref}><Icon name="arrow-left" size={15}/>{backLabel || "Back"}</a> : <a class="btn-primary header-cta" href="/#categories">Explore tools <Icon name="arrow-up-right" size={16}/></a>}
+      <details class="mobile-menu">
+        <summary aria-label="Open navigation menu"><Icon name="menu" size={21}/></summary>
+        <nav aria-label="Mobile navigation">
+          <a href="/">Home</a><a href="/#categories">Categories</a><a href="/#popular">Popular tools</a><a href="/#about">About</a><a href="/search">Search tools</a>
+        </nav>
+      </details>
+    </div>
+  </div>
+</header>
