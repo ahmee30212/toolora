@@ -22,4 +22,6 @@ jobs:
         run: |
           npm audit --json > npm-audit.json || true
           node --input-type=commonjs -e "const a=require('./npm-audit.json'); console.log('Dependency audit:', JSON.stringify(a.metadata?.vulnerabilities ?? {}, null, 2)); for (const [name,v] of Object.entries(a.vulnerabilities ?? {})) console.log(name + ': ' + v.severity + '; direct=' + v.isDirect + '; fix=' + JSON.stringify(v.fixAvailable));"
+      - name: Enforce dependency security policy
+        run: npm audit --audit-level=high
       - run: npm run build
