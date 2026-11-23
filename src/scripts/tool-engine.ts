@@ -53,7 +53,8 @@ if (root) {
     if (slug === "number-system-converter") { field("from-base","From base","10","number"); field("to-base","To base","2","number"); }
     if (slug === "bmi-calculator") { field("weight-kg","Weight (kg)","70","number"); field("height-cm","Height (cm)","175","number"); }
     if (slug === "percentage-calculator") { field("percent-value","Percentage","15","number"); field("percent-total","Number","200","number"); }
-    if (slug === "keyword-density-checker") field("keyword","Keyword to analyze","","text");\n    if (slug === "age-calculator") { input.classList.add("hidden"); field("dob","Date of birth","","date"); }
+    if (slug === "keyword-density-checker") field("keyword","Keyword to analyze","","text");
+    if (slug === "age-calculator") { input.classList.add("hidden"); field("dob","Date of birth","","date"); }
     if (slug === "password-generator") { field("pass-length","Password length","20","number"); }
     if (slug === "qr-generator") input.placeholder = "Enter a URL or text to encode as a QR code.";
   }
