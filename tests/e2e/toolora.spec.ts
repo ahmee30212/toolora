@@ -426,3 +426,30 @@ test("typing speed test starts, measures and resets its timer", async ({ page })
   await page.getByRole("button", { name: /run tool/i }).click();
   await expect(page.locator("#tool-output")).toHaveValue(/Elapsed: [1-9]\d* seconds[\s\S]*Words per minute:/);
 });
+
+
+test("404 page retains shared navigation, footer and a clear recovery path", async ({ page }) => {
+  const response = await page.goto("/this-route-does-not-exist/");
+  expect(response?.status()).toBe(404);
+  await expect(page.getByRole("heading", { name: /this page took a wrong turn/i })).toBeVisible();
+  await expect(page.getByRole("link", { name: /back to homepage/i })).toHaveAttribute("href", "/");
+  await expect(page.getByText("Created by Muhammad Ahmad")).toBeVisible();
+});
+
+test("primary routes fit a narrow mobile viewport without horizontal overflow", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  for (const route of ["/", "/search/", "/categories/image/", "/tools/image-resizer/", "/tools/pdf-to-images/"]) {
+    await page.goto(route);
+    const dimensions = await page.evaluate(() => ({
+      viewport: document.documentElement.clientWidth,
+      content: document.documentElement.scrollWidth
+    }));
+    expect(dimensions.content, "horizontal overflow on " + route).toBeLessThanOrEqual(dimensions.viewport);
+  }
+});
+
+test("reduced-motion preference disables smooth scrolling and long animations", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/");
+  await expect.poll(() => page.locator("html").evaluate((element) => getComputedStyle(element).scrollBehavior)).toBe("auto");
+});

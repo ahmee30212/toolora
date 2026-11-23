@@ -292,3 +292,15 @@ body{background:#f5f7fc;color:#101a30}
 .skip-link{position:fixed;left:16px;top:12px;z-index:1000;transform:translateY(-160%);padding:12px 16px;border-radius:10px;background:#10264a;color:#fff;font-size:13px;font-weight:800;box-shadow:0 8px 24px #10264a35}
 .skip-link:focus{transform:translateY(0);outline:3px solid #8bb5ff;outline-offset:3px}
 :focus-visible{outline:3px solid #3978f6;outline-offset:3px}
+
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

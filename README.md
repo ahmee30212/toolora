@@ -2,70 +2,88 @@
 
 **Free Online Tools for Everyone.**
 
-Toolora is a category-first collection of practical browser-based utilities, designed around a consistent brand, responsive workspaces and privacy-conscious local processing.
+Toolora is a modern, browser-first collection of **41 free online tools across 9 categories**. Each category has its own focused tool list, and every tool has a dedicated workspace.
+
+**Live website:** https://toolora.m-ahmad30212.workers.dev/
 
 **Created by Muhammad Ahmad ❤️**
 
 ## Product principles
 
-- **Useful by default:** tools are grouped into clear categories and each tool has a focused workspace.
-- **Privacy-conscious:** text and file operations are performed in the browser wherever supported; no Toolora account is required.
-- **Accessible and responsive:** shared navigation, semantic controls, visible focus states and mobile layouts.
-- **Secure by design:** production response headers include a Content Security Policy and browser security policies; CI audits dependencies and fails on high or critical advisories.
-- **Transparent:** see the [Privacy Policy](/privacy) and [Terms of Use](/terms).
+- **Focused UX:** category-first navigation, dedicated tool workspaces, live search and consistent page layouts.
+- **Browser-first privacy:** text, image and PDF processing happens locally in the user's browser; files are not uploaded to a Toolora processing server.
+- **Responsive and accessible:** semantic controls, keyboard-visible focus, mobile navigation and reduced-motion support.
+- **Fast by design:** static Astro output, locally bundled PDF libraries, lazy-loaded tool dependencies and enforced JavaScript/CSS size budgets.
+- **Transparent:** read the [Privacy Policy](/privacy/) and [Terms of Use](/terms/).
 
 ## Technology
 
 - Astro 7 with static site generation
-- TypeScript for browser-side tool logic
-- Tailwind CSS 4 through the official Vite plugin
-- Native browser APIs and Web Crypto for local processing
-- Cloudflare Workers Static Assets for hosting
+- TypeScript 6 for browser-side tool logic
+- Tailwind CSS 4 through the Vite plugin
+- Cloudflare Workers Static Assets
+- PDF.js 6.5.438 for local PDF rendering
+- jsPDF 4.2.1 for local PDF creation
+- Native browser APIs and Web Crypto
+- Node.js 24 and Playwright browser tests
+
+## Privacy and third-party resources
+
+Toolora does not provide a file-upload processing endpoint. Image, PDF and text content is processed in the browser. PDF.js and jsPDF are installed as pinned npm dependencies and bundled with the site. The QR-code tool loads a version-pinned open-source QR library from cdnjs with Subresource Integrity only when that tool is used; the content encoded in a QR code is not sent to the CDN. Toolora uses system fonts and does not request Google Fonts.
+
+Cloudflare may process technical request metadata for delivery, reliability and security. See the in-site [Privacy Policy](/privacy/) for details.
+
+## Security and quality gates
+
+The repository uses layered checks:
+
+- npm audit blocks known dependency advisories at every severity level.
+- CodeQL performs JavaScript and TypeScript static analysis; uploaded results are available in GitHub Security.
+- OWASP ZAP Baseline performs a passive production scan after successful CI. A report gate fails on actionable low-, medium-, high- or critical-risk findings.
+- Playwright provides end-to-end browser coverage for all 41 tools and the main navigation, search, category and responsive flows.
+- Build validation checks route/catalog consistency, security headers, canonical sitemap routes and asset-size budgets.
+- Security headers include CSP, HSTS, clickjacking protection, MIME-sniffing protection, COOP, COEP and CORP.
+
+Browser-side resource limits are enforced for large text, image and PDF workloads. The ZAP Baseline scan is passive; it is not a full active penetration test or a guarantee that no vulnerability exists.
 
 ## Local development
 
 Requirements: Node.js 24 or newer.
 
-```bash
-npm install
-npm run dev
-```
+    npm ci
+    npm run dev
 
-## Quality checks
+## Quality commands
 
-```bash
-npm run check
-npm run audit
-npm run build
-npm run preview
-```
+    npm run validate
+    npm run check
+    npm run audit
+    npx playwright install chromium
+    npm run test:e2e
+    npm run build
+    npm run preview
 
-The production build validates the tool catalog, generates the XML sitemap from the catalog, runs Astro diagnostics and builds all static routes.
-
-GitHub Actions runs on Node.js 24, reports dependency advisories, blocks high and critical dependency vulnerabilities, and verifies the production build.
-
-## Project structure
-
-- `src/data/tools.ts` — category and tool catalogue
-- `src/components/` — shared branded navigation, footer and SVG icons
-- `src/layouts/SiteLayout.astro` — document shell, canonical URLs and social metadata
-- `src/pages/` — homepage, search, category, tool, privacy, terms and 404 pages
-- `src/scripts/tool-engine.ts` — browser-side tool implementations
-- `src/styles/global.css` — shared design system
-- `scripts/` — catalog validation and sitemap generation
+The production build validates the catalog, generates the XML sitemap, runs Astro diagnostics, copies the pinned PDF.js runtime assets, builds the static site and checks security and performance budgets.
 
 ## Cloudflare Workers deployment
 
-- Build command: `npm run build`
-- Static assets directory: `dist`
-- Worker configuration: `wrangler.toml`
-- Node.js build environment: `24`
+- Build command: npm run build
+- Static assets directory: dist
+- Worker configuration: wrangler.toml
+- Node.js build environment: 24
 
-Deploy using the Cloudflare Worker configuration after the GitHub Actions build has passed.
+Deploy the current main revision through the configured Cloudflare Worker deployment after the GitHub Actions checks pass.
 
-## Privacy and third-party libraries
+## Project structure
 
-Toolora is designed to process text and selected files locally in the browser. QR generation and PDF workflows load version-pinned open-source libraries from cdnjs when those features are used. Google Fonts is used for typography. These third-party providers may receive technical request information when the browser loads their resources. See the in-site [Privacy Policy](/privacy) for details.
+- src/data/tools.ts — category and tool catalog
+- src/components/ — shared navigation, footer and SVG icons
+- src/layouts/SiteLayout.astro — document shell, canonical URLs and social metadata
+- src/pages/ — homepage, search, category, tool, privacy, terms and 404 pages
+- src/scripts/tool-engine.ts — browser-side tool implementations
+- src/styles/global.css — shared visual system
+- scripts/ — catalog, sitemap, PDF asset, build and ZAP report validation
+- tests/e2e/ — Playwright end-to-end tests
 
 ## Credits
 
