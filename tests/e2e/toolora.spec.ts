@@ -6,7 +6,7 @@ test("homepage and mobile navigation are branded and usable", async ({ page }) =
   await page.goto("/");
   await expect(page).toHaveTitle(/Toolora/);
   await expect(page.getByRole("link", { name: /toolora home/i })).toBeVisible();
-  await expect(page.getByRole("link", { name: /Created by Muhammad Ahmad/i })).toHaveCount(0);
+  await expect(page.getByText("Created by Muhammad Ahmad ❤️")).toBeVisible();
   const menu = page.getByRole("button", { name: /open navigation menu/i });
   await expect(menu).toBeVisible();
   await menu.click();
