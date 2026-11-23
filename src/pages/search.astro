@@ -45,7 +45,8 @@ import SiteFooter from "../components/SiteFooter.astro";
     const state = document.querySelector<HTMLElement>("#search-state");
     const stateTitle = document.querySelector<HTMLElement>("#search-state-title");
     const stateCopy = document.querySelector<HTMLElement>("#search-state-copy");
-    const categoryNames = new Map(categories.map((category) => [category.slug, category.name]));
+    const categoryNames = new Map<string, string>();
+    for (const category of categories) categoryNames.set(category.slug, category.name);
 
     const renderResults = () => {
       if (!input || !summary || !results || !state || !stateTitle || !stateCopy) return;
