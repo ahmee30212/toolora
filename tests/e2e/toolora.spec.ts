@@ -5,7 +5,7 @@ test("homepage and mobile navigation are branded and usable", async ({ page }) =
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/");
   await expect(page).toHaveTitle(/Toolora/);
-  await expect(page.getByRole("link", { name: /toolora home/i })).toBeVisible();
+  await expect(page.locator(".site-header .brand-lockup")).toBeVisible();
   await expect(page.getByText("Created by Muhammad Ahmad ❤️")).toBeVisible();
   const menu = page.getByRole("button", { name: /open navigation menu/i });
   await expect(menu).toBeVisible();
@@ -41,21 +41,21 @@ test("word counter processes text and exposes the result", async ({ page }) => {
   await page.goto("/tools/word-counter/");
   await page.locator("#tool-input").fill("Toolora makes useful tools");
   await page.getByRole("button", { name: /run tool/i }).click();
-  await expect(page.locator("#tool-output")).toContainText("Words: 4");
+  await expect(page.locator("#tool-output")).toHaveValue(/Words: 4/);
 });
 
 test("JSON formatter returns valid formatted JSON", async ({ page }) => {
   await page.goto("/tools/json-formatter/");
   await page.locator("#tool-input").fill('{"toolora":true,"count":41}');
   await page.getByRole("button", { name: /run tool/i }).click();
-  await expect(page.locator("#tool-output")).toContainText('"toolora": true');
+  await expect(page.locator("#tool-output")).toHaveValue(/"toolora": true/);
 });
 
 test("CSV to JSON converts quoted columns", async ({ page }) => {
   await page.goto("/tools/csv-to-json/");
   await page.locator("#tool-input").fill('name,city\n"Ahmad, A.","Islamabad"');
   await page.getByRole("button", { name: /run tool/i }).click();
-  await expect(page.locator("#tool-output")).toContainText("Ahmad, A.");
+  await expect(page.locator("#tool-output")).toHaveValue(/Ahmad, A\./);
 });
 
 test("Markdown preview escapes untrusted HTML", async ({ page }) => {
@@ -73,7 +73,7 @@ test("image compressor handles a small local PNG", async ({ page }) => {
   await page.locator("#file-input").setInputFiles({ name: "tiny.png", mimeType: "image/png", buffer: png });
   await page.getByRole("button", { name: /run tool/i }).click();
   await expect(page.locator("#tool-status")).toContainText("Image processed locally", { timeout: 15000 });
-  await expect(page.locator("#tool-output")).toContainText("Original:");
+  await expect(page.locator("#tool-output")).toHaveValue(/Original:/);
 });
 
 test("privacy and terms pages are accessible from the footer", async ({ page }) => {
