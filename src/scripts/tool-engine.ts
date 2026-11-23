@@ -264,6 +264,8 @@ if (root) {
     if (slug === "images-to-pdf") {
       const files=Array.from(document.querySelector<HTMLInputElement>("#file-input")?.files??[]);
       if(!files.length) throw new Error("Choose one or more images first.");
+      if(files.length>40) throw new Error("Choose no more than 40 images per PDF.");
+      if(files.some((file)=>file.size>25*1024*1024)) throw new Error("Each image must be smaller than 25 MB.");
       await loadScript("https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js");
       const jsPDF=(window as any).jspdf?.jsPDF;
       if(!jsPDF) throw new Error("PDF library failed to initialize.");
@@ -280,6 +282,7 @@ if (root) {
     if (slug === "pdf-to-images") {
       const file=document.querySelector<HTMLInputElement>("#file-input")?.files?.[0];
       if(!file) throw new Error("Choose a PDF file first.");
+      if(file.size>30*1024*1024) throw new Error("Choose a PDF smaller than 30 MB.");
       await loadScript("https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js");
       const pdfjs=(window as any).pdfjsLib;
       if(!pdfjs) throw new Error("PDF renderer failed to load.");
