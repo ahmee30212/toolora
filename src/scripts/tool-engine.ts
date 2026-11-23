@@ -49,7 +49,7 @@ if (root) {
     if (slug === "bmi-calculator") { field("weight-kg","Weight (kg)","70","number"); field("height-cm","Height (cm)","175","number"); }
     if (slug === "percentage-calculator") { field("percent-value","Percentage","15","number"); field("percent-total","Number","200","number"); }
     if (slug === "keyword-density-checker") field("keyword","Keyword to analyze","","text");\n    if (slug === "age-calculator") { input.type = "date"; input.placeholder = "Select your date of birth"; }
-    if (slug === "password-generator") { field("pass-length","Password length","20","number"); field("pass-symbols","Include symbols","yes"); }
+    if (slug === "password-generator") { field("pass-length","Password length","20","number"); }
     if (slug === "qr-generator") input.placeholder = "Enter a URL or text to encode as a QR code.";
   }
 
@@ -142,7 +142,7 @@ if (root) {
         const image=new Image();await new Promise<void>((resolve,reject)=>{image.onload=()=>resolve();image.onerror=()=>reject(new Error("Invalid image file."));image.src=data;});
         const pageW=595.28,pageH=841.89,ratio=Math.min(pageW/image.width,pageH/image.height);
         if(i>0)pdf.addPage();
-        pdf.addImage(data,"JPEG",(pageW-image.width*ratio)/2,(pageH-image.height*ratio)/2,image.width*ratio,image.height*ratio);
+        pdf.addImage(data,files[i].type==="image/png"?"PNG":"JPEG",(pageW-image.width*ratio)/2,(pageH-image.height*ratio)/2,image.width*ratio,image.height*ratio);
       }
       downloadBlob=pdf.output("blob");output.value=`${files.length} image(s) combined into a PDF. Use Download to save it.`;meta.textContent="PDF created";(download as HTMLButtonElement).dataset.filename="toolora-images.pdf";setStatus("PDF created in your browser.");return;
     }
