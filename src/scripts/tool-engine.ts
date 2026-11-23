@@ -38,6 +38,33 @@ if (root) {
     wrap.append(select);extra.append(wrap);
   };
 
+  const fileField = (accept: string, multiple = false) => {
+    const wrap = document.createElement("label");
+    wrap.className = "block text-xs font-semibold text-slate-600 sm:col-span-2";
+    const title = document.createElement("span");
+    title.textContent = multiple ? "Choose files" : "Choose a file";
+    const picker = document.createElement("input");
+    picker.id = "file-input";
+    picker.type = "file";
+    picker.accept = accept;
+    picker.multiple = multiple;
+    picker.className = "mt-2 block w-full rounded-xl border border-slate-200 bg-white p-3 text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-blue-50 file:px-3 file:py-2 file:text-xs file:font-bold file:text-blue-700";
+    wrap.append(title, picker);
+    extra.prepend(wrap);
+  };
+
+  if (["image-compressor","image-converter","image-cropper","image-resizer"].includes(slug)) {
+    fileField("image/*");
+    if (slug === "image-converter") selectField("image-format","Output format",[
+      {label:"PNG",value:"image/png"},{label:"JPEG",value:"image/jpeg"},{label:"WebP",value:"image/webp"}
+    ]);
+    if (slug === "image-resizer" || slug === "image-cropper") {
+      field("image-width","Output width (px)","0","number");
+      field("image-height","Output height (px)","0","number");
+    }
+  }
+  if (slug === "images-to-pdf") fileField("image/*", true);
+  if (slug === "pdf-to-images") fileField("application/pdf,.pdf");
   const escapeHtml = (s: string) => s.replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c] ?? c));
   const words = (s: string) => s.trim() ? s.trim().match(/\S+/gu) ?? [] : [];
   const loadScript = (src: string) => new Promise<void>((resolve,reject) => { const existing=document.querySelector<HTMLScriptElement>(`script[src="${src}"]`); if(existing){ if(existing.dataset.loaded==="true")resolve(); else {existing.addEventListener("load",()=>resolve(),{once:true});existing.addEventListener("error",()=>reject(new Error("A required library could not be loaded.")),{once:true});} return;} const script=document.createElement("script");script.src=src;script.async=true;script.onload=()=>{script.dataset.loaded="true";resolve();};script.onerror=()=>reject(new Error("A required library could not be loaded. Check your connection and try again."));document.head.append(script); });
@@ -191,10 +218,31 @@ if (root) {
       const canvas=document.createElement("canvas"),ctx=canvas.getContext("2d");if(!ctx)throw new Error("Canvas is unavailable.");
       const width=Math.max(1,Number(get("image-width"))||img.width),height=Math.max(1,Number(get("image-height"))||img.height);
       canvas.width=slug==="image-cropper"?Math.min(img.width,width):width;canvas.height=slug==="image-cropper"?Math.min(img.height,height):height;
-      ctx.drawImage(img,0,0,canvas.width,canvas.height);
+      if (slug === "image-cropper") {
+        const targetAspect = canvas.width / canvas.height;
+        const sourceAspect = img.width / img.height;
+        if (sourceAspect > targetAspect) {
+          const sourceWidth = img.height * targetAspect;
+          const sourceX = (img.width - sourceWidth) / 2;
+          ctx.drawImage(img, sourceX, 0, sourceWidth, img.height, 0, 0, canvas.width, canvas.height);
+        } else {
+          const sourceHeight = img.width / targetAspect;
+          const sourceY = (img.height - sourceHeight) / 2;
+          ctx.drawImage(img, 0, sourceY, img.width, sourceHeight, 0, 0, canvas.width, canvas.height);
+        }
+      } else {
+        ctx.drawImage(img,0,0,canvas.width,canvas.height);
+      }
       const type=slug==="image-converter"?(get("image-format")||"image/png"):"image/jpeg";
       const blob=await new Promise<Blob>((resolve,reject)=>canvas.toBlob(b=>b?resolve(b):reject(new Error("Image export failed.")),type,0.82));
-      downloadBlob=blob;output.value=`Original: ${img.width} × ${img.height}\nOutput: ${canvas.width} × ${canvas.height}\nOriginal size: ${file.size.toLocaleString()} bytes\nOutput size: ${blob.size.toLocaleString()} bytes`;meta.textContent="Image processed";(download as HTMLButtonElement).dataset.filename="toolora-image";setStatus("Image processed locally. Use Download to save it.");URL.revokeObjectURL(url);return;
+      downloadBlob=blob;
+      const extension=type==="image/jpeg"?"jpg":type.split("/")[1]||"png";
+      output.value=`Original: ${img.width} × ${img.height}\nOutput: ${canvas.width} × ${canvas.height}\nOriginal size: ${file.size.toLocaleString()} bytes\nOutput size: ${blob.size.toLocaleString()} bytes\nFormat: ${type}`;
+      meta.textContent="Image processed";
+      (download as HTMLButtonElement).dataset.filename=`toolora-${slug}.${extension}`;
+      setStatus("Image processed locally. Use Download to save it.");
+      URL.revokeObjectURL(url);
+      return;
     }
     if(slug==="text-to-speech"){if(!input.value.trim())throw new Error("Enter text to read aloud.");if(!("speechSynthesis" in window))throw new Error("Speech synthesis is not supported in this browser.");speechSynthesis.cancel();speechSynthesis.speak(new SpeechSynthesisUtterance(input.value));setStatus("Speech playback started using your browser voice.");return;}
     if(slug==="typing-speed-test"){if(!typingStarted){typingStarted=Date.now();setStatus("Timer started. Type your text in the box, then click Run tool again.");return;}const mins=(Date.now()-typingStarted)/60000,wpm=Math.round(words(input.value).length/Math.max(mins,.01));setResult(`Elapsed: ${Math.round((Date.now()-typingStarted)/1000)} seconds\nWords per minute: ${wpm}\nCharacters: ${input.value.length}`);typingStarted=0;return;}
