@@ -5,5 +5,5 @@ import tailwind from "@astrojs/tailwind";
 export default defineConfig({
   integrations: [react(), tailwind({ applyBaseStyles: false })],
   output: "static",
-  site: "https://toolora.pages.dev"
+  site: "https://toolora.m-ahmad30212.workers.dev"
 });
