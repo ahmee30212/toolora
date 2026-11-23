@@ -19,7 +19,7 @@ if (duplicates.length) throw new Error(`Duplicate tool slugs: ${[...new Set(dupl
 const aliasBlock = iconSource.match(/const aliases: Record<string, string> = \{([\s\S]*?)\n\};/)?.[1] ?? "";
 const iconBlock = iconSource.match(/const icons: Record<string, string\[]> = \{([\s\S]*?)\n\};/)?.[1] ?? "";
 const extraBlock = iconSource.match(/const extraIcons: Record<string, string\[]> = \{([\s\S]*?)\n\};/)?.[1] ?? "";
-const keys = (block) => [...block.matchAll(/(?:^|\n)\s*(?:"([^"]+)"|([a-zA-Z0-9-]+))\s*:/g)].map((match) => match[1] ?? match[2]);
+const keys = (block) => [...block.matchAll(/["']?([a-zA-Z0-9-]+)["']?\s*:/g)].map((match) => match[1]);
 const iconNames = new Set([...keys(aliasBlock), ...keys(iconBlock)]);
 const extraNames = new Set(keys(extraBlock));
 const errors = [];
