@@ -108,7 +108,22 @@ if (root) {
     if (cell.length || row.length || rows.length === 0) { row.push(cell); rows.push(row); }
     return rows;
   };
-  const loadScript = (src: string) => new Promise<void>((resolve,reject) => { const existing=document.querySelector<HTMLScriptElement>(`script[src="${src}"]`); if(existing){ if(existing.dataset.loaded==="true")resolve(); else {existing.addEventListener("load",()=>resolve(),{once:true});existing.addEventListener("error",()=>reject(new Error("A required library could not be loaded.")),{once:true});} return;} const script=document.createElement("script");script.src=src;script.async=true;script.onload=()=>{script.dataset.loaded="true";resolve();};script.onerror=()=>reject(new Error("A required library could not be loaded. Check your connection and try again."));document.head.append(script); });
+  const scriptIntegrity: Record<string, string> = {
+    "https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js": "sha512-CNgIRecGo7nphbeZ04Sc13ka07paqdeTu0WR1IM4kNcpmBAUSHSQX0FslNhTDadL4O5SAGapGt4FodqL8My0mA==",
+    "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js": "sha512-qZvrmS2ekKPF2mSznTQsxqPgnpkI4DNTlrdUmTzrDgektczlKNRRhy5X5AAOnx5S09ydFYWWNSfcEqDTTHgtNA==",
+    "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js": "sha512-q+4liFwdPC/bNdhUpZx6aXvh3wXe//gl5DjaRhGLyEb2WpW0zfl43uLBiAnBzyWGSY229iLyyTEvgGVIhsuULA=="
+  };
+  const loadScript = (src: string) => new Promise<void>((resolve,reject) => {
+    const integrity = scriptIntegrity[src];
+    if (!integrity) { reject(new Error("This external library is not approved.")); return; }
+    const existing=document.querySelector<HTMLScriptElement>('script[src="' + src + '"]');
+    if(existing){ if(existing.dataset.loaded==="true" && existing.integrity===integrity)resolve(); else {existing.addEventListener("load",()=>resolve(),{once:true});existing.addEventListener("error",()=>reject(new Error("A required library could not be securely loaded.")),{once:true});} return;}
+    const script=document.createElement("script");
+    script.src=src;script.integrity=integrity;script.crossOrigin="anonymous";script.referrerPolicy="no-referrer";script.async=true;
+    script.onload=()=>{script.dataset.loaded="true";resolve();};
+    script.onerror=()=>reject(new Error("A required library failed its integrity check or could not be loaded."));
+    document.head.append(script);
+  });
   const downloadFile = (blob: Blob, name: string) => {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
@@ -287,8 +302,7 @@ if (root) {
       await loadScript("https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js");
       const pdfjs=(window as any).pdfjsLib;
       if(!pdfjs) throw new Error("PDF renderer failed to load.");
-      pdfjs.GlobalWorkerOptions.workerSrc="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
-      const doc=await pdfjs.getDocument({data:await file.arrayBuffer()}).promise;
+      const doc=await pdfjs.getDocument({data:await file.arrayBuffer(),disableWorker:true}).promise;
       if(doc.numPages>100){await doc.destroy();throw new Error("This PDF has more than 100 pages. Split it into smaller files first.");}
       try {
         for(let p=1;p<=doc.numPages;p++){
