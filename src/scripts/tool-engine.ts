@@ -21,6 +21,11 @@ if (root) {
     output.value = value;
     meta.textContent = label;
     downloadBlob = new Blob([value], { type: "text/plain;charset=utf-8" });
+    const preview = document.querySelector<HTMLElement>("#markdown-preview");
+    if (slug === "markdown-editor" && preview) {
+      preview.innerHTML = value;
+      preview.classList.remove("hidden");
+    }
     setStatus("Completed successfully.");
   };
   const field = (id: string, label: string, value: string, type = "text") => {
@@ -52,6 +57,12 @@ if (root) {
     wrap.append(title, picker);
     extra.prepend(wrap);
   };
+
+  const fileOnlyTools = ["image-compressor","image-converter","image-cropper","image-resizer","images-to-pdf","pdf-to-images"];
+  if (fileOnlyTools.includes(slug)) {
+    input.classList.add("hidden");
+    document.querySelector("#input-label")?.classList.add("hidden");
+  }
 
   if (["image-compressor","image-converter","image-cropper","image-resizer"].includes(slug)) {
     fileField("image/*");
