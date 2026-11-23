@@ -328,6 +328,43 @@ if (root) {
       }
       return;
     }
+    if (["image-compressor","image-converter","image-cropper","image-resizer"].includes(slug)) {
+      const file=document.querySelector<HTMLInputElement>("#file-input")?.files?.[0];
+      if(!file) throw new Error("Choose an image file first.");
+      if(!file.type.startsWith("image/")) throw new Error("Choose a supported image file.");
+      if(file.size>25*1024*1024) throw new Error("Choose an image smaller than 25 MB.");
+      const image=new Image(),url=URL.createObjectURL(file);
+      try {
+        await new Promise<void>((resolve,reject)=>{image.onload=()=>resolve();image.onerror=()=>reject(new Error("Could not open this image."));image.src=url;});
+        if(image.width>12000||image.height>12000||image.width*image.height>40000000) throw new Error("This image exceeds the 40-megapixel safety limit.");
+        const requestedWidth=Number(get("image-width"))||image.width;
+        const requestedHeight=Number(get("image-height"))||image.height;
+        if(!Number.isFinite(requestedWidth)||!Number.isFinite(requestedHeight)||requestedWidth<1||requestedHeight<1) throw new Error("Enter valid positive output dimensions.");
+        const width=slug==="image-cropper"?Math.min(image.width,Math.floor(requestedWidth)):Math.floor(requestedWidth);
+        const height=slug==="image-cropper"?Math.min(image.height,Math.floor(requestedHeight)):Math.floor(requestedHeight);
+        if(width>12000||height>12000||width*height>40000000) throw new Error("Output dimensions exceed the 40-megapixel safety limit.");
+        const canvas=document.createElement("canvas"),context=canvas.getContext("2d");
+        if(!context) throw new Error("Canvas is unavailable in this browser.");
+        canvas.width=width;canvas.height=height;
+        const type=slug==="image-converter"?(get("image-format")||"image/png"):"image/jpeg";
+        if(type==="image/jpeg"){context.fillStyle="#ffffff";context.fillRect(0,0,width,height);}
+        if(slug==="image-cropper"){
+          const targetAspect=width/height,sourceAspect=image.width/image.height;
+          if(sourceAspect>targetAspect){const sourceWidth=image.height*targetAspect;const sourceX=(image.width-sourceWidth)/2;context.drawImage(image,sourceX,0,sourceWidth,image.height,0,0,width,height);}
+          else {const sourceHeight=image.width/targetAspect;const sourceY=(image.height-sourceHeight)/2;context.drawImage(image,0,sourceY,image.width,sourceHeight,0,0,width,height);}
+        } else { context.drawImage(image,0,0,width,height); }
+        const quality=Math.min(1,Math.max(0.1,Number(get("image-quality"))||0.82));
+        const blob=await new Promise<Blob>((resolve,reject)=>canvas.toBlob(result=>result?resolve(result):reject(new Error("Image export failed.")),type,quality));
+        if(blob.type!==type) throw new Error("This browser does not support the selected output format.");
+        downloadBlob=blob;
+        const extension=type==="image/jpeg"?"jpg":type.split("/")[1]||"png";
+        output.value="Original: "+image.width+" × "+image.height+"\nOutput: "+width+" × "+height+"\nOriginal size: "+file.size.toLocaleString()+" bytes\nOutput size: "+blob.size.toLocaleString()+" bytes\nFormat: "+type;
+        meta.textContent="Image processed";
+        (download as HTMLButtonElement).dataset.filename="toolora-"+slug+"."+extension;
+        setStatus("Image processed locally. Use Download to save it.");
+      } finally { image.src="";URL.revokeObjectURL(url); }
+      return;
+    }
     if(slug==="text-to-speech"){if(!input.value.trim())throw new Error("Enter text to read aloud.");if(!("speechSynthesis" in window))throw new Error("Speech synthesis is not supported in this browser.");speechSynthesis.cancel();speechSynthesis.speak(new SpeechSynthesisUtterance(input.value));setStatus("Speech playback started using your browser voice.");return;}
     if(slug==="typing-speed-test"){if(!typingStarted){typingStarted=Date.now();setStatus("Timer started. Type your text in the box, then click Run tool again.");return;}const mins=(Date.now()-typingStarted)/60000,wpm=Math.round(words(input.value).length/Math.max(mins,.01));setResult(`Elapsed: ${Math.round((Date.now()-typingStarted)/1000)} seconds\nWords per minute: ${wpm}\nCharacters: ${input.value.length}`);typingStarted=0;return;}
     throw new Error("This tool mode is not available.");
