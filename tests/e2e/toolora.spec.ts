@@ -355,7 +355,7 @@ test("password strength checker evaluates length and character classes", async (
   await page.goto("/tools/password-strength-checker/");
   await page.locator("#tool-input").fill("StrongPass123!");
   await page.getByRole("button", { name: /run tool/i }).click();
-  await expect(page.locator("#tool-output")).toHaveValue(/Estimated strength: Strong/);
+  await expect(page.locator("#tool-output")).toHaveValue(/Estimated strength: Very strong/);
 });
 
 test("bio generator creates multiple usable profile styles", async ({ page }) => {
