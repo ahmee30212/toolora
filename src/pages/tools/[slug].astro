@@ -1,43 +1,41 @@
 ---
 import SiteLayout from "../../layouts/SiteLayout.astro";
+import Icon from "../../components/Icon.astro";
 import { tools, categories } from "../../data/tools";
-export function getStaticPaths() {
-  return tools.map((tool) => ({ params: { slug: tool.slug }, props: { tool } }));
-}
+export function getStaticPaths() { return tools.map((tool) => ({ params: { slug: tool.slug }, props: { tool } })); }
 const { tool } = Astro.props;
 const category = categories.find((item) => item.slug === tool.category);
 ---
 <SiteLayout title={`${tool.name} — Toolora`} description={tool.description}>
-  <header class="site-header"><div class="container flex items-center justify-between"><a href="/" class="flex items-center gap-3"><span class="brand-mark">T</span><span class="brand-name">toolora<span class="text-brand-600">.</span></span></a><nav class="desktop-nav flex gap-8"><a class="nav-link" href="/">Home</a><a class="nav-link" href="/#categories">Categories</a><a class="nav-link" href="/#about">About</a></nav><a class="btn-secondary" href={`/categories/${tool.category}`}>← {category?.name ?? "Category"}</a></div></header>
+  <header class="site-header"><div class="container header-inner"><a href="/" class="brand-lockup"><span class="brand-mark">T</span><span class="brand-name">toolora<span class="text-brand-600">.</span></span></a><nav class="desktop-nav" aria-label="Main navigation"><a class="nav-link" href="/">Home</a><a class="nav-link" href="/#categories">Categories</a><a class="nav-link" href="/#popular">Popular tools</a></nav><a class="btn-secondary" href={`/categories/${tool.category}`}>← {category?.name ?? "Category"}</a></div></header>
   <main>
-    <section class="page-hero"><div class="container"><div class="breadcrumb"><a href="/">Home</a> / <a href={`/categories/${tool.category}`}>{category?.name}</a> / {tool.name}</div><span class="eyebrow">Free online utility</span><h1 class="display text-4xl md:text-5xl font-extrabold mt-3">{tool.name}</h1><p class="text-slate-500 mt-3 text-sm max-w-2xl">{tool.description}</p><div class="flex flex-wrap gap-2 mt-5"><span class="pill">Free to use</span><span class="pill">Browser-based</span><span class="pill">No account required</span></div></div></section>
+    <section class="page-hero"><div class="container"><div class="breadcrumb"><a href="/">Home</a> / <a href={`/categories/${tool.category}`}>{category?.name}</a> / {tool.name}</div><span class="eyebrow">Free online utility</span><h1 class="display text-4xl md:text-5xl font-extrabold mt-3">{tool.name}</h1><p class="text-slate-500 mt-3 text-sm max-w-2xl">{tool.description}</p><div class="flex flex-wrap gap-2 mt-5"><span class="pill"><Icon name="check" size={12}/> Free to use</span><span class="pill"><Icon name="shield-check" size={12}/> Browser-based</span><span class="pill"><Icon name="zap" size={12}/> No account required</span></div></div></section>
     <section class="section pt-10"><div class="container max-w-4xl">
-      <div class="tool-panel">
+      <div class="tool-panel workspace-panel">
+        <div class="workspace-heading"><div><span class="eyebrow">Your workspace</span><h2>{tool.name}</h2><p>Enter your details below and run the tool to get your result.</p></div><span class="workspace-heading-icon"><Icon name={category?.icon ?? "sparkles"} size={24}/></span></div>
         <div id="tool-form" data-tool={tool.slug}>
           <label class="block text-sm font-bold mb-2" for="tool-input" id="input-label">Input</label>
-          <textarea id="tool-input" rows="8" class="w-full rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-50" placeholder="Enter or paste your content here..."></textarea>
+          <textarea id="tool-input" rows="8" class="tool-textarea w-full rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-50" placeholder="Enter or paste your content here..."></textarea>
           <div id="extra-fields" class="grid sm:grid-cols-2 gap-4 mt-4"></div>
-          <div class="flex flex-wrap gap-2 mt-5">
-            <button class="btn-primary" id="run-tool" type="button">Run tool <span>→</span></button>
-            <button class="btn-secondary" id="copy-result" type="button">Copy result</button>
-            <button class="btn-secondary" id="download-result" type="button">Download</button>
-            <button class="btn-secondary" id="reset-tool" type="button">Reset</button>
+          <div class="workspace-actions">
+            <button class="btn-primary" id="run-tool" type="button"><Icon name="play" size={15}/> Run tool</button>
+            <button class="btn-secondary" id="copy-result" type="button"><Icon name="copy" size={15}/> Copy result</button>
+            <button class="btn-secondary" id="download-result" type="button"><Icon name="download" size={15}/> Download</button>
+            <button class="btn-secondary" id="reset-tool" type="button"><Icon name="refresh-cw" size={15}/> Reset</button>
           </div>
-          <p id="tool-status" class="text-xs text-slate-500 mt-4" role="status" aria-live="polite">Your input is processed in this browser whenever possible.</p>
-          <div class="mt-6 pt-5 border-t border-slate-100">
-            <div class="flex justify-between items-center gap-3 mb-2"><label class="text-sm font-bold" for="tool-output">Result</label><span class="text-xs text-slate-400" id="result-meta">Waiting for input</span></div>
-            <textarea id="tool-output" rows="8" readonly class="w-full rounded-xl border border-slate-200 bg-white p-4 text-sm outline-none" placeholder="Your result will appear here..."></textarea>
+          <p id="tool-status" class="tool-status text-xs text-slate-500 mt-4" role="status" aria-live="polite"><Icon name="info" size={14}/> Your input is processed in this browser whenever possible.</p>
+          <div class="result-area mt-6 pt-5 border-t border-slate-100">
+            <div class="flex justify-between items-center gap-3 mb-2"><label class="text-sm font-bold" for="tool-output">Your result</label><span class="result-badge" id="result-meta">Waiting for input</span></div>
+            <textarea id="tool-output" rows="8" readonly class="tool-textarea w-full rounded-xl border border-slate-200 bg-white p-4 text-sm outline-none" placeholder="Your result will appear here..."></textarea>
           </div>
         </div>
       </div>
-      <div class="mt-6 grid sm:grid-cols-2 gap-4">
-        <div class="tool-panel"><strong class="text-sm">How to use</strong><p class="text-xs leading-6 text-slate-500 mt-2">Enter your information, choose Run tool and review the result. Use Copy result or Download when available.</p></div>
-        <div class="tool-panel"><strong class="text-sm">Privacy first</strong><p class="text-xs leading-6 text-slate-500 mt-2">Text-based operations run locally in your browser. Files are not uploaded by this workspace.</p></div>
+      <div class="help-grid mt-6">
+        <div class="tool-panel help-card"><span class="help-icon"><Icon name="list-checks" size={18}/></span><strong>How to use</strong><p>Enter your information, select Run tool and review the result. Use Copy result or Download to save your work.</p></div>
+        <div class="tool-panel help-card"><span class="help-icon"><Icon name="shield-check" size={18}/></span><strong>Privacy first</strong><p>Text-based operations run locally in your browser. File-based tools process selected files on your device whenever supported.</p></div>
       </div>
     </div></section>
   </main>
-  <footer class="site-footer"><div class="container"><span class="brand-name">toolora.</span><p>Created by Muhammad Ahmad ❤️</p><div class="footer-bottom"><span>© {new Date().getFullYear()} Toolora. All rights reserved.</span><a href={`/categories/${tool.category}`}>Back to {category?.name} ↑</a></div></div></footer>
-  <script>
-    import "../../scripts/tool-engine";
-  </script>
+  <footer class="site-footer"><div class="container"><a href="/" class="brand-lockup"><span class="brand-mark">T</span><span class="brand-name">toolora.</span></a><p>Created by Muhammad Ahmad ❤️</p><div class="footer-bottom"><span>© {new Date().getFullYear()} Toolora. All rights reserved.</span><a href={`/categories/${tool.category}`}>Back to {category?.name} ↑</a></div></div></footer>
+  <script>import "../../scripts/tool-engine";</script>
 </SiteLayout>
