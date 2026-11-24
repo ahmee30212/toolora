@@ -40,7 +40,7 @@ function setup() {
     ADMIN_PASSWORD: "correct horse battery staple 2026",
     ADMIN_SESSION_SECRET: "independent-random-session-secret-32-bytes-minimum",
     ADMIN_LOGIN_PATH: "/test-only-0000000000000000000000000000000000000000000000000000000000000000/",
-    ASSETS: { async fetch(request) { assetRequests += 1; const path = new URL(request.url).pathname; if (path === "/owner-auth/") return new Response("DECOY PAGE"); if (path === "/private-entry/") return new Response("PRIVATE ADMIN HTML"); return new Response("Not Found", { status: 404 }); } }
+    ASSETS: { async fetch(request) { assetRequests += 1; const path = new URL(request.url).pathname; if (path === "/owner-auth/") return new Response("DECOY PAGE"); if (path === "/private-entry/" || path === "/admin/") return new Response("PRIVATE ADMIN HTML"); return new Response("Not Found", { status: 404 }); } }
   };
   return { db, env, assetRequests: () => assetRequests };
 }
@@ -86,7 +86,7 @@ test("only the configured high-entropy path serves the real login page", async (
   assert.notEqual(wrong.status, 200);
   const correct = await worker.fetch(req(env.ADMIN_LOGIN_PATH), env);
   assert.equal(correct.status, 200);
-  assert.equal(assetRequests(), 1);
+  assert.equal(assetRequests(), 2);
   assert.match(correct.headers.get("cache-control") || "", /no-store/);
   assert.equal(correct.headers.get("x-robots-tag"), "noindex, nofollow, noarchive");
 });
@@ -107,7 +107,7 @@ test("dot-segment and encoded path traversal cannot resolve to the admin page", 
 
 test("public legacy login API is disabled", async () => {
   const { env } = setup();
-  const response = await worker.fetch(req(env.ADMIN_LOGIN_PATH + "login", { method: "POST", body: { password: env.ADMIN_PASSWORD } }), env);
+  const response = await worker.fetch(req("/api/admin/login", { method: "POST", body: { password: env.ADMIN_PASSWORD } }), env);
   assert.equal(response.status, 404);
 });
 
@@ -168,7 +168,7 @@ test("a stale session logout cannot revoke the newer global session", async () =
 
 test("cross-origin login attempts are rejected", async () => {
   const { env } = setup();
-  const response = await worker.fetch(req("/api/admin/login", {
+  const response = await worker.fetch(req(env.ADMIN_LOGIN_PATH + "login", {
     method: "POST", origin: "https://attacker.example", body: { password: env.ADMIN_PASSWORD }
   }), env);
   assert.equal(response.status, 403);
