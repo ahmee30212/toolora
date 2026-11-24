@@ -5,7 +5,7 @@ compatibility_date = "2026-11-24"
 [assets]
 directory = "./dist"
 binding = "ASSETS"
-run_worker_first = ["/api/*", "/admin", "/admin/*"]
+run_worker_first = ["/*"]
 
 [[d1_databases]]
 binding = "DB"
