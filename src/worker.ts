@@ -294,6 +294,10 @@ export default {
       /^\/[A-Za-z0-9_-]{48,96}\/$/.test(loginPath) &&
       !loginPath.toLowerCase().startsWith("/admin/") &&
       !loginPath.toLowerCase().startsWith("/api/");
+    if (validLoginPath && url.pathname === loginPath + "login") {
+      try { return await api(request, env); }
+      catch { return fail("The request could not be completed. Please try again later.", 500); }
+    }
     if (validLoginPath && url.pathname === loginPath) {
       if (request.method !== "GET" && request.method !== "HEAD") {
         return new Response("Not Found", { status: 404, headers: { ...SECURITY_HEADERS, "content-type": "text/plain; charset=utf-8" } });
