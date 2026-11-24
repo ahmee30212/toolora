@@ -33,12 +33,10 @@ async function allowSubmission(db: D1Database, request: Request, action: string)
   const key = await clientKey(request);
   const windowStart = Math.floor(Date.now() / 600000) * 600;
   const row = await db.prepare(`
-    INSERT INTO rate_limits (client_key, action, window_start, request_count)
+    INSERT INTO rate_limits (client_hash, action, window_start, request_count)
     VALUES (?, ?, ?, 1)
-    ON CONFLICT(client_key, action) DO UPDATE SET
-      request_count = CASE WHEN rate_limits.window_start = excluded.window_start
-        THEN rate_limits.request_count + 1 ELSE 1 END,
-      window_start = excluded.window_start
+    ON CONFLICT(client_hash, action, window_start) DO UPDATE SET
+      request_count = rate_limits.request_count + 1
     RETURNING request_count
   `).bind(key, action, windowStart).first<{ request_count: number }>();
   return Boolean(row && row.request_count <= 5);
@@ -71,7 +69,7 @@ async function api(request: Request, env: Env): Promise<Response> {
     const slug = cleanText(url.searchParams.get("tool"), 80);
     if (!validSlug(slug)) return fail("A valid tool identifier is required.", 400);
     const result = await env.DB.prepare(
-      "SELECT id, tool_slug, display_name, rating, review_text, created_at FROM reviews WHERE status = 'approved' AND tool_slug = ? ORDER BY created_at DESC LIMIT 30"
+      "SELECT id, tool_slug, name AS display_name, rating, review AS review_text, created_at FROM reviews WHERE status = 'approved' AND tool_slug = ? ORDER BY created_at DESC LIMIT 30"
     ).bind(slug).all();
     return json({ reviews: result.results ?? [] });
   }
@@ -99,7 +97,7 @@ async function api(request: Request, env: Env): Promise<Response> {
       return fail("Provide a valid tool, a 1–5 star rating and a review of at least 10 characters.", 400);
     }
     await env.DB.prepare(
-      "INSERT INTO reviews (tool_slug, display_name, rating, review_text, status) VALUES (?, ?, ?, ?, 'pending')"
+      "INSERT INTO reviews (tool_slug, name, rating, review, status) VALUES (?, ?, ?, ?, 'pending')"
     ).bind(tool, displayName, rating, reviewText).run();
     return json({ status: "pending", message: "Thank you. Your review has been submitted for moderation." }, 201);
   }
@@ -110,7 +108,7 @@ async function api(request: Request, env: Env): Promise<Response> {
     return fail("Provide a tool name (at least 4 characters) and details (at least 20 characters).", 400);
   }
   await env.DB.prepare(
-    "INSERT INTO tool_requests (title, description, status) VALUES (?, ?, 'pending')"
+    "INSERT INTO tool_requests (tool_name, description, status) VALUES (?, ?, 'pending')"
   ).bind(title, description).run();
   return json({ status: "pending", message: "Thank you. Your tool request has been submitted for review." }, 201);
 }
