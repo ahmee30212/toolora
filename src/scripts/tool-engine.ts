@@ -23,10 +23,35 @@ if (root) {
     downloadBlob = new Blob([value], { type: "text/plain;charset=utf-8" });
     const preview = document.querySelector<HTMLElement>("#markdown-preview");
     if (slug === "markdown-editor" && preview) {
-      preview.innerHTML = value;
+      renderMarkdownPreview(input.value, preview);
       preview.classList.remove("hidden");
     }
     setStatus("Completed successfully.");
+  };
+  const renderMarkdownPreview = (source: string, target: HTMLElement) => {
+    target.replaceChildren();
+    const appendInline = (parent: HTMLElement, text: string) => {
+      const pattern = /(\\*\\*[^*]+\\*\\*|\\*[^*]+\\*)/g;
+      let cursor = 0;
+      for (const match of text.matchAll(pattern)) {
+        const index = match.index ?? 0;
+        if (index > cursor) parent.append(document.createTextNode(text.slice(cursor, index)));
+        const token = match[0];
+        const node = document.createElement(token.startsWith("**") ? "strong" : "em");
+        node.textContent = token.startsWith("**") ? token.slice(2, -2) : token.slice(1, -1);
+        parent.append(node);
+        cursor = index + token.length;
+      }
+      if (cursor < text.length) parent.append(document.createTextNode(text.slice(cursor)));
+    };
+    for (const line of source.split(/\\r?\\n/)) {
+      const heading = /^(#{1,2})\\s+(.*)$/.exec(line);
+      const element = document.createElement(heading ? (heading[1].length === 1 ? "h1" : "h2") : line.startsWith("- ") ? "p" : "p");
+      if (heading) appendInline(element, heading[2]);
+      else if (line.startsWith("- ")) { element.textContent = "• " + line.slice(2); }
+      else appendInline(element, line);
+      target.append(element);
+    }
   };
   const field = (id: string, label: string, value: string, type = "text") => {
     const wrap = document.createElement("label");

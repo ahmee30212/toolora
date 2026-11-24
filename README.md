@@ -19,9 +19,9 @@ Toolora is a modern, browser-first collection of **41 free online tools across 9
 ## Technology
 
 - Astro 7 with static site generation
-- TypeScript 6 for browser-side tool logic
+- TypeScript 6 for browser-side tool logic and the Cloudflare Worker API
 - Tailwind CSS 4 through the Vite plugin
-- Cloudflare Workers Static Assets
+- Cloudflare Workers Static Assets and D1 (community backend, owner-configured)
 - PDF.js 6.5.438 for local PDF rendering
 - jsPDF 4.2.1 for local PDF creation
 - Native browser APIs and Web Crypto
@@ -29,9 +29,9 @@ Toolora is a modern, browser-first collection of **41 free online tools across 9
 
 ## Privacy and third-party resources
 
-Toolora does not provide a file-upload processing endpoint. Image, PDF and text content is processed in the browser. PDF.js and jsPDF are installed as pinned npm dependencies and bundled with the site. The QR-code tool loads a version-pinned open-source QR library from cdnjs with Subresource Integrity only when that tool is used; the content encoded in a QR code is not sent to the CDN. Toolora uses system fonts and does not request Google Fonts.
+Image, PDF and text content is processed in the browser. PDF.js and jsPDF are installed as pinned npm dependencies and bundled with the site. The QR-code tool loads a version-pinned open-source QR library from cdnjs with Subresource Integrity only when that tool is used; the content encoded in a QR code is not sent to the CDN. Toolora uses system fonts and does not request Google Fonts.
 
-Cloudflare may process technical request metadata for delivery, reliability and security. See the in-site [Privacy Policy](/privacy/) for details.
+Community submissions (reviews and tool requests) are stored in the owner's Cloudflare D1 database when configured. They are pending moderation by default. The API does not collect file uploads, passwords or email addresses. Cloudflare may process technical request metadata for delivery, reliability and security. See the in-site [Privacy Policy](/privacy/) for details.
 
 ## Security and quality gates
 
@@ -43,8 +43,13 @@ The repository uses layered checks. See the [Security Policy](SECURITY.md) for r
 - Playwright provides end-to-end browser coverage for all 41 tools and the main navigation, search, category and responsive flows.
 - Build validation checks route/catalog consistency, security headers, canonical sitemap routes and asset-size budgets.
 - Security headers include CSP, HSTS, clickjacking protection, MIME-sniffing protection, COOP, COEP and CORP.
+- Community API validates same-origin requests, JSON content types, payload size, field constraints and submission frequency; submissions remain pending for owner moderation.
 
 Browser-side resource limits are enforced for large text, image and PDF workloads. The ZAP Baseline scan is passive; it is not a full active penetration test or a guarantee that no vulnerability exists.
+
+## Community backend setup
+
+The Worker API and initial D1 schema are in place. To activate submissions, create a D1 database in your own Cloudflare account and follow [docs/COMMUNITY_BACKEND.md](docs/COMMUNITY_BACKEND.md). No Cloudflare credentials belong in Git. The admin moderation interface and Cloudflare Access protection are a separate phase and are not yet implemented.
 
 ## Local development
 
@@ -61,7 +66,6 @@ Requirements: Node.js 24 or newer.
     npx playwright install chromium
     npm run test:e2e
     npm run build
-    npm run preview
 
 The production build validates the catalog, generates the XML sitemap, runs Astro diagnostics, copies the pinned PDF.js runtime assets, builds the static site and checks security and performance budgets.
 
@@ -69,6 +73,7 @@ The production build validates the catalog, generates the XML sitemap, runs Astr
 
 - Build command: npm run build
 - Static assets directory: dist
+- Worker entrypoint: src/worker.ts
 - Worker configuration: wrangler.toml
 - Node.js build environment: 24
 
@@ -81,9 +86,12 @@ Deploy the current main revision through the configured Cloudflare Worker deploy
 - src/layouts/SiteLayout.astro — document shell, canonical URLs and social metadata
 - src/pages/ — homepage, search, category, tool, privacy, terms and 404 pages
 - src/scripts/tool-engine.ts — browser-side tool implementations
+- src/worker.ts — API routing, validation, rate limiting and D1 access
+- migrations/ — versioned D1 schema
+- docs/ — owner setup and operational documentation
 - src/styles/global.css — shared visual system
 - scripts/ — catalog, sitemap, PDF asset, build and ZAP report validation
-- tests/e2e/ — Playwright end-to-end tests
+- tests/e2e/ — browser tests
 
 ## Credits
 

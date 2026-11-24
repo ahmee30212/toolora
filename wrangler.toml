@@ -1,5 +1,15 @@
 name = "toolora"
+main = "./src/worker.ts"
 compatibility_date = "2026-11-24"
 
 [assets]
 directory = "./dist"
+binding = "ASSETS"
+run_worker_first = ["/api/*"]
+
+# After creating your D1 database in your own Cloudflare account, add:
+# [[d1_databases]]
+# binding = "DB"
+# database_name = "toolora-community"
+# database_id = "<YOUR_D1_DATABASE_ID>"
+# Then apply migrations with: npx wrangler d1 migrations apply toolora-community --remote
