@@ -209,6 +209,7 @@ async function api(request: Request, env: Env): Promise<Response> {
   if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: {
     ...SECURITY_HEADERS, "allow": "GET, POST, OPTIONS", "access-control-allow-origin": "null"
   }});
+  if (url.pathname === "/api/admin/login") return fail("Not found.", 404);
   if (env.ADMIN_LOGIN_PATH && url.pathname === env.ADMIN_LOGIN_PATH + "login") return adminApi(request, env, url);
   if (url.pathname.startsWith("/api/admin/")) return adminApi(request, env, url);
   if (url.pathname === "/api/health" && request.method === "GET") {
