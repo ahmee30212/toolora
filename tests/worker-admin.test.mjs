@@ -39,7 +39,7 @@ function setup() {
     DB: db,
     ADMIN_PASSWORD: "correct horse battery staple 2026",
     ADMIN_SESSION_SECRET: "independent-random-session-secret-32-bytes-minimum",
-    ADMIN_LOGIN_PATH: "/af1413fe31e50bf165e84a09f35d122cd9bc1d433fca1152f3df2a4996938940/",
+    ADMIN_LOGIN_PATH: "/test-only-0000000000000000000000000000000000000000000000000000000000000000/",
     ASSETS: { async fetch(request) { assetRequests += 1; const path = new URL(request.url).pathname; if (path === "/owner-auth/") return new Response("DECOY PAGE"); if (path === "/private-entry/") return new Response("PRIVATE ADMIN HTML"); return new Response("Not Found", { status: 404 }); } }
   };
   return { db, env, assetRequests: () => assetRequests };
