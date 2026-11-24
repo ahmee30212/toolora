@@ -292,7 +292,15 @@ export default {
         if (!await validSession(request, env)) {
           return new Response("Not Found", { status: 404, headers: { ...SECURITY_HEADERS, "content-type": "text/plain; charset=utf-8" } });
         }
-        return env.ASSETS.fetch(request);
+        if (request.method !== "GET" && request.method !== "HEAD") {
+          return new Response("Not Found", { status: 404, headers: { ...SECURITY_HEADERS, "content-type": "text/plain; charset=utf-8" } });
+        }
+        const asset = await env.ASSETS.fetch(request);
+        const headers = new Headers(asset.headers);
+        headers.set("cache-control", "private, no-store, max-age=0");
+        headers.set("cdn-cache-control", "no-store");
+        headers.set("pragma", "no-cache");
+        return new Response(asset.body, { status: asset.status, statusText: asset.statusText, headers });
       } catch {
         return new Response("Not Found", { status: 404, headers: { ...SECURITY_HEADERS, "content-type": "text/plain; charset=utf-8" } });
       }
