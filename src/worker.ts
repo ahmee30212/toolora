@@ -65,6 +65,13 @@ async function api(request: Request, env: Env): Promise<Response> {
   }
   if (!env.DB) return fail("Community features are temporarily unavailable while the database is being configured.", 503);
 
+  if (url.pathname === "/api/community" && request.method === "GET") {
+    const result = await env.DB.prepare(
+      "SELECT tool_slug, name AS display_name, rating, review AS review_text, created_at FROM reviews WHERE status = 'approved' ORDER BY created_at DESC LIMIT 50"
+    ).all();
+    return json({ reviews: result.results ?? [] });
+  }
+
   if (url.pathname === "/api/reviews" && request.method === "GET") {
     const slug = cleanText(url.searchParams.get("tool"), 80);
     if (!validSlug(slug)) return fail("A valid tool identifier is required.", 400);
