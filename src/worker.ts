@@ -268,13 +268,14 @@ function isAdminAssetPath(pathname: string): boolean {
     if (next === decoded) break;
     decoded = next;
   }
-  const normalized = decoded.replace(/\\\\/g, "/").toLowerCase();
+  const normalized = decoded.replace(/\\/g, "/").toLowerCase();
   return normalized === "/admin" || normalized.startsWith("/admin/");
 }
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
+    const path = url.pathname.toLowerCase();
     if (isAdminAssetPath(url.pathname)) {
       try {
         if (!await validSession(request, env)) {
