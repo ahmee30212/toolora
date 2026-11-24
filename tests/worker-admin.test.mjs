@@ -76,6 +76,13 @@ test("repeated percent-encoding cannot bypass the admin page gate", async () => 
   assert.equal(assetRequests(), 0);
 });
 
+test("dot-segment and encoded path traversal cannot resolve to the admin page", async () => {
+  const { env, assetRequests } = setup();
+  const response = await worker.fetch(req("/public/%252e%252e/%2561dmin/"), env);
+  assert.equal(response.status, 404);
+  assert.equal(assetRequests(), 0);
+});
+
 test("admin APIs reject unauthenticated callers", async () => {
   const { env } = setup();
   const response = await worker.fetch(req("/api/admin/pending"), env);
