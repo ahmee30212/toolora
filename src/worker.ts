@@ -98,30 +98,38 @@ async function secureEqual(a: string, b: string): Promise<boolean> {
   return diff === 0;
 }
 
-async function makeSession(secret: string): Promise<string> {
+async function makeSession(secret: string, nonce: string): Promise<string> {
   const expiry = String(Math.floor(Date.now() / 1000) + SESSION_SECONDS);
-  return expiry + "." + toBase64Url(await hmac(secret, "toolora-admin-v1:" + expiry));
+  const payload = expiry + "." + nonce;
+  return payload + "." + toBase64Url(await hmac(secret, "toolora-admin-v1:" + payload));
 }
 
-async function validSession(request: Request, secret?: string): Promise<boolean> {
-  if (!secret) return false;
+async function tokenDigest(token: string): Promise<string> {
+  const digest = await crypto.subtle.digest("SHA-256", encoder.encode(token));
+  return Array.from(new Uint8Array(digest), byte => byte.toString(16).padStart(2, "0")).join("");
+}
+
+async function validSession(request: Request, env: Env): Promise<boolean> {
+  if (!env.ADMIN_SESSION_SECRET || !env.DB) return false;
   const cookie = request.headers.get("cookie") ?? "";
   const match = cookie.split(";").map(part => part.trim()).find(part => part.startsWith(COOKIE_NAME + "="));
   if (!match) return false;
   const token = match.slice(COOKIE_NAME.length + 1);
-  const [expiry, signature, extra] = token.split(".");
-  if (!expiry || !signature || extra || !/^\d{10}$/.test(expiry) || Number(expiry) <= Math.floor(Date.now() / 1000)) return false;
+  const [expiry, nonce, signature, extra] = token.split(".");
+  if (!expiry || !nonce || !signature || extra || !/^\\d{10}$/.test(expiry) || Number(expiry) <= Math.floor(Date.now() / 1000)) return false;
+  if (!/^[A-Za-z0-9_-]{40,60}$/.test(nonce)) return false;
+  const payload = expiry + "." + nonce;
   const supplied = fromBase64Url(signature);
   if (!supplied || supplied.length !== 32) return false;
-  const expected = await hmac(secret, "toolora-admin-v1:" + expiry);
+  const expected = await hmac(env.ADMIN_SESSION_SECRET, "toolora-admin-v1:" + payload);
   let diff = 0;
   for (let i = 0; i < expected.length; i++) diff |= expected[i] ^ supplied[i];
-  return diff === 0;
+  if (diff !== 0) return false;
+  const active = await env.DB.prepare("SELECT token_hash, expires_at FROM admin_sessions WHERE id = 1").first<{ token_hash: string; expires_at: number }>();
+  if (!active || active.expires_at <= Math.floor(Date.now() / 1000)) return false;
+  return await secureEqual(active.token_hash, await tokenDigest(token));
 }
 
-function sessionCookie(value: string, maxAge: number): string {
-  return COOKIE_NAME + "=" + value + "; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=" + maxAge;
-}
 
 async function adminApi(request: Request, env: Env, url: URL): Promise<Response> {
   if (!env.DB) return fail("Admin services are temporarily unavailable.", 503);
@@ -140,10 +148,11 @@ async function adminApi(request: Request, env: Env, url: URL): Promise<Response>
 
   if (url.pathname === "/api/admin/logout" && request.method === "POST") {
     if (!sameOrigin(request, url)) return fail("Request rejected.", 403);
+    if (await validSession(request, env)) await env.DB.prepare("DELETE FROM admin_sessions WHERE id = 1").run();
     return json({ authenticated: false }, 200, { "set-cookie": sessionCookie("", 0) });
   }
 
-  if (!await validSession(request, env.ADMIN_SESSION_SECRET)) return fail("Authentication required.", 401);
+  if (!await validSession(request, env)) return fail("Authentication required.", 401);
 
   if (url.pathname === "/api/admin/session" && request.method === "GET") return json({ authenticated: true });
 
