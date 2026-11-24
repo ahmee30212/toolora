@@ -120,7 +120,7 @@ async function validSession(request: Request, env: Env): Promise<boolean> {
   if (!match) return false;
   const token = match.slice(COOKIE_NAME.length + 1);
   const [expiry, nonce, signature, extra] = token.split(".");
-  if (!expiry || !nonce || !signature || extra || !/^\\d{10}$/.test(expiry) || Number(expiry) <= Math.floor(Date.now() / 1000)) return false;
+  if (!expiry || !nonce || !signature || extra || !/^\d{10}$/.test(expiry) || Number(expiry) <= Math.floor(Date.now() / 1000)) return false;
   if (!/^[A-Za-z0-9_-]{40,60}$/.test(nonce)) return false;
   const payload = expiry + "." + nonce;
   const supplied = fromBase64Url(signature);
