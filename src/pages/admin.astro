@@ -67,7 +67,14 @@ import SiteLayout from "../layouts/SiteLayout.astro";
     async function api<T>(path: string, init?: RequestInit): Promise<T> {
       const response = await fetch(path, { ...init, credentials: "same-origin", headers: { accept: "application/json", ...(init?.headers || {}) } });
       const data = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(data.error || "Request failed.");
+      if (!response.ok) {
+        if (response.status === 401 && path !== "/api/admin/login") {
+          if (adminContent) adminContent.hidden = true;
+          if (loginForm) loginForm.hidden = false;
+          if (loginStatus) loginStatus.textContent = "Your admin session ended or was replaced by another login.";
+        }
+        throw new Error(data.error || "Request failed.");
+      }
       return data as T;
     }
 
