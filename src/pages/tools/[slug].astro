@@ -3,6 +3,7 @@ import SiteLayout from "../../layouts/SiteLayout.astro";
 import Icon from "../../components/Icon.astro";
 import SiteHeader from "../../components/SiteHeader.astro";
 import SiteFooter from "../../components/SiteFooter.astro";
+import ToolReviews from "../../components/ToolReviews.astro";
 import { tools, categories } from "../../data/tools";
 export function getStaticPaths() { return tools.map((tool) => ({ params: { slug: tool.slug }, props: { tool } })); }
 const { tool } = Astro.props;
@@ -37,6 +38,7 @@ const category = categories.find((item) => item.slug === tool.category);
         <div class="tool-panel help-card"><span class="help-icon"><Icon name="list-checks" size={18}/></span><strong>How to use</strong><p>Enter your information, select Run tool and review the result. Use Copy result or Download to save your work.</p></div>
         <div class="tool-panel help-card"><span class="help-icon"><Icon name="shield-check" size={18}/></span><strong>Privacy first</strong><p>Text-based operations run locally in your browser. File-based tools process selected files on your device whenever supported.</p></div>
       </div>
+      <ToolReviews toolSlug={tool.slug} toolName={tool.name} />
     </div></section>
   </main>
   <SiteFooter />
