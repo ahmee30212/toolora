@@ -31,7 +31,7 @@ if (root) {
   const renderMarkdownPreview = (source: string, target: HTMLElement) => {
     target.replaceChildren();
     const appendInline = (parent: HTMLElement, text: string) => {
-      const pattern = /(\\*\\*[^*]+\\*\\*|\\*[^*]+\\*)/g;
+      const pattern = /(\*\*[^*]+\*\*|\*[^*]+\*)/g;
       let cursor = 0;
       for (const match of text.matchAll(pattern)) {
         const index = match.index ?? 0;
@@ -44,8 +44,8 @@ if (root) {
       }
       if (cursor < text.length) parent.append(document.createTextNode(text.slice(cursor)));
     };
-    for (const line of source.split(/\\r?\\n/)) {
-      const heading = /^(#{1,2})\\s+(.*)$/.exec(line);
+    for (const line of source.split(/\r?\n/)) {
+      const heading = /^(#{1,2})\s+(.*)$/.exec(line);
       const element = document.createElement(heading ? (heading[1].length === 1 ? "h1" : "h2") : line.startsWith("- ") ? "p" : "p");
       if (heading) appendInline(element, heading[2]);
       else if (line.startsWith("- ")) { element.textContent = "• " + line.slice(2); }
