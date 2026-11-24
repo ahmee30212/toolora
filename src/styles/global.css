@@ -304,3 +304,34 @@ body{background:#f5f7fc;color:#101a30}
     transition-duration: 0.01ms !important;
   }
 }
+
+
+/* Tool-specific reviews and ratings */
+.community-panel{padding:26px;border:1px solid #dce5f1;border-radius:19px;background:#fff;box-shadow:0 16px 40px #1d35570d}
+.community-heading{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;padding-bottom:20px;border-bottom:1px solid #edf0f5}
+.community-heading h2{margin:7px 0 0;font:800 22px system-ui;letter-spacing:-.045em}
+.community-heading p,.community-muted{margin:7px 0 0;color:#7d8ba1;font-size:11px;line-height:1.7}
+.review-summary{min-width:120px;text-align:right}
+.review-summary strong,.review-summary span,.review-summary small{display:block}
+.review-summary strong{font:800 22px system-ui;color:#17243d}
+.review-summary span,.review-stars{color:#e6a32b;letter-spacing:2px;font-size:14px}
+.review-summary small{margin-top:4px;color:#8b97aa;font-size:9px}
+.review-list{display:grid;gap:10px;padding:18px 0}
+.review-item{padding:15px 16px;border:1px solid #edf0f5;border-radius:12px;background:#fbfcff}
+.review-item-top{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.review-item-top strong{font-size:12px;color:#24324a}
+.review-item p{margin:8px 0 0;color:#596981;font-size:11px;line-height:1.8;overflow-wrap:anywhere}
+.review-form{padding-top:19px;border-top:1px solid #edf0f5}
+.review-form h3{margin:0;font:800 15px system-ui;letter-spacing:-.02em}
+.review-form>p{margin-bottom:16px}
+.review-form-grid{display:grid;grid-template-columns:1fr 1fr;gap:13px}
+.review-form label{display:grid;gap:7px;color:#35445d;font-size:11px;font-weight:800}
+.review-form label span{display:inline;color:#8a96a9;font-weight:500}
+.review-form input,.review-form select,.review-form textarea{width:100%;min-width:0;border:1px solid #dfe6f0;border-radius:10px;background:#fbfcff;padding:11px 12px;color:#17243d;font:500 12px system-ui}
+.review-form textarea{resize:vertical;line-height:1.7}
+.review-message{margin-top:13px}
+.review-submit-row{display:flex;align-items:center;flex-wrap:wrap;gap:12px;margin-top:14px}
+.review-submit-row button{font-size:11px}
+.community-status{margin:0;color:#536783;font-size:10px;line-height:1.6}
+.review-form button:disabled{opacity:.6;cursor:wait}
+@media(max-width:560px){.community-panel{padding:18px}.community-heading{flex-direction:column}.review-summary{text-align:left}.review-form-grid{grid-template-columns:1fr}.review-summary{display:grid;grid-template-columns:auto auto;align-items:center;gap:4px 10px}.review-summary small{grid-column:1/-1}}
