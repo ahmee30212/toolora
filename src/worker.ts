@@ -113,12 +113,16 @@ async function tokenDigest(token: string): Promise<string> {
   return Array.from(new Uint8Array(digest), byte => byte.toString(16).padStart(2, "0")).join("");
 }
 
-async function validSession(request: Request, env: Env): Promise<boolean> {
-  if (!env.ADMIN_SESSION_SECRET || !env.DB) return false;
+function readSessionToken(request: Request): string | null {
   const cookie = request.headers.get("cookie") ?? "";
   const match = cookie.split(";").map(part => part.trim()).find(part => part.startsWith(COOKIE_NAME + "="));
-  if (!match) return false;
-  const token = match.slice(COOKIE_NAME.length + 1);
+  return match ? match.slice(COOKIE_NAME.length + 1) : null;
+}
+
+async function validSession(request: Request, env: Env): Promise<boolean> {
+  if (!env.ADMIN_SESSION_SECRET || !env.DB) return false;
+  const token = readSessionToken(request);
+  if (!token) return false;
   const [expiry, nonce, signature, extra] = token.split(".");
   if (!expiry || !nonce || !signature || extra || !/^\d{10}$/.test(expiry) || Number(expiry) <= Math.floor(Date.now() / 1000)) return false;
   if (!/^[A-Za-z0-9_-]{40,60}$/.test(nonce)) return false;
@@ -158,7 +162,10 @@ async function adminApi(request: Request, env: Env, url: URL): Promise<Response>
 
   if (url.pathname === "/api/admin/logout" && request.method === "POST") {
     if (!sameOrigin(request, url)) return fail("Request rejected.", 403);
-    if (await validSession(request, env)) await env.DB.prepare("DELETE FROM admin_sessions WHERE id = 1").run();
+    const token = readSessionToken(request);
+    if (token && await validSession(request, env)) {
+      await env.DB.prepare("DELETE FROM admin_sessions WHERE id = 1 AND token_hash = ?").bind(await tokenDigest(token)).run();
+    }
     return json({ authenticated: false }, 200, { "set-cookie": sessionCookie("", 0) });
   }
 
@@ -252,11 +259,23 @@ async function api(request: Request, env: Env): Promise<Response> {
   return json({ status: "pending", message: "Thank you. Your tool request has been submitted for review." }, 201);
 }
 
+function isAdminAssetPath(pathname: string): boolean {
+  let decoded = pathname;
+  for (let i = 0; i < 4; i++) {
+    let next: string;
+    try { next = decodeURIComponent(decoded); }
+    catch { return true; }
+    if (next === decoded) break;
+    decoded = next;
+  }
+  const normalized = decoded.replace(/\\\\/g, "/").toLowerCase();
+  return normalized === "/admin" || normalized.startsWith("/admin/");
+}
+
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
-    const path = url.pathname.toLowerCase();
-    if (path === "/admin" || path.startsWith("/admin/")) {
+    if (isAdminAssetPath(url.pathname)) {
       try {
         if (!await validSession(request, env)) {
           return new Response("Not Found", { status: 404, headers: { ...SECURITY_HEADERS, "content-type": "text/plain; charset=utf-8" } });
