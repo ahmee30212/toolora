@@ -39,6 +39,7 @@ function setup() {
     DB: db,
     ADMIN_PASSWORD: "correct horse battery staple 2026",
     ADMIN_SESSION_SECRET: "independent-random-session-secret-32-bytes-minimum",
+    ADMIN_LOGIN_PATH: "/af1413fe31e50bf165e84a09f35d122cd9bc1d433fca1152f3df2a4996938940/",
     ASSETS: { async fetch() { assetRequests += 1; return new Response("PRIVATE ADMIN HTML"); } }
   };
   return { db, env, assetRequests: () => assetRequests };
@@ -57,7 +58,7 @@ function req(path, { method = "GET", cookie, body, origin = "https://toolora.tes
 }
 
 async function login(env, password = env.ADMIN_PASSWORD) {
-  const response = await worker.fetch(req("/api/admin/login", { method: "POST", body: { password } }), env);
+  const response = await worker.fetch(req(env.ADMIN_LOGIN_PATH + "login", { method: "POST", body: { password } }), env);
   return { response, cookie: (response.headers.get("set-cookie") || "").split(";")[0] };
 }
 
@@ -69,7 +70,7 @@ test("unauthenticated admin page is a plain 404 and never reaches static assets"
   assert.equal(assetRequests(), 0);
 });
 
-test("repeated percent-encoding cannot bypass the admin page gate", async () => {
+test("the public owner-auth route is only the decoy and never authenticates", async () => {\n  const { env, assetRequests } = setup();\n  const response = await worker.fetch(req("/owner-auth/"), env);\n  assert.equal(response.status, 200);\n  assert.equal(assetRequests(), 1);\n  const privateAsset = await worker.fetch(req("/private-entry/"), env);\n  assert.equal(privateAsset.status, 404);\n  assert.equal(assetRequests(), 1);\n});\n\ntest("only the configured high-entropy path serves the real login page", async () => {\n  const { env, assetRequests } = setup();\n  const wrong = await worker.fetch(req("/not-the-secret/"), env);\n  assert.notEqual(wrong.status, 200);\n  const correct = await worker.fetch(req(env.ADMIN_LOGIN_PATH), env);\n  assert.equal(correct.status, 200);\n  assert.equal(assetRequests(), 1);\n  assert.match(correct.headers.get("cache-control") || "", /no-store/);\n  assert.equal(correct.headers.get("x-robots-tag"), "noindex, nofollow, noarchive");\n});\n\ntest("repeated percent-encoding cannot bypass the admin page gate", async () => {
   const { env, assetRequests } = setup();
   const response = await worker.fetch(req("/%2561dmin/"), env);
   assert.equal(response.status, 404);
@@ -83,7 +84,7 @@ test("dot-segment and encoded path traversal cannot resolve to the admin page", 
   assert.equal(assetRequests(), 0);
 });
 
-test("admin APIs reject unauthenticated callers", async () => {
+test("public legacy login API is disabled", async () => {\n  const { env } = setup();\n  const response = await worker.fetch(req("/api/admin/login", { method: "POST", body: { password: env.ADMIN_PASSWORD } }), env);\n  assert.equal(response.status, 404);\n});\n\ntest("admin APIs reject unauthenticated callers", async () => {
   const { env } = setup();
   const response = await worker.fetch(req("/api/admin/pending"), env);
   assert.equal(response.status, 401);
