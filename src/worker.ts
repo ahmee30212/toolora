@@ -104,6 +104,10 @@ async function makeSession(secret: string, nonce: string): Promise<string> {
   return payload + "." + toBase64Url(await hmac(secret, "toolora-admin-v1:" + payload));
 }
 
+function sessionCookie(token: string, maxAge: number): string {
+  return COOKIE_NAME + "=" + token + "; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=" + maxAge;
+}
+
 async function tokenDigest(token: string): Promise<string> {
   const digest = await crypto.subtle.digest("SHA-256", encoder.encode(token));
   return Array.from(new Uint8Array(digest), byte => byte.toString(16).padStart(2, "0")).join("");
@@ -142,7 +146,13 @@ async function adminApi(request: Request, env: Env, url: URL): Promise<Response>
     const body = await readBody(request, 2048);
     const password = typeof body?.password === "string" ? body.password : "";
     if (password.length > 256 || !await secureEqual(password, env.ADMIN_PASSWORD)) return fail("Invalid credentials.", 401);
-    const token = await makeSession(env.ADMIN_SESSION_SECRET);
+    const nonceBytes = crypto.getRandomValues(new Uint8Array(32));
+    const nonce = toBase64Url(nonceBytes);
+    const token = await makeSession(env.ADMIN_SESSION_SECRET, nonce);
+    const expiresAt = Math.floor(Date.now() / 1000) + SESSION_SECONDS;
+    await env.DB.prepare(
+      "INSERT INTO admin_sessions (id, token_hash, expires_at, updated_at) VALUES (1, ?, ?, datetime('now')) ON CONFLICT(id) DO UPDATE SET token_hash = excluded.token_hash, expires_at = excluded.expires_at, updated_at = datetime('now')"
+    ).bind(await tokenDigest(token), expiresAt).run();
     return json({ authenticated: true }, 200, { "set-cookie": sessionCookie(token, SESSION_SECONDS) });
   }
 
@@ -245,7 +255,22 @@ async function api(request: Request, env: Env): Promise<Response> {
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
-    if (url.pathname.startsWith("/api/")) {
+    const path = url.pathname.toLowerCase();
+    if (path === "/admin" || path.startsWith("/admin/")) {
+      try {
+        if (!await validSession(request, env)) {
+          return new Response("Not Found", { status: 404, headers: { ...SECURITY_HEADERS, "content-type": "text/plain; charset=utf-8" } });
+        }
+        return env.ASSETS.fetch(request);
+      } catch {
+        return new Response("Not Found", { status: 404, headers: { ...SECURITY_HEADERS, "content-type": "text/plain; charset=utf-8" } });
+      }
+    }
+    if (path.startsWith("/api/admin")) {
+      try { return await api(request, env); }
+      catch { return fail("The request could not be completed. Please try again later.", 500); }
+    }
+    if (path.startsWith("/api/")) {
       try { return await api(request, env); }
       catch { return fail("The request could not be completed. Please try again later.", 500); }
     }
