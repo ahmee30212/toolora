@@ -1,0 +1,121 @@
+---
+const { toolSlug, toolName } = Astro.props;
+---
+<section class="community-panel mt-8" aria-labelledby="reviews-title" data-reviews-tool={toolSlug}>
+  <div class="community-heading">
+    <div><span class="eyebrow">Community feedback</span><h2 id="reviews-title">Ratings &amp; reviews</h2><p>Share your experience with {toolName} and help others choose the right tool.</p></div>
+    <div class="review-summary" aria-live="polite"><strong data-average>—</strong><span data-stars aria-label="No ratings yet">☆☆☆☆☆</span><small data-count>No approved reviews yet</small></div>
+  </div>
+  <div class="review-list" data-review-list aria-live="polite"><p class="community-muted">Loading reviews…</p></div>
+  <form class="review-form" data-review-form>
+    <h3>Write a review</h3>
+    <p class="community-muted">Your review will appear publicly after moderation.</p>
+    <div class="review-form-grid">
+      <label>Your name <span>(optional)</span><input name="displayName" maxlength="60" autocomplete="name" placeholder="Guest"></label>
+      <label>Rating <select name="rating" required><option value="">Select a rating</option><option value="5">★★★★★ — Excellent</option><option value="4">★★★★☆ — Very good</option><option value="3">★★★☆☆ — Good</option><option value="2">★★☆☆☆ — Fair</option><option value="1">★☆☆☆☆ — Poor</option></select></label>
+    </div>
+    <label class="review-message">Your review<textarea name="review" rows="4" minlength="10" maxlength="1000" required placeholder="What worked well? What could be improved?"></textarea></label>
+    <div class="review-submit-row"><button class="btn-primary" type="submit">Submit review</button><p class="community-status" data-review-status role="status" aria-live="polite"></p></div>
+  </form>
+</section>
+<script>
+  interface ReviewItem {
+    display_name?: string;
+    rating?: number | string;
+    review_text?: string;
+  }
+
+  const root = document.querySelector<HTMLElement>("[data-reviews-tool]");
+  if (root && !root.hasAttribute("data-initialized")) {
+    root.setAttribute("data-initialized", "true");
+    const slug = root.dataset.reviewsTool || "";
+    const list = root.querySelector<HTMLElement>("[data-review-list]");
+    const form = root.querySelector<HTMLFormElement>("[data-review-form]");
+    const status = root.querySelector<HTMLElement>("[data-review-status]");
+    const average = root.querySelector<HTMLElement>("[data-average]");
+    const stars = root.querySelector<HTMLElement>("[data-stars]");
+    const count = root.querySelector<HTMLElement>("[data-count]");
+
+    const loadReviews = async () => {
+      if (!list || !average || !stars || !count) return;
+      try {
+        const response = await fetch("/api/reviews?tool=" + encodeURIComponent(slug), { headers: { accept: "application/json" } });
+        if (!response.ok) throw new Error("Reviews are temporarily unavailable.");
+        const data: { reviews?: ReviewItem[] } = await response.json();
+        const reviews = Array.isArray(data.reviews) ? data.reviews : [];
+        list.replaceChildren();
+        if (!reviews.length) {
+          const empty = document.createElement("p");
+          empty.className = "community-muted";
+          empty.textContent = "No approved reviews yet. Be the first to share your experience.";
+          list.append(empty);
+          average.textContent = "—";
+          stars.textContent = "☆☆☆☆☆";
+          stars.setAttribute("aria-label", "No ratings yet");
+          count.textContent = "No approved reviews yet";
+          return;
+        }
+        const total = reviews.reduce((sum: number, review: ReviewItem) => sum + Number(review.rating || 0), 0);
+        const avg = total / reviews.length;
+        average.textContent = avg.toFixed(1) + "/5";
+        stars.textContent = "★".repeat(Math.round(avg)) + "☆".repeat(5 - Math.round(avg));
+        stars.setAttribute("aria-label", avg.toFixed(1) + " out of 5 stars");
+        count.textContent = reviews.length + (reviews.length === 1 ? " approved review" : " approved reviews");
+        for (const review of reviews) {
+          const article = document.createElement("article");
+          article.className = "review-item";
+          const top = document.createElement("div");
+          top.className = "review-item-top";
+          const author = document.createElement("strong");
+          author.textContent = String(review.display_name || "Guest");
+          const rating = Math.max(0, Math.min(5, Number(review.rating) || 0));
+          const score = document.createElement("span");
+          score.className = "review-stars";
+          score.textContent = "★".repeat(rating) + "☆".repeat(5 - rating);
+          top.append(author, score);
+          const body = document.createElement("p");
+          body.textContent = String(review.review_text || "");
+          article.append(top, body);
+          list.append(article);
+        }
+      } catch (error) {
+        list.textContent = error instanceof Error ? error.message : "Could not load reviews.";
+      }
+    };
+
+    form?.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const button = form.querySelector<HTMLButtonElement>('button[type="submit"]');
+      if (!button || !status) return;
+      const values = new FormData(form);
+      const payload = {
+        tool: slug,
+        displayName: String(values.get("displayName") || "").trim(),
+        rating: Number(values.get("rating")),
+        review: String(values.get("review") || "").trim()
+      };
+      if (payload.review.length < 10 || !Number.isInteger(payload.rating) || payload.rating < 1 || payload.rating > 5) {
+        status.textContent = "Please select a rating and write at least 10 characters.";
+        return;
+      }
+      button.disabled = true;
+      status.textContent = "Submitting…";
+      try {
+        const response = await fetch("/api/reviews", {
+          method: "POST",
+          headers: { "content-type": "application/json", accept: "application/json" },
+          body: JSON.stringify(payload)
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || "Your review could not be submitted.");
+        form.reset();
+        status.textContent = "Thanks! Your review is pending moderation and will appear after approval.";
+      } catch (error) {
+        status.textContent = error instanceof Error ? error.message : "Submission failed. Please try again.";
+      } finally {
+        button.disabled = false;
+      }
+    });
+    void loadReviews();
+  }
+</script>

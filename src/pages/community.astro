@@ -1,0 +1,121 @@
+---
+import SiteLayout from "../layouts/SiteLayout.astro";
+import SiteHeader from "../components/SiteHeader.astro";
+import SiteFooter from "../components/SiteFooter.astro";
+---
+<SiteLayout title="Community — Toolora" description="Explore approved Toolora reviews and suggest a tool for the community.">
+  <SiteHeader />
+  <main id="main-content">
+    <section class="page-hero"><div class="container">
+      <div class="breadcrumb"><a href="/">Home</a> / Community</div>
+      <span class="eyebrow">Toolora community</span>
+      <h1 class="display text-4xl md:text-5xl font-extrabold mt-3">Built with your feedback.</h1>
+      <p class="text-slate-500 mt-3 text-sm max-w-2xl">Read community experiences and help shape the next useful tools. Submissions are reviewed before publication.</p>
+    </div></section>
+    <section class="section pt-10"><div class="container max-w-5xl community-page-grid">
+      <div class="tool-panel community-feed-panel">
+        <div class="community-heading"><div><span class="eyebrow">Real experiences</span><h2>Latest approved reviews</h2><p>Feedback shared by Toolora users across our tools.</p></div></div>
+        <div class="community-feed" data-community-feed aria-live="polite"><p class="community-muted">Loading community reviews…</p></div>
+      </div>
+      <aside class="tool-panel request-panel">
+        <span class="eyebrow">Help us improve</span><h2>Request a tool</h2>
+        <p class="community-muted">Tell us what you need. We review every suggestion before adding it to our roadmap.</p>
+        <form data-request-form class="request-form">
+          <label>Tool name<input name="title" required minlength="4" maxlength="100" placeholder="e.g. Image resizer"></label>
+          <label>What should it do?<textarea name="description" required minlength="20" maxlength="1200" rows="6" placeholder="Describe the task, features and output you need…"></textarea></label>
+          <button class="btn-primary" type="submit">Send tool request</button>
+          <p class="community-status" data-request-status role="status" aria-live="polite"></p>
+        </form>
+      </aside>
+    </div></section>
+  </main>
+  <SiteFooter />
+  <script>
+    interface CommunityReview {
+      tool_slug?: string;
+      rating?: number | string;
+      display_name?: string;
+      review_text?: string;
+    }
+
+    const feed = document.querySelector<HTMLElement>("[data-community-feed]");
+    const requestForm = document.querySelector<HTMLFormElement>("[data-request-form]");
+    const requestStatus = document.querySelector<HTMLElement>("[data-request-status]");
+
+    const loadCommunity = async () => {
+      if (!feed) return;
+      try {
+        const response = await fetch("/api/community", { headers: { accept: "application/json" } });
+        if (!response.ok) throw new Error("Community reviews are temporarily unavailable.");
+        const data: { reviews?: CommunityReview[] } = await response.json();
+        const reviews = Array.isArray(data.reviews) ? data.reviews : [];
+        feed.replaceChildren();
+        if (!reviews.length) {
+          const empty = document.createElement("p");
+          empty.className = "community-muted";
+          empty.textContent = "No approved community reviews yet. Visit a tool page to leave the first review.";
+          feed.append(empty);
+          return;
+        }
+        for (const review of reviews) {
+          const card = document.createElement("article");
+          card.className = "community-feed-item";
+          const header = document.createElement("div");
+          header.className = "review-item-top";
+          const toolLink = document.createElement("a");
+          toolLink.href = "/tools/" + encodeURIComponent(String(review.tool_slug || "")) + "/";
+          toolLink.textContent = String(review.tool_slug || "Tool").replaceAll("-", " ");
+          toolLink.className = "community-tool-link";
+          const score = document.createElement("span");
+          const rating = Math.max(0, Math.min(5, Number(review.rating) || 0));
+          score.className = "review-stars";
+          score.textContent = "★".repeat(rating) + "☆".repeat(5 - rating);
+          header.append(toolLink, score);
+          const author = document.createElement("strong");
+          author.className = "community-review-author";
+          author.textContent = String(review.display_name || "Guest");
+          const body = document.createElement("p");
+          body.textContent = String(review.review_text || "");
+          card.append(header, author, body);
+          feed.append(card);
+        }
+      } catch (error) {
+        feed.textContent = error instanceof Error ? error.message : "Could not load community reviews.";
+      }
+    };
+
+    requestForm?.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const button = requestForm.querySelector<HTMLButtonElement>('button[type="submit"]');
+      if (!button || !requestStatus) return;
+      const values = new FormData(requestForm);
+      const payload = {
+        title: String(values.get("title") || "").trim(),
+        description: String(values.get("description") || "").trim()
+      };
+      if (payload.title.length < 4 || payload.description.length < 20) {
+        requestStatus.textContent = "Please enter a tool name and at least 20 characters describing it.";
+        return;
+      }
+      button.disabled = true;
+      requestStatus.textContent = "Sending…";
+      try {
+        const response = await fetch("/api/tool-requests", {
+          method: "POST",
+          headers: { "content-type": "application/json", accept: "application/json" },
+          body: JSON.stringify(payload)
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || "Your request could not be submitted.");
+        requestForm.reset();
+        requestStatus.textContent = "Thanks! Your suggestion is pending review.";
+      } catch (error) {
+        requestStatus.textContent = error instanceof Error ? error.message : "Submission failed. Please try again.";
+      } finally {
+        button.disabled = false;
+      }
+    });
+
+    void loadCommunity();
+  </script>
+</SiteLayout>
