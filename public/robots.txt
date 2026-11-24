@@ -1,4 +1,7 @@
 User-agent: *
 Allow: /
+Disallow: /admin/
+Disallow: /owner-auth/
+Disallow: /private-entry/
 
 Sitemap: https://toolora.m-ahmad30212.workers.dev/sitemap.xml
