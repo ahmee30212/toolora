@@ -11,6 +11,7 @@ class MemoryD1 {
     return {
       bind(...args) { values = args; return this; },
       async first() {
+        if (sql.includes("sqlite_master")) return { name: "admin_sessions" };
         if (sql.includes("INSERT INTO rate_limits")) {
           db.loginCount += 1;
           return { request_count: db.loginCount };
