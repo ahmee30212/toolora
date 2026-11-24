@@ -109,6 +109,12 @@ test("successful login grants access and a second login invalidates the first se
   const page = await worker.fetch(req("/admin/", { cookie: second.cookie }), env);
   assert.equal(page.status, 200);
   assert.equal(await page.text(), "PRIVATE ADMIN HTML");
+  assert.match(page.headers.get("cache-control") || "", /no-store/);
+  assert.equal(page.headers.get("cdn-cache-control"), "no-store");
+  assert.equal(assetRequests(), 1);
+
+  const postPage = await worker.fetch(req("/admin/", { method: "POST", cookie: second.cookie, body: {} }), env);
+  assert.equal(postPage.status, 404);
   assert.equal(assetRequests(), 1);
 });
 
