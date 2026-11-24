@@ -11,6 +11,7 @@ const { active = "", backHref = "", backLabel = "" } = Astro.props;
       <a class={active === "home" ? "nav-link active" : "nav-link"} href="/">Home</a>
       <a class="nav-link" href="/#categories">Categories</a>
       <a class="nav-link" href="/#popular">Popular tools</a>
+      <a class="nav-link" href="/community/">Community</a>
       <a class="nav-link" href="/#about">About</a>
     </nav>
     <div class="header-actions">
@@ -18,7 +19,7 @@ const { active = "", backHref = "", backLabel = "" } = Astro.props;
       <details class="mobile-menu">
         <summary aria-label="Open navigation menu">☰</summary>
         <nav aria-label="Mobile navigation">
-          <a href="/">Home</a><a href="/#categories">Categories</a><a href="/#popular">Popular tools</a><a href="/#about">About</a><a href="/search/">Search tools</a>
+          <a href="/">Home</a><a href="/#categories">Categories</a><a href="/#popular">Popular tools</a><a href="/community/">Community</a><a href="/#about">About</a><a href="/search/">Search tools</a>
         </nav>
       </details>
     </div>
