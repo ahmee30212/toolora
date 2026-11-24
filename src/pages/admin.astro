@@ -168,6 +168,15 @@ import SiteLayout from "../layouts/SiteLayout.astro";
       finally { if (adminContent) adminContent.hidden = true; if (loginForm) loginForm.hidden = false; if (loginStatus) loginStatus.textContent = "Signed out."; }
     });
 
+    const verifyActiveSession = () => {
+      if (!document.hidden && adminContent && !adminContent.hidden) {
+        void api("/api/admin/session").catch(() => {});
+      }
+    };
+    window.addEventListener("focus", verifyActiveSession);
+    document.addEventListener("visibilitychange", verifyActiveSession);
+    window.setInterval(verifyActiveSession, 15000);
+
     void showDashboard().catch(() => { if (loginStatus) loginStatus.textContent = "Sign in to access the private moderation dashboard."; });
   </script>
 </SiteLayout>
