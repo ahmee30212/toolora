@@ -265,14 +265,21 @@ async function api(request: Request, env: Env): Promise<Response> {
 
 function isAdminAssetPath(pathname: string): boolean {
   let decoded = pathname;
-  for (let i = 0; i < 4; i++) {
+  for (let i = 0; i < 10; i++) {
     let next: string;
     try { next = decodeURIComponent(decoded); }
     catch { return true; }
     if (next === decoded) break;
     decoded = next;
   }
-  const normalized = decoded.replace(/\\/g, "/").toLowerCase();
+  if (decoded.includes("%")) return true;
+  const segments: string[] = [];
+  for (const segment of decoded.replace(/\\/g, "/").split("/")) {
+    if (!segment || segment === ".") continue;
+    if (segment === "..") segments.pop();
+    else segments.push(segment);
+  }
+  const normalized = ("/" + segments.join("/")).toLowerCase();
   return normalized === "/admin" || normalized.startsWith("/admin/");
 }
 
