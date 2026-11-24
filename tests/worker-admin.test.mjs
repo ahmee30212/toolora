@@ -107,7 +107,7 @@ test("dot-segment and encoded path traversal cannot resolve to the admin page", 
 
 test("public legacy login API is disabled", async () => {
   const { env } = setup();
-  const response = await worker.fetch(req("/api/admin/login", { method: "POST", body: { password: env.ADMIN_PASSWORD } }), env);
+  const response = await worker.fetch(req(env.ADMIN_LOGIN_PATH + "login", { method: "POST", body: { password: env.ADMIN_PASSWORD } }), env);
   assert.equal(response.status, 404);
 });
 
