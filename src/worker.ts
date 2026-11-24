@@ -141,6 +141,10 @@ async function validSession(request: Request, env: Env): Promise<boolean> {
 
 async function adminApi(request: Request, env: Env, url: URL): Promise<Response> {
   if (!env.DB) return fail("Admin services are temporarily unavailable.", 503);
+  const sessionTable = await env.DB.prepare(
+    "SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'admin_sessions'"
+  ).first<{ name: string }>();
+  if (!sessionTable) return fail("Admin database migration is required before sign-in.", 503);
   if (url.pathname === "/api/admin/login" && request.method === "POST") {
     if (!sameOrigin(request, url)) return fail("Request rejected.", 403);
     if (!env.ADMIN_PASSWORD || env.ADMIN_PASSWORD.length < 20 || !env.ADMIN_SESSION_SECRET || env.ADMIN_SESSION_SECRET.length < 32) {
