@@ -10,7 +10,8 @@
     "preview": "astro preview",
     "check": "astro check",
     "audit": "npm audit --audit-level=low",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "test:worker": "node --experimental-strip-types --test tests/worker-admin.test.mjs"
   },
   "dependencies": {
     "astro": "7.4.13",
