@@ -9,12 +9,7 @@ import SiteLayout from "../layouts/SiteLayout.astro";
       <p class="eyebrow">Private workspace</p>
       <h1>Community moderation</h1>
       <p class="admin-muted">Sign in to review pending community submissions. This dashboard does not expose pending content publicly.</p>
-      <form id="admin-login" class="admin-login">
-        <label for="admin-password">Admin password</label>
-        <input id="admin-password" name="password" type="password" minlength="20" maxlength="256" autocomplete="current-password" required />
-        <button class="btn-primary" type="submit">Sign in securely</button>
-        <p id="login-status" class="admin-status" role="status" aria-live="polite"></p>
-      </form>
+      <p id="login-status" class="admin-status" role="status" aria-live="polite">If your session expires, reopen your private admin entry bookmark.</p>
       <div id="admin-content" hidden>
         <div class="admin-toolbar">
           <div><h2>Pending submissions</h2><p class="admin-muted">Approve or reject each item.</p></div>
@@ -62,7 +57,7 @@ import SiteLayout from "../layouts/SiteLayout.astro";
     const reviewsBox = document.querySelector<HTMLElement>("#pending-reviews");
     const requestsBox = document.querySelector<HTMLElement>("#pending-requests");
     const adminStatus = document.querySelector<HTMLElement>("#admin-status");
-    const passwordInput = document.querySelector<HTMLInputElement>("#admin-password");
+
 
     async function api<T>(path: string, init?: RequestInit): Promise<T> {
       const response = await fetch(path, { ...init, credentials: "same-origin", headers: { accept: "application/json", ...(init?.headers || {}) } });
@@ -144,23 +139,6 @@ import SiteLayout from "../layouts/SiteLayout.astro";
       if (adminContent) adminContent.hidden = false;
       await loadPending();
     }
-
-    loginForm?.addEventListener("submit", async (event) => {
-      event.preventDefault();
-      if (!passwordInput || !loginStatus) return;
-      const button = loginForm.querySelector<HTMLButtonElement>('button[type="submit"]');
-      if (button) button.disabled = true;
-      loginStatus.textContent = "Signing in…";
-      try {
-        await api("/api/admin/login", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ password: passwordInput.value }) });
-        passwordInput.value = "";
-        await showDashboard();
-      } catch (error) {
-        loginStatus.textContent = error instanceof Error ? error.message : "Sign-in failed.";
-      } finally {
-        if (button) button.disabled = false;
-      }
-    });
 
     document.querySelector("#admin-refresh")?.addEventListener("click", () => loadPending().catch(error => { if (adminStatus) adminStatus.textContent = error.message; }));
     document.querySelector("#admin-logout")?.addEventListener("click", async () => {

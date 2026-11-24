@@ -12,6 +12,7 @@ interface Env {
   DB?: D1Database;
   ADMIN_PASSWORD?: string;
   ADMIN_SESSION_SECRET?: string;
+  ADMIN_LOGIN_PATH?: string;
 }
 
 const JSON_HEADERS = { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" };
@@ -145,7 +146,7 @@ async function adminApi(request: Request, env: Env, url: URL): Promise<Response>
     "SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'admin_sessions'"
   ).first<{ name: string }>();
   if (!sessionTable) return fail("Admin database migration is required before sign-in.", 503);
-  if (url.pathname === "/api/admin/login" && request.method === "POST") {
+  if (env.ADMIN_LOGIN_PATH && url.pathname === env.ADMIN_LOGIN_PATH + "login" && request.method === "POST") {
     if (!sameOrigin(request, url)) return fail("Request rejected.", 403);
     if (!env.ADMIN_PASSWORD || env.ADMIN_PASSWORD.length < 20 || !env.ADMIN_SESSION_SECRET || env.ADMIN_SESSION_SECRET.length < 32) {
       return fail("Admin security is not configured yet.", 503);
@@ -208,6 +209,8 @@ async function api(request: Request, env: Env): Promise<Response> {
   if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: {
     ...SECURITY_HEADERS, "allow": "GET, POST, OPTIONS", "access-control-allow-origin": "null"
   }});
+  if (url.pathname === "/api/admin/login") return fail("Not found.", 404);
+  if (env.ADMIN_LOGIN_PATH && url.pathname === env.ADMIN_LOGIN_PATH + "login") return adminApi(request, env, url);
   if (url.pathname.startsWith("/api/admin/")) return adminApi(request, env, url);
   if (url.pathname === "/api/health" && request.method === "GET") {
     return json({ status: "ok", community: env.DB ? "ready" : "not-configured" });
@@ -280,13 +283,36 @@ function isAdminAssetPath(pathname: string): boolean {
     else segments.push(segment);
   }
   const normalized = ("/" + segments.join("/")).toLowerCase();
-  return normalized === "/admin" || normalized.startsWith("/admin/");
+  return normalized === "/admin" || normalized.startsWith("/admin/") || normalized === "/private-entry" || normalized.startsWith("/private-entry/");
 }
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
     const path = url.pathname.toLowerCase();
+    const loginPath = env.ADMIN_LOGIN_PATH;
+    const validLoginPath = typeof loginPath === "string" &&
+      /^\/[A-Za-z0-9_-]{48,96}\/$/.test(loginPath) &&
+      !loginPath.toLowerCase().startsWith("/admin/") &&
+      !loginPath.toLowerCase().startsWith("/api/");
+    if (validLoginPath && url.pathname === loginPath + "login") {
+      try { return await api(request, env); }
+      catch { return fail("The request could not be completed. Please try again later.", 500); }
+    }
+    if (validLoginPath && url.pathname === loginPath) {
+      if (request.method !== "GET" && request.method !== "HEAD") {
+        return new Response("Not Found", { status: 404, headers: { ...SECURITY_HEADERS, "content-type": "text/plain; charset=utf-8" } });
+      }
+      const privateUrl = new URL(request.url);
+      privateUrl.pathname = "/private-entry/";
+      const asset = await env.ASSETS.fetch(new Request(privateUrl, request));
+      const headers = new Headers(asset.headers);
+      headers.set("cache-control", "private, no-store, max-age=0");
+      headers.set("cdn-cache-control", "no-store");
+      headers.set("pragma", "no-cache");
+      headers.set("x-robots-tag", "noindex, nofollow, noarchive");
+      return new Response(asset.body, { status: asset.status, statusText: asset.statusText, headers });
+    }
     if (isAdminAssetPath(url.pathname)) {
       try {
         if (!await validSession(request, env)) {
