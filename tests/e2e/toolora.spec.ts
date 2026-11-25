@@ -502,10 +502,11 @@ test("CSV to JSON rejects an unclosed quoted field with a readable error", async
   await expect(page.locator("#tool-output")).toHaveValue("");
 });
 
-test("word counter handles empty and whitespace-only input", async ({ page }) => {
+test("word counter rejects whitespace-only input without stale output", async ({ page }) => {
   await page.goto("/tools/word-counter/");
   await page.locator("#tool-input").fill("   \n  \t  ");
   await page.getByRole("button", { name: /run tool/i }).click();
-  await expect(page.locator("#tool-output")).toHaveValue(/Words: 0/);
-  await expect(page.locator("#tool-status")).toContainText("Completed successfully.");
+  await expect(page.locator("#tool-status")).toContainText("Please enter some input first.");
+  await expect(page.locator("#tool-status")).toHaveClass(/text-red-600/);
+  await expect(page.locator("#tool-output")).toHaveValue("");
 });
