@@ -1,21 +1,49 @@
 ---
 const { toolSlug, toolName } = Astro.props;
 ---
-<section class="community-panel mt-8" aria-labelledby="reviews-title" data-reviews-tool={toolSlug}>
-  <div class="community-heading">
-    <div><span class="eyebrow">Community feedback</span><h2 id="reviews-title">Ratings &amp; reviews</h2><p>Share your experience with {toolName} and help others choose the right tool.</p></div>
-    <div class="review-summary" aria-live="polite"><strong data-average>—</strong><span data-stars aria-label="No ratings yet">☆☆☆☆☆</span><small data-count>No approved reviews yet</small></div>
+<section class="community-panel review-section" aria-labelledby="reviews-title" data-reviews-tool={toolSlug}>
+  <div class="review-section-head">
+    <div class="review-section-copy">
+      <span class="eyebrow">Community feedback</span>
+      <h2 id="reviews-title">Ratings &amp; reviews</h2>
+      <p>Real feedback from people who have used {toolName}.</p>
+    </div>
+    <div class="review-summary" aria-live="polite">
+      <strong data-average>—</strong>
+      <span class="review-summary-stars" data-stars aria-label="No ratings yet">☆☆☆☆☆</span>
+      <small data-count>Loading ratings…</small>
+    </div>
+  </div>
+
+  <div class="review-overview" data-review-overview hidden>
+    <div class="review-distribution" data-distribution aria-label="Rating distribution"></div>
+    <div class="review-overview-note">
+      <strong data-overview-count>0</strong>
+      <span>verified, approved community reviews</span>
+    </div>
+  </div>
+
+  <div class="review-toolbar">
+    <div><h3>What users are saying</h3><p>Reviews are published after moderation.</p></div>
+    <label class="review-sort-label">Sort by
+      <select data-review-sort aria-label="Sort reviews">
+        <option value="newest">Most recent</option>
+        <option value="highest">Highest rated</option>
+        <option value="lowest">Lowest rated</option>
+      </select>
+    </label>
   </div>
   <div class="review-list" data-review-list aria-live="polite"><p class="community-muted">Loading reviews…</p></div>
+
   <form class="review-form" data-review-form>
-    <h3>Write a review</h3>
-    <p class="community-muted">Your review will appear publicly after moderation.</p>
+    <div class="review-form-heading"><span class="eyebrow">Share your experience</span><h3>Write a review</h3><p>Your feedback helps us improve this tool for everyone.</p></div>
     <div class="review-form-grid">
       <label>Your name <span>(optional)</span><input name="displayName" maxlength="60" autocomplete="name" placeholder="Guest"></label>
-      <label>Rating <select name="rating" required><option value="">Select a rating</option><option value="5">★★★★★ — Excellent</option><option value="4">★★★★☆ — Very good</option><option value="3">★★★☆☆ — Good</option><option value="2">★★☆☆☆ — Fair</option><option value="1">★☆☆☆☆ — Poor</option></select></label>
+      <label>Your rating<select name="rating" required><option value="">Select a rating</option><option value="5">★★★★★ — Excellent</option><option value="4">★★★★☆ — Very good</option><option value="3">★★★☆☆ — Good</option><option value="2">★★☆☆☆ — Fair</option><option value="1">★☆☆☆☆ — Poor</option></select></label>
     </div>
-    <label class="review-message">Your review<textarea name="review" rows="4" minlength="10" maxlength="1000" required placeholder="What worked well? What could be improved?"></textarea></label>
-    <div class="review-submit-row"><button class="btn-primary" type="submit">Submit review</button><p class="community-status" data-review-status role="status" aria-live="polite"></p></div>
+    <label class="review-message">Your review<textarea name="review" rows="4" minlength="10" maxlength="1000" required placeholder="Tell us what worked well and what could be better…"></textarea></label>
+    <div class="review-submit-row"><button class="btn-primary" type="submit">Submit review <span aria-hidden="true">→</span></button><p class="community-status" data-review-status role="status" aria-live="polite"></p></div>
+    <p class="review-privacy-note">Please don't include private or sensitive information. Reviews are checked before they appear publicly.</p>
   </form>
 </section>
 <script>
@@ -23,6 +51,12 @@ const { toolSlug, toolName } = Astro.props;
     display_name?: string;
     rating?: number | string;
     review_text?: string;
+    created_at?: string;
+  }
+  interface ReviewSummary {
+    count?: number;
+    average?: number;
+    distribution?: number[];
   }
 
   const root = document.querySelector<HTMLElement>("[data-reviews-tool]");
@@ -35,54 +69,120 @@ const { toolSlug, toolName } = Astro.props;
     const average = root.querySelector<HTMLElement>("[data-average]");
     const stars = root.querySelector<HTMLElement>("[data-stars]");
     const count = root.querySelector<HTMLElement>("[data-count]");
+    const overview = root.querySelector<HTMLElement>("[data-review-overview]");
+    const distribution = root.querySelector<HTMLElement>("[data-distribution]");
+    const overviewCount = root.querySelector<HTMLElement>("[data-overview-count]");
+    const sort = root.querySelector<HTMLSelectElement>("[data-review-sort]");
+    let currentReviews: ReviewItem[] = [];
+
+    const renderReviews = () => {
+      if (!list) return;
+      const reviews = [...currentReviews];
+      if (sort?.value === "highest") reviews.sort((a, b) => Number(b.rating) - Number(a.rating));
+      if (sort?.value === "lowest") reviews.sort((a, b) => Number(a.rating) - Number(b.rating));
+      list.replaceChildren();
+      if (!reviews.length) {
+        const empty = document.createElement("div");
+        empty.className = "review-empty";
+        const title = document.createElement("strong");
+        title.textContent = "No reviews yet";
+        const copy = document.createElement("p");
+        copy.textContent = "Be the first to share a helpful review of this tool.";
+        empty.append(title, copy);
+        list.append(empty);
+        return;
+      }
+      for (const review of reviews) {
+        const article = document.createElement("article");
+        article.className = "review-item";
+        const top = document.createElement("div");
+        top.className = "review-item-top";
+        const identity = document.createElement("div");
+        identity.className = "review-author";
+        const avatar = document.createElement("span");
+        avatar.className = "review-avatar";
+        avatar.setAttribute("aria-hidden", "true");
+        avatar.textContent = (String(review.display_name || "G").trim().charAt(0) || "G").toUpperCase();
+        const author = document.createElement("strong");
+        author.textContent = String(review.display_name || "Guest");
+        identity.append(avatar, author);
+        const meta = document.createElement("div");
+        meta.className = "review-meta";
+        const rating = Math.max(0, Math.min(5, Number(review.rating) || 0));
+        const score = document.createElement("span");
+        score.className = "review-stars";
+        score.setAttribute("aria-label", rating + " out of 5 stars");
+        score.textContent = "★".repeat(rating) + "☆".repeat(5 - rating);
+        const date = document.createElement("time");
+        date.className = "review-date";
+        if (review.created_at) {
+          const parsed = new Date(review.created_at.replace(" ", "T") + (review.created_at.endsWith("Z") ? "" : "Z"));
+          if (!Number.isNaN(parsed.getTime())) {
+            date.dateTime = parsed.toISOString();
+            date.textContent = new Intl.DateTimeFormat(undefined, { dateStyle: "medium" }).format(parsed);
+          }
+        }
+        meta.append(score, date);
+        top.append(identity, meta);
+        const body = document.createElement("p");
+        body.textContent = String(review.review_text || "");
+        article.append(top, body);
+        list.append(article);
+      }
+    };
+
+    const renderDistribution = (values: number[], total: number) => {
+      if (!distribution) return;
+      distribution.replaceChildren();
+      for (let rating = 5; rating >= 1; rating--) {
+        const row = document.createElement("div");
+        row.className = "review-distribution-row";
+        const label = document.createElement("span");
+        label.textContent = String(rating);
+        const star = document.createElement("span");
+        star.className = "review-distribution-star";
+        star.textContent = "★";
+        const track = document.createElement("span");
+        track.className = "review-distribution-track";
+        const fill = document.createElement("span");
+        fill.className = "review-distribution-fill";
+        const amount = values[rating - 1] || 0;
+        fill.style.width = (total ? amount / total * 100 : 0) + "%";
+        track.append(fill);
+        const value = document.createElement("small");
+        value.textContent = String(amount);
+        row.append(label, star, track, value);
+        distribution.append(row);
+      }
+    };
 
     const loadReviews = async () => {
       if (!list || !average || !stars || !count) return;
       try {
         const response = await fetch("/api/reviews?tool=" + encodeURIComponent(slug), { headers: { accept: "application/json" } });
         if (!response.ok) throw new Error("Reviews are temporarily unavailable.");
-        const data: { reviews?: ReviewItem[] } = await response.json();
-        const reviews = Array.isArray(data.reviews) ? data.reviews : [];
-        list.replaceChildren();
-        if (!reviews.length) {
-          const empty = document.createElement("p");
-          empty.className = "community-muted";
-          empty.textContent = "No approved reviews yet. Be the first to share your experience.";
-          list.append(empty);
-          average.textContent = "—";
-          stars.textContent = "☆☆☆☆☆";
-          stars.setAttribute("aria-label", "No ratings yet");
-          count.textContent = "No approved reviews yet";
-          return;
+        const data: { reviews?: ReviewItem[]; summary?: ReviewSummary } = await response.json();
+        currentReviews = Array.isArray(data.reviews) ? data.reviews : [];
+        const summary = data.summary || {};
+        const total = Number(summary.count ?? currentReviews.length);
+        const avg = Number(summary.average ?? 0);
+        average.textContent = total ? avg.toFixed(1) + "/5" : "—";
+        stars.textContent = total ? "★".repeat(Math.round(avg)) + "☆".repeat(5 - Math.round(avg)) : "☆☆☆☆☆";
+        stars.setAttribute("aria-label", total ? avg.toFixed(1) + " out of 5 stars" : "No ratings yet");
+        count.textContent = total + (total === 1 ? " approved review" : " approved reviews");
+        if (overview && distribution && overviewCount) {
+          overview.hidden = total === 0;
+          overviewCount.textContent = String(total);
+          renderDistribution(Array.isArray(summary.distribution) ? summary.distribution : [0,0,0,0,0], total);
         }
-        const total = reviews.reduce((sum: number, review: ReviewItem) => sum + Number(review.rating || 0), 0);
-        const avg = total / reviews.length;
-        average.textContent = avg.toFixed(1) + "/5";
-        stars.textContent = "★".repeat(Math.round(avg)) + "☆".repeat(5 - Math.round(avg));
-        stars.setAttribute("aria-label", avg.toFixed(1) + " out of 5 stars");
-        count.textContent = reviews.length + (reviews.length === 1 ? " approved review" : " approved reviews");
-        for (const review of reviews) {
-          const article = document.createElement("article");
-          article.className = "review-item";
-          const top = document.createElement("div");
-          top.className = "review-item-top";
-          const author = document.createElement("strong");
-          author.textContent = String(review.display_name || "Guest");
-          const rating = Math.max(0, Math.min(5, Number(review.rating) || 0));
-          const score = document.createElement("span");
-          score.className = "review-stars";
-          score.textContent = "★".repeat(rating) + "☆".repeat(5 - rating);
-          top.append(author, score);
-          const body = document.createElement("p");
-          body.textContent = String(review.review_text || "");
-          article.append(top, body);
-          list.append(article);
-        }
+        renderReviews();
       } catch (error) {
         list.textContent = error instanceof Error ? error.message : "Could not load reviews.";
+        count.textContent = "Ratings unavailable";
       }
     };
 
+    sort?.addEventListener("change", renderReviews);
     form?.addEventListener("submit", async (event) => {
       event.preventDefault();
       const button = form.querySelector<HTMLButtonElement>('button[type="submit"]');
@@ -109,7 +209,7 @@ const { toolSlug, toolName } = Astro.props;
         const data = await response.json();
         if (!response.ok) throw new Error(data.error || "Your review could not be submitted.");
         form.reset();
-        status.textContent = "Thanks! Your review is pending moderation and will appear after approval.";
+        status.textContent = "Thank you. Your review is pending moderation and will appear after approval.";
       } catch (error) {
         status.textContent = error instanceof Error ? error.message : "Submission failed. Please try again.";
       } finally {
