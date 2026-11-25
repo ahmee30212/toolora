@@ -23,6 +23,7 @@ for (const route of routes) {
   const html = read(route);
   if (!/<title>[^<]+<\/title>/.test(html)) failures.push("Missing title: /" + route);
   if (!/<meta name="description" content="[^"]+"/.test(html)) failures.push("Missing meta description: /" + route);
+  if (route === "search/index.html" && !/<meta name="robots" content="noindex, follow"/.test(html)) failures.push("Internal search page must remain noindex, follow.");
   if (!/<link rel="canonical" href="https:\/\//.test(html)) failures.push("Missing canonical URL: /" + route);
   if (!html.includes('href="' + canonicalOrigin + '/')) failures.push("Canonical URL does not use the production hostname: /" + route);
   if (html.includes("m-ahmad30212.workers.dev")) failures.push("Legacy hostname found in generated HTML: /" + route);
@@ -33,6 +34,7 @@ for (const route of routes) {
   if (!html.includes("Created by Muhammad Ahmad")) failures.push("Missing creator credit: /" + route);
 }
 const sitemap = read("sitemap.xml");
+if (sitemap.includes("<loc>" + canonicalOrigin + "/search/</loc>")) failures.push("Noindex internal search page must not be included in the sitemap.");
 for (const slug of categories) if (!sitemap.includes("/categories/" + slug + "/")) failures.push("Sitemap missing category: " + slug);
 for (const slug of tools) if (!sitemap.includes("/tools/" + slug + "/")) failures.push("Sitemap missing tool: " + slug);
 if (!sitemap.includes("<loc>" + canonicalOrigin + "/</loc>")) failures.push("Sitemap is missing the production homepage URL.");
