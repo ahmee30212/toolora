@@ -10,7 +10,7 @@ const category = categories.find((item) => item.slug === slug);
 if (!category) throw new Error("Category not found");
 const categoryTools = getCategoryTools(category.slug);
 ---
-<SiteLayout title={`${category.name} — Toolora`} description={category.description}>
+<SiteLayout title={`${category.name} — Toolora`} description={category.description} breadcrumbs={[{ name: "Home", href: "/" }, { name: "Categories", href: "/#categories" }, { name: category.name, href: `/categories/${category.slug}/` }]}>
   <SiteHeader backHref="/" backLabel="All categories" />
   <main id="main-content">
     <section class="page-hero"><div class="container"><div class="breadcrumb"><a href="/">Home</a> / <a href="/#categories">Categories</a> / {category.name}</div><span class="eyebrow">Tool collection</span><h1 class="display text-4xl md:text-5xl font-extrabold mt-3">{category.name}</h1><p class="text-slate-500 mt-3 text-sm">{category.description}. Choose a tool to get started.</p><span class="pill mt-5">{categoryTools.length} tools in this category</span></div></section>
