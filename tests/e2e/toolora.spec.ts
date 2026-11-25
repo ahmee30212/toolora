@@ -572,3 +572,34 @@ test("tablet navigation switches to the compact accessible menu without horizont
   }));
   expect(dimensions.documentWidth).toBeLessThanOrEqual(dimensions.viewportWidth);
 });
+
+
+test("skip link is the first keyboard stop and moves to main content", async ({ page }) => {
+  await page.goto("/");
+  await page.keyboard.press("Tab");
+  const skipLink = page.getByRole("link", { name: "Skip to content" });
+  await expect(skipLink).toBeFocused();
+  await expect(skipLink).toBeVisible();
+  await expect(skipLink).toHaveAttribute("href", "#main-content");
+  await page.keyboard.press("Enter");
+  await expect(page).toHaveURL(/#main-content$/);
+});
+
+test("mobile navigation and category accordions work with keyboard activation", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/");
+
+  const menuToggle = page.locator(".mobile-menu summary");
+  await menuToggle.focus();
+  await expect(menuToggle).toBeFocused();
+  await page.keyboard.press("Enter");
+  await expect(page.getByRole("navigation", { name: "Mobile navigation" })).toBeVisible();
+
+  const firstCategory = page.locator(".category-accordion").first();
+  const categoryToggle = firstCategory.locator("summary");
+  await categoryToggle.focus();
+  await expect(categoryToggle).toBeFocused();
+  await page.keyboard.press("Enter");
+  await expect(firstCategory).toHaveJSProperty("open", true);
+  await expect(firstCategory.locator(".category-tool-link").first()).toBeVisible();
+});
