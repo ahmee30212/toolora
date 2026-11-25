@@ -23,7 +23,26 @@ for (const route of routes) {
   const html = read(route);
   if (!/<title>[^<]+<\/title>/.test(html)) failures.push("Missing title: /" + route);
   if (!/<meta name="description" content="[^"]+"/.test(html)) failures.push("Missing meta description: /" + route);
-  if (!html.includes('"@context":"https://schema.org"') || !html.includes('"@type":"WebSite"') || !html.includes('"@type":"Organization"')) failures.push("Missing valid Toolora WebSite/Organization structured data: /" + route);
+  const schemaMatch = html.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/);
+  if (!schemaMatch) {
+    failures.push("Missing JSON-LD structured data: /" + route);
+  } else {
+    try {
+      const schema = JSON.parse(schemaMatch[1]);
+      const graph = schema["@graph"] ?? [];
+      const types = graph.map((entry) => entry["@type"]);
+      if (schema["@context"] !== "https://schema.org" || !types.includes("Organization") || !types.includes("WebSite") || !types.includes("WebPage")) {
+        failures.push("Missing expected Organization, WebSite or WebPage schema: /" + route);
+      }
+      const page = graph.find((entry) => entry["@type"] === "WebPage");
+      const canonicalMatch = html.match(/<link rel="canonical" href="([^"]+)"/);
+      if (!page || !canonicalMatch || page.url !== canonicalMatch[1] || !page.name || !page.description) {
+        failures.push("WebPage schema does not match canonical metadata: /" + route);
+      }
+    } catch {
+      failures.push("Invalid JSON-LD structured data: /" + route);
+    }
+  }
   if (route === "search/index.html" && !/<meta name="robots" content="noindex, follow"/.test(html)) failures.push("Internal search page must remain noindex, follow.");
   if (!/<link rel="canonical" href="https:\/\//.test(html)) failures.push("Missing canonical URL: /" + route);
   if (!html.includes('href="' + canonicalOrigin + '/')) failures.push("Canonical URL does not use the production hostname: /" + route);

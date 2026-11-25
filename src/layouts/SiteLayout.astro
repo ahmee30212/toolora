@@ -2,24 +2,37 @@
 import "../styles/global.css";
 const { title = "Toolora — Free Online Tools", description = "A thoughtfully designed collection of free online tools.", robots = "index, follow, max-image-preview:large" } = Astro.props;
 const canonical = new URL(Astro.url.pathname, Astro.site ?? "https://toolora.gettoolora.workers.dev").toString();
+const siteUrl = Astro.site?.toString().replace(/\/$/, "") ?? "https://toolora.gettoolora.workers.dev";
+const organizationId = siteUrl + "/#organization";
+const websiteId = siteUrl + "/#website";
 const structuredData = {
   "@context": "https://schema.org",
   "@graph": [
     {
       "@type": "Organization",
-      "@id": "https://toolora.gettoolora.workers.dev/#organization",
+      "@id": organizationId,
       name: "Toolora",
-      url: "https://toolora.gettoolora.workers.dev/",
+      url: siteUrl + "/",
       description: "Free online tools for images, PDFs, writing, calculations, security and developer workflows."
     },
     {
       "@type": "WebSite",
-      "@id": "https://toolora.gettoolora.workers.dev/#website",
+      "@id": websiteId,
       name: "Toolora",
-      url: "https://toolora.gettoolora.workers.dev/",
+      url: siteUrl + "/",
       description: "Free online tools for everyone.",
       inLanguage: "en",
-      publisher: { "@id": "https://toolora.gettoolora.workers.dev/#organization" }
+      publisher: { "@id": organizationId }
+    },
+    {
+      "@type": "WebPage",
+      "@id": canonical + "#webpage",
+      url: canonical,
+      name: title,
+      description,
+      inLanguage: "en",
+      isPartOf: { "@id": websiteId },
+      publisher: { "@id": organizationId }
     }
   ]
 };
