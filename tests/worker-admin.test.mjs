@@ -86,7 +86,7 @@ test("only the configured high-entropy path serves the real login page", async (
   assert.notEqual(wrong.status, 200);
   const correct = await worker.fetch(req(env.ADMIN_LOGIN_PATH), env);
   assert.equal(correct.status, 200);
-  assert.equal(assetRequests(), 2);
+  assert.equal(assetRequests(), 3);
   assert.match(correct.headers.get("cache-control") || "", /no-store/);
   assert.equal(correct.headers.get("x-robots-tag"), "noindex, nofollow, noarchive");
 });
