@@ -10,7 +10,7 @@ The Worker API is prepared, but public submissions remain disabled until you cre
 
 ## 2. Add the D1 binding
 
-In `wrangler.toml`, uncomment the `[[d1_databases]]` block and replace the placeholder with your database ID. Keep the binding name exactly `DB`.
+In `wrangler.toml`, keep the existing `[[d1_databases]]` binding configured as `DB`; verify its database ID matches your Cloudflare D1 database. Keep the binding name exactly `DB`.
 
 ## 3. Apply the migration
 
@@ -36,4 +36,4 @@ Deploy only after CI passes. Then open `/api/health`; the response should report
 
 ## Important
 
-The owner moderation interface and Cloudflare Access protection are a separate next phase. Do not approve records by changing public API parameters; moderation must remain owner-only. File processing continues in the visitor's browser and is not routed through this API.
+Custom website login and admin routes are intentionally not part of Toolora. The owner manages pending moderation records directly in the Cloudflare D1 dashboard using SQL. Keep database access restricted to the owner’s Cloudflare account. The public API exposes approved records only; there is no public approval or moderation endpoint. File processing continues in the visitor's browser and is not routed through this API.
