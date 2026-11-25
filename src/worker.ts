@@ -11,9 +11,18 @@ interface Env { ASSETS?: AssetFetcher; DB?: D1Database; }
 
 const JSON_HEADERS = { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" };
 const SECURITY_HEADERS = {
+  "content-security-policy": "default-src 'none'; base-uri 'none'; frame-ancestors 'none'",
+  "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
   "x-content-type-options": "nosniff",
-  "referrer-policy": "strict-origin-when-cross-origin",
   "x-frame-options": "DENY",
+  "x-permitted-cross-domain-policies": "none",
+  "x-download-options": "noopen",
+  "referrer-policy": "strict-origin-when-cross-origin",
+  "permissions-policy": "camera=(), microphone=(), geolocation=()",
+  "cross-origin-opener-policy": "same-origin",
+  "cross-origin-embedder-policy": "require-corp",
+  "cross-origin-resource-policy": "same-origin",
+  "origin-agent-cluster": "?1",
   "cache-control": "no-store"
 };
 const encoder = new TextEncoder();
@@ -39,12 +48,14 @@ async function allowSubmission(db: D1Database, request: Request, action: string,
       request_count = rate_limits.request_count + 1
     RETURNING request_count
   `).bind(key, action, windowStart).first<{ request_count: number }>();
+  await db.prepare("DELETE FROM rate_limits WHERE window_start < ?").bind(windowStart - 86400).run();
   return Boolean(row && row.request_count <= limit);
 }
 
 async function readBody(request: Request, maxBytes = 8192): Promise<Record<string, unknown> | null> {
   const contentType = request.headers.get("content-type") ?? "";
-  if (!contentType.toLowerCase().includes("application/json")) return null;
+  const mediaType = contentType.split(";")[0].trim().toLowerCase();
+  if (mediaType !== "application/json") return null;
   const length = Number(request.headers.get("content-length") ?? 0);
   if (length > maxBytes) return null;
   const raw = await request.text();

@@ -1,47 +1,47 @@
 # Toolora community backend setup
 
-The Worker API is prepared, but public submissions remain disabled until you create and bind your own D1 database. No Cloudflare credentials or API tokens are needed in the repository.
+The production Worker already has a D1 database binding named DB connected to the Cloudflare database toolora-community-db. The public API accepts reviews and tool requests, but stores every new submission as pending; nothing is published automatically.
 
-## 1. Create the database in your Cloudflare account
+## Production database
 
-1. Open Cloudflare Dashboard → Workers & Pages → D1 SQL Database.
-2. Create a database named `toolora-community`.
-3. Copy its database ID. Keep it private; do not post account tokens or passwords.
+- Cloudflare product: D1
+- Database name: toolora-community-db
+- Worker binding: DB
+- Initial schema: migrations/0001_community.sql
+- Verify the live binding through GET /api/health; it should return community: ready.
 
-## 2. Add the D1 binding
+Do not create a second production database or replace the configured database ID unless intentionally migrating the data. Keep Cloudflare credentials and API tokens out of Git and chat.
 
-In `wrangler.toml`, keep the existing `[[d1_databases]]` binding configured as `DB`; verify its database ID matches your Cloudflare D1 database. Keep the binding name exactly `DB`.
+## New-environment setup
 
-## 3. Apply the migration
+For a separate development or replacement environment:
 
-From the repository root, run:
+1. Create a D1 database in your own Cloudflare account.
+2. Configure the DB binding in wrangler.toml with that database's ID.
+3. Apply the community schema using the exact database name configured in Wrangler:
 
 ```sh
-npx wrangler d1 migrations apply toolora-community --remote
+npx wrangler d1 migrations apply toolora-community-db --remote
 ```
 
-## 4. Verify
+4. Deploy only after CI passes, then verify /api/health.
 
-Deploy only after CI passes. Then open `/api/health`; the response should report `community: "ready"`.
-
-## Current safeguards
+## Safeguards
 
 - Reviews and tool requests are stored as pending and are never published automatically.
 - Public review reads return approved entries only.
 - Request bodies are JSON-only and limited to 8 KB.
 - Same-origin checks reject cross-site submissions.
 - Input lengths, ratings and tool slugs are validated on the server and constrained again by SQL.
-- A per-client, per-action submission limit is stored using a one-way SHA-256 digest; raw visitor IPs are not written to D1.
+- A per-client, per-action submission limit uses a one-way SHA-256 digest; raw visitor IPs are not written to D1.
 - No email address, account password or uploaded file is collected by these endpoints.
+- Public endpoints never accept moderation status changes.
 
-## Important
+## Owner moderation
 
-Custom website login and admin routes are intentionally not part of Toolora. The owner manages pending moderation records directly in the Cloudflare D1 dashboard using SQL. Keep database access restricted to the owner’s Cloudflare account. The public API exposes approved records only; there is no public approval or moderation endpoint. File processing continues in the visitor's browser and is not routed through this API.
+There is intentionally no website admin login or admin dashboard. Manage submissions from Cloudflare Dashboard → Workers & Pages → D1 → toolora-community-db → Console. Keep database access restricted to the owner's Cloudflare account.
 
-
-## Owner moderation in Cloudflare D1
-
-There is no Toolora admin login or admin dashboard. Manage submissions from Cloudflare Dashboard → Workers & Pages → D1 → `toolora-community-db` → Console. Run these read-only queries to inspect pending submissions:
+Read-only queries to inspect pending submissions:
 
 ```sql
 SELECT id, tool_slug, name, rating, review, created_at
@@ -65,4 +65,4 @@ UPDATE tool_requests SET status = 'approved' WHERE id = 1 AND status = 'pending'
 UPDATE tool_requests SET status = 'rejected' WHERE id = 1 AND status = 'pending';
 ```
 
-Replace `1` with the actual row ID. Run only the single action you intend for each record. Public endpoints never accept moderation status changes; only approved rows are returned.
+Replace 1 with the actual row ID. Run only the single action you intend for each record. Never approve untrusted or abusive content.

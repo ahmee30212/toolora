@@ -453,3 +453,22 @@ test("reduced-motion preference disables smooth scrolling and long animations", 
   await page.goto("/");
   await expect.poll(() => page.locator("html").evaluate((element) => getComputedStyle(element).scrollBehavior)).toBe("auto");
 });
+
+test("production canonical metadata, robots and sitemap use the branded hostname", async ({ page, request }) => {
+  await page.goto("/");
+  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", "https://app.gettoolora.workers.dev/");
+  const robots = await request.get("/robots.txt");
+  expect(robots.ok()).toBeTruthy();
+  expect(await robots.text()).toContain("https://app.gettoolora.workers.dev/sitemap.xml");
+  const sitemap = await request.get("/sitemap.xml");
+  expect(sitemap.ok()).toBeTruthy();
+  const xml = await sitemap.text();
+  expect(xml).toContain("https://app.gettoolora.workers.dev/");
+  expect(xml).toContain("https://app.gettoolora.workers.dev/community/");
+  expect(xml).not.toContain("m-ahmad30212.workers.dev");
+});
+
+test("retired admin dashboard is not published", async ({ page }) => {
+  const response = await page.goto("/admin/");
+  expect(response?.status()).toBe(404);
+});
