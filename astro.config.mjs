@@ -6,5 +6,5 @@ export default defineConfig({
     plugins: [tailwindcss()]
   },
   output: "static",
-  site: "https://app.gettoolora.workers.dev"
+  site: "https://toolora.gettoolora.workers.dev"
 });

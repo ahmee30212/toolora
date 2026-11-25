@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 
-const base = new URL(process.env.TOOLORA_BASE_URL ?? "https://app.gettoolora.workers.dev").origin;
-const expectedOrigin = "https://app.gettoolora.workers.dev";
+const base = new URL(process.env.TOOLORA_BASE_URL ?? "https://toolora.gettoolora.workers.dev").origin;
+const expectedOrigin = "https://toolora.gettoolora.workers.dev";
 if (base !== expectedOrigin) throw new Error("Production smoke checks must target " + expectedOrigin + "; received " + base);
 
 const catalog = readFileSync(new URL("../src/data/tools.ts", import.meta.url), "utf8");
