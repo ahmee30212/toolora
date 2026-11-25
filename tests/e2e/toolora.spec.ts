@@ -472,3 +472,134 @@ test("retired admin dashboard is not published", async ({ page }) => {
   const response = await page.goto("/admin/");
   expect(response?.status()).toBe(404);
 });
+
+
+test("Base64 converter round-trips multilingual UTF-8 text", async ({ page }) => {
+  await page.goto("/tools/base64-converter/");
+  const source = "Toolora — سلام — 日本語 — 🚀";
+  await page.locator("#tool-input").fill(source);
+  await page.getByRole("button", { name: /run tool/i }).click();
+  const encoded = await page.locator("#tool-output").inputValue();
+  expect(encoded).not.toBe(source);
+  await page.locator("#tool-input").fill("decode:" + encoded);
+  await page.getByRole("button", { name: /run tool/i }).click();
+  await expect(page.locator("#tool-output")).toHaveValue(source);
+});
+
+test("CSV to JSON preserves quoted commas, escaped quotes and embedded newlines", async ({ page }) => {
+  await page.goto("/tools/csv-to-json/");
+  await page.locator("#tool-input").fill('name,note\n"Ahmad, A.","He said ""hello""\nand left"');
+  await page.getByRole("button", { name: /run tool/i }).click();
+  const result = JSON.parse(await page.locator("#tool-output").inputValue());
+  expect(result).toEqual([{ name: "Ahmad, A.", note: 'He said "hello"\nand left' }]);
+});
+
+test("CSV to JSON clears stale output and download data after invalid input", async ({ page }) => {
+  await page.goto("/tools/csv-to-json/");
+  await page.locator("#tool-input").fill("name,note\nAhmad,hello");
+  await page.getByRole("button", { name: /run tool/i }).click();
+  await expect(page.locator("#tool-output")).toHaveValue(/Ahmad/);
+
+  await page.locator("#tool-input").fill('name,note\nAhmad,"unfinished');
+  await page.getByRole("button", { name: /run tool/i }).click();
+  await expect(page.locator("#tool-status")).toContainText("CSV contains an unclosed quoted field.");
+  await expect(page.locator("#tool-status")).toHaveClass(/text-red-600/);
+  await expect(page.locator("#tool-output")).toHaveValue("");
+  await expect(page.locator("#result-meta")).toHaveText("No result");
+
+  await page.getByRole("button", { name: /download/i }).click();
+  await expect(page.locator("#tool-status")).toContainText("There is no result to download.");
+});
+test("word counter rejects whitespace-only input without stale output", async ({ page }) => {
+  await page.goto("/tools/word-counter/");
+  await page.locator("#tool-input").fill("   \n  \t  ");
+  await page.getByRole("button", { name: /run tool/i }).click();
+  await expect(page.locator("#tool-status")).toContainText("Please enter some input first.");
+  await expect(page.locator("#tool-status")).toHaveClass(/text-red-600/);
+  await expect(page.locator("#tool-output")).toHaveValue("");
+});
+
+
+test("review rating distribution uses CSP-compatible progress indicators", async ({ page }) => {
+  await page.route("**/api/reviews?tool=word-counter", async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        reviews: [],
+        summary: { count: 4, average: 4.5, distribution: [0, 0, 0, 2, 2] }
+      })
+    });
+  });
+  await page.goto("/tools/word-counter/");
+  const bars = page.locator(".review-distribution progress");
+  await expect(bars).toHaveCount(5);
+  await expect(bars.nth(0)).toHaveAttribute("max", "100");
+  await expect(bars.nth(0)).toHaveJSProperty("value", 50);
+  await expect(bars.nth(1)).toHaveJSProperty("value", 50);
+  await expect(bars.nth(2)).toHaveJSProperty("value", 0);
+  await expect(bars.nth(0)).not.toHaveAttribute("style", /.+/);
+  await expect(bars.nth(0)).toHaveAttribute("aria-valuetext", "2 of 4 reviews");
+});
+
+
+test("homepage categories reveal only one category's tools at a time", async ({ page }) => {
+  await page.goto("/");
+  const accordions = page.locator(".category-accordion");
+  await expect(accordions).toHaveCount(categories.length);
+  for (let index = 0; index < categories.length; index++) {
+    const item = accordions.nth(index);
+    await expect(item).toHaveJSProperty("open", false);
+    await item.locator("summary").click();
+    await expect(item).toHaveJSProperty("open", true);
+    const expected = tools.filter((tool) => tool.category === categories[index].slug);
+    await expect(item.locator(".category-tool-link")).toHaveCount(expected.length);
+    for (const tool of expected) {
+      await expect(item.getByRole("link", { name: new RegExp(tool.name) })).toHaveAttribute("href", `/tools/${tool.slug}/`);
+    }
+    if (index > 0) await expect(accordions.nth(index - 1)).toHaveJSProperty("open", false);
+  }
+});
+
+test("tablet navigation switches to the compact accessible menu without horizontal overflow", async ({ page }) => {
+  await page.setViewportSize({ width: 768, height: 900 });
+  await page.goto("/");
+  await expect(page.locator(".desktop-nav")).toBeHidden();
+  await expect(page.locator(".mobile-menu summary")).toBeVisible();
+  const dimensions = await page.evaluate(() => ({
+    documentWidth: document.documentElement.scrollWidth,
+    viewportWidth: document.documentElement.clientWidth
+  }));
+  expect(dimensions.documentWidth).toBeLessThanOrEqual(dimensions.viewportWidth);
+});
+
+
+test("skip link is the first keyboard stop and moves to main content", async ({ page }) => {
+  await page.goto("/");
+  await page.keyboard.press("Tab");
+  const skipLink = page.getByRole("link", { name: "Skip to content" });
+  await expect(skipLink).toBeFocused();
+  await expect(skipLink).toBeVisible();
+  await expect(skipLink).toHaveAttribute("href", "#main-content");
+  await page.keyboard.press("Enter");
+  await expect(page).toHaveURL(/#main-content$/);
+});
+
+test("mobile navigation and category accordions work with keyboard activation", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/");
+
+  const menuToggle = page.locator(".mobile-menu summary");
+  await menuToggle.focus();
+  await expect(menuToggle).toBeFocused();
+  await page.keyboard.press("Enter");
+  await expect(page.getByRole("navigation", { name: "Mobile navigation" })).toBeVisible();
+
+  const firstCategory = page.locator(".category-accordion").first();
+  const categoryToggle = firstCategory.locator("summary");
+  await categoryToggle.focus();
+  await expect(categoryToggle).toBeFocused();
+  await page.keyboard.press("Enter");
+  await expect(firstCategory).toHaveJSProperty("open", true);
+  await expect(firstCategory.locator(".category-tool-link").first()).toBeVisible();
+});

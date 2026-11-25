@@ -49,9 +49,20 @@ const featuredTools = featuredSlugs.map((slug) => tools.find((tool) => tool.slug
     </div></section>
     <section class="section categories-section" id="categories">
       <div class="container">
-        <div class="section-heading"><div><span class="eyebrow">Explore the collection</span><h2>Everything has its place.</h2><p>Browse by category to find exactly what you need — without the clutter.</p></div><span class="section-counter">{categories.length} curated categories <span>↗</span></span></div>
-        <div class="category-grid">
-          {categories.map((category) => <a class="category-card" href={`/categories/${category.slug}/`}><span class="category-icon"><Icon name={category.icon} size={22} /></span><span class="category-info"><strong>{category.name}</strong><small>{category.description}</small></span><span class="category-count">{tools.filter(t=>t.category===category.slug).length}<small>tools</small></span><span class="card-arrow"><Icon name="arrow-up-right" size={17}/></span></a>)}
+        <div class="section-heading"><div><span class="eyebrow">Explore the collection</span><h2>Everything has its place.</h2><p>Choose a category to reveal its tools. Only one category stays open at a time.</p></div><span class="section-counter">{categories.length} curated categories <span>↗</span></span></div>
+        <div class="category-grid" id="category-accordion">
+          {categories.map((category) => <details class="category-card category-accordion">
+            <summary class="category-summary">
+              <span class="category-icon"><Icon name={category.icon} size={22} /></span>
+              <span class="category-info"><strong>{category.name}</strong><small>{category.description}</small></span>
+              <span class="category-count">{tools.filter((tool) => tool.category === category.slug).length}<small>tools</small></span>
+              <span class="category-toggle" aria-hidden="true"><Icon name="chevron-down" size={17}/></span>
+            </summary>
+            <div class="category-tools-list">
+              {tools.filter((tool) => tool.category === category.slug).map((tool) => <a class="category-tool-link" href={`/tools/${tool.slug}/`}><span>{tool.name}</span><Icon name="arrow-up-right" size={15}/></a>)}
+              <a class="category-view-all" href={`/categories/${category.slug}/`}>View {category.name} category <Icon name="arrow-up-right" size={14}/></a>
+            </div>
+          </details>)}
         </div>
       </div>
     </section>
@@ -69,6 +80,16 @@ const featuredTools = featuredSlugs.map((slug) => tools.find((tool) => tool.slug
   </main>
   <SiteFooter />
   <script>
+    const categoryItems = Array.from(document.querySelectorAll<HTMLDetailsElement>(".category-accordion"));
+    for (const item of categoryItems) {
+      item.addEventListener("toggle", () => {
+        if (!item.open) return;
+        for (const other of categoryItems) {
+          if (other !== item && other.open) other.open = false;
+        }
+      });
+    }
+
     const form = document.querySelector<HTMLFormElement>("#tool-search");
     const input = document.querySelector<HTMLInputElement>("#search-input");
     form?.addEventListener("submit", (event) => {
