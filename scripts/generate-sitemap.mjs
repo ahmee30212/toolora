@@ -1,6 +1,6 @@
 import { readFileSync, writeFileSync } from "node:fs";
 
-const site = "https://app.gettoolora.workers.dev";
+const site = "https://toolora.gettoolora.workers.dev";
 const catalog = readFileSync(new URL("../src/data/tools.ts", import.meta.url), "utf8");
 const categoriesBlock = catalog.match(/export const categories = \[([\s\S]*?)\] as const/)?.[1] ?? "";
 const toolsBlock = catalog.match(/export const tools: Tool\[\] = \[([\s\S]*?)\n\];/)?.[1] ?? "";
