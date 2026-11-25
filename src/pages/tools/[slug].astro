@@ -9,7 +9,7 @@ export function getStaticPaths() { return tools.map((tool) => ({ params: { slug:
 const { tool } = Astro.props;
 const category = categories.find((item) => item.slug === tool.category);
 ---
-<SiteLayout title={`${tool.name} — Toolora`} description={tool.description}>
+<SiteLayout title={`${tool.name} — Toolora`} description={tool.description} breadcrumbs={[{ name: "Home", href: "/" }, { name: category?.name ?? "Category", href: `/categories/${tool.category}/` }, { name: tool.name, href: `/tools/${tool.slug}/` }]}>
   <SiteHeader backHref={`/categories/${tool.category}/`} backLabel={category?.name ?? "Category"} />
   <main id="main-content">
     <section class="page-hero tool-page-hero">
