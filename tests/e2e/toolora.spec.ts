@@ -456,15 +456,15 @@ test("reduced-motion preference disables smooth scrolling and long animations", 
 
 test("production canonical metadata, robots and sitemap use the branded hostname", async ({ page, request }) => {
   await page.goto("/");
-  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", "https://app.gettoolora.workers.dev/");
+  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", "https://toolora.gettoolora.workers.dev/");
   const robots = await request.get("/robots.txt");
   expect(robots.ok()).toBeTruthy();
-  expect(await robots.text()).toContain("https://app.gettoolora.workers.dev/sitemap.xml");
+  expect(await robots.text()).toContain("https://toolora.gettoolora.workers.dev/sitemap.xml");
   const sitemap = await request.get("/sitemap.xml");
   expect(sitemap.ok()).toBeTruthy();
   const xml = await sitemap.text();
-  expect(xml).toContain("https://app.gettoolora.workers.dev/");
-  expect(xml).toContain("https://app.gettoolora.workers.dev/community/");
+  expect(xml).toContain("https://toolora.gettoolora.workers.dev/");
+  expect(xml).toContain("https://toolora.gettoolora.workers.dev/community/");
   expect(xml).not.toContain("m-ahmad30212.workers.dev");
 });
 
