@@ -35,6 +35,16 @@ for (const route of routes) {
         failures.push("Missing expected Organization, WebSite or WebPage schema: /" + route);
       }
       const page = graph.find((entry) => entry["@type"] === "WebPage");
+      const expectsBreadcrumbs = route.startsWith("categories/") || route.startsWith("tools/");
+      const breadcrumb = graph.find((entry) => entry["@type"] === "BreadcrumbList");
+      if (expectsBreadcrumbs) {
+        const items = breadcrumb?.itemListElement ?? [];
+        if (!breadcrumb || items.length < 2 || items.some((item, index) => item["@type"] !== "ListItem" || item.position !== index + 1 || !item.name || !item.item)) {
+          failures.push("Missing or invalid breadcrumb structured data: /" + route);
+        }
+      } else if (breadcrumb) {
+        failures.push("Unexpected breadcrumb structured data on route without breadcrumbs: /" + route);
+      }
       const canonicalMatch = html.match(/<link rel="canonical" href="([^"]+)"/);
       if (!page || !canonicalMatch || page.url !== canonicalMatch[1] || !page.name || !page.description) {
         failures.push("WebPage schema does not match canonical metadata: /" + route);
