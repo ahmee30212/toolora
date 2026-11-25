@@ -10,9 +10,10 @@ if (!categorySlugs.length || !toolSlugs.length) throw new Error("Cannot generate
 
 const paths = [
   "/", "/search/", "/privacy/", "/terms/", "/community/",
-  ...categorySlugs.map((slug) => \`/categories/\${slug}/\`),
-  ...toolSlugs.map((slug) => \`/tools/\${slug}/\`)
+  ...categorySlugs.map((slug) => "/categories/" + slug + "/"),
+  ...toolSlugs.map((slug) => "/tools/" + slug + "/")
 ];
-const xml = \`<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n\${paths.map((path) => \`  <url><loc>\${site}\${path}</loc></url>\`).join("\n")}\n</urlset>\n\`;
+const urls = paths.map((path) => "  <url><loc>" + site + path + "</loc></url>").join("\n");
+const xml = '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' + urls + "\n</urlset>\n";
 writeFileSync(new URL("../public/sitemap.xml", import.meta.url), xml);
-console.log(\`Generated sitemap with \${paths.length} canonical URLs.\`);
+console.log("Generated sitemap with " + paths.length + " canonical URLs.");
