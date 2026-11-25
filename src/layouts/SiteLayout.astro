@@ -1,6 +1,6 @@
 ---
 import "../styles/global.css";
-const { title = "Toolora — Free Online Tools", description = "A thoughtfully designed collection of free online tools." } = Astro.props;
+const { title = "Toolora — Free Online Tools", description = "A thoughtfully designed collection of free online tools.", robots = "index, follow, max-image-preview:large" } = Astro.props;
 const canonical = new URL(Astro.url.pathname, Astro.site ?? "https://toolora.gettoolora.workers.dev").toString();
 ---
 <!doctype html>
@@ -10,7 +10,7 @@ const canonical = new URL(Astro.url.pathname, Astro.site ?? "https://toolora.get
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#101f3b" />
     <meta name="color-scheme" content="light" />
-    <meta name="robots" content="index, follow, max-image-preview:large" />
+    <meta name="robots" content={robots} />
     <link rel="canonical" href={canonical} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="description" content={description} />
