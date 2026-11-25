@@ -12,26 +12,41 @@ const category = categories.find((item) => item.slug === tool.category);
 <SiteLayout title={`${tool.name} — Toolora`} description={tool.description}>
   <SiteHeader backHref={`/categories/${tool.category}/`} backLabel={category?.name ?? "Category"} />
   <main id="main-content">
-    <section class="page-hero"><div class="container"><div class="breadcrumb"><a href="/">Home</a> / <a href={`/categories/${tool.category}/`}>{category?.name}</a> / {tool.name}</div><span class="eyebrow">Free online utility</span><h1 class="display text-4xl md:text-5xl font-extrabold mt-3">{tool.name}</h1><p class="text-slate-500 mt-3 text-sm max-w-2xl">{tool.description}</p><div class="flex flex-wrap gap-2 mt-5"><span class="pill"><Icon name="check" size={12}/> Free to use</span><span class="pill"><Icon name="shield-check" size={12}/> Browser-based</span><span class="pill"><Icon name="zap" size={12}/> No account required</span></div></div></section>
-    <section class="section pt-10"><div class="container max-w-4xl">
+    <section class="page-hero tool-page-hero">
+      <div class="container">
+        <div class="breadcrumb"><a href="/">Home</a> / <a href={`/categories/${tool.category}/`}>{category?.name}</a> / {tool.name}</div>
+        <div class="tool-page-title-row">
+          <div><span class="eyebrow">Toolora workspace</span><h1 class="display text-4xl md:text-5xl font-extrabold mt-3">{tool.name}</h1><p class="text-slate-500 mt-3 text-sm max-w-2xl">{tool.description}</p></div>
+          <span class="tool-page-symbol"><Icon name={tool.icon} size={27}/></span>
+        </div>
+        <div class="tool-trust-pills"><span class="pill"><Icon name="check" size={12}/> Free to use</span><span class="pill"><Icon name="shield-check" size={12}/> Browser-based</span><span class="pill"><Icon name="zap" size={12}/> No account required</span></div>
+      </div>
+    </section>
+    <section class="section pt-10"><div class="container max-w-5xl">
       <div class="tool-panel workspace-panel">
-        <div class="workspace-heading"><div><span class="eyebrow">Your workspace</span><h2>{tool.name}</h2><p>Enter your details below and run the tool to get your result.</p></div><span class="workspace-heading-icon"><Icon name={category?.icon ?? "sparkles"} size={24}/></span></div>
-        <div id="tool-form" data-tool={tool.slug}>
-          <label class="block text-sm font-bold mb-2" for="tool-input" id="input-label">Input</label>
-          <textarea id="tool-input" rows="8" class="tool-textarea w-full rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-50" placeholder="Enter or paste your content here..."></textarea>
-          <div id="extra-fields" class="grid sm:grid-cols-2 gap-4 mt-4"></div>
-          <div class="workspace-actions">
-            <button class="btn-primary" id="run-tool" type="button"><Icon name="play" size={15}/> Run tool</button>
-            <button class="btn-secondary" id="copy-result" type="button"><Icon name="copy" size={15}/> Copy result</button>
-            <button class="btn-secondary" id="download-result" type="button"><Icon name="download" size={15}/> Download</button>
-            <button class="btn-secondary" id="reset-tool" type="button"><Icon name="refresh-cw" size={15}/> Reset</button>
-          </div>
-          <p id="tool-status" class="tool-status text-xs text-slate-500 mt-4" role="status" aria-live="polite"><Icon name="info" size={14}/> Your input is processed in this browser whenever possible.</p>
-          <div class="result-area mt-6 pt-5 border-t border-slate-100">
-            <div class="flex justify-between items-center gap-3 mb-2"><label class="text-sm font-bold" for="tool-output">Your result</label><span class="result-badge" id="result-meta">Waiting for input</span></div>
-            <textarea id="tool-output" rows="8" readonly class="tool-textarea w-full rounded-xl border border-slate-200 bg-white p-4 text-sm outline-none" placeholder="Your result will appear here..."></textarea>
+        <div class="workspace-heading"><div><span class="eyebrow">Your workspace</span><h2>Ready when you are.</h2><p>Complete the input, run the tool and review your result.</p></div><span class="workspace-heading-icon"><Icon name={category?.icon ?? "sparkles"} size={24}/></span></div>
+        <div id="tool-form" data-tool={tool.slug} class="workspace-grid">
+          <section class="workspace-pane workspace-input-pane" aria-labelledby="input-panel-title">
+            <div class="workspace-pane-title"><div><span class="workspace-step">01 · INPUT</span><h3 id="input-panel-title">Your content</h3></div><span class="workspace-pane-hint">Add your input below</span></div>
+            <label class="block text-sm font-bold mb-2" for="tool-input" id="input-label">Input</label>
+            <textarea id="tool-input" rows="9" class="tool-textarea w-full rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-50" placeholder="Enter or paste your content here..."></textarea>
+            <div id="extra-fields" class="grid sm:grid-cols-2 gap-4 mt-4"></div>
+            <div class="workspace-actions">
+              <button class="btn-primary" id="run-tool" type="button"><Icon name="play" size={15}/> Run tool</button>
+              <button class="btn-secondary" id="reset-tool" type="button"><Icon name="refresh-cw" size={15}/> Reset</button>
+            </div>
+            <p id="tool-status" class="tool-status text-xs text-slate-500 mt-4" role="status" aria-live="polite"><Icon name="info" size={14}/> Your input is processed in this browser whenever possible.</p>
+          </section>
+          <section class="workspace-pane workspace-output-pane" aria-labelledby="output-panel-title">
+            <div class="workspace-pane-title"><div><span class="workspace-step">02 · OUTPUT</span><h3 id="output-panel-title">Your result</h3></div><span class="result-badge" id="result-meta">Waiting for input</span></div>
+            <textarea id="tool-output" rows="9" readonly class="tool-textarea w-full rounded-xl border border-slate-200 bg-white p-4 text-sm outline-none" placeholder="Your result will appear here..."></textarea>
             {tool.slug === "markdown-editor" && <div id="markdown-preview" class="markdown-preview hidden" aria-live="polite"></div>}
-          </div>
+            <div class="workspace-output-actions">
+              <button class="btn-secondary" id="copy-result" type="button"><Icon name="copy" size={15}/> Copy result</button>
+              <button class="btn-secondary" id="download-result" type="button"><Icon name="download" size={15}/> Download</button>
+            </div>
+            <p class="workspace-output-note"><Icon name="shield-check" size={14}/> Results stay in your browser unless a tool clearly states otherwise.</p>
+          </section>
         </div>
       </div>
       <div class="help-grid mt-6">
