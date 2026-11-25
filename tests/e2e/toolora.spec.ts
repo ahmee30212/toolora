@@ -510,3 +510,26 @@ test("word counter rejects whitespace-only input without stale output", async ({
   await expect(page.locator("#tool-status")).toHaveClass(/text-red-600/);
   await expect(page.locator("#tool-output")).toHaveValue("");
 });
+
+
+test("review rating distribution uses CSP-compatible progress indicators", async ({ page }) => {
+  await page.route("**/api/reviews?tool=word-counter", async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        reviews: [],
+        summary: { count: 4, average: 4.5, distribution: [0, 0, 0, 2, 2] }
+      })
+    });
+  });
+  await page.goto("/tools/word-counter/");
+  const bars = page.locator(".review-distribution progress");
+  await expect(bars).toHaveCount(5);
+  await expect(bars.nth(0)).toHaveAttribute("max", "100");
+  await expect(bars.nth(0)).toHaveJSProperty("value", 50);
+  await expect(bars.nth(1)).toHaveJSProperty("value", 50);
+  await expect(bars.nth(2)).toHaveJSProperty("value", 0);
+  await expect(bars.nth(0)).not.toHaveAttribute("style", /.+/);
+  await expect(bars.nth(0)).toHaveAttribute("aria-valuetext", "2 of 4 reviews");
+});
