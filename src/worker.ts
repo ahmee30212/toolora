@@ -305,7 +305,13 @@ export default {
       }
       const privateUrl = new URL(request.url);
       privateUrl.pathname = "/private-entry/";
-      const asset = await env.ASSETS.fetch(new Request(privateUrl, request));
+      let asset = await env.ASSETS.fetch(new Request(privateUrl, request));
+      // Static asset routers may resolve directory URLs differently; retry the
+      // concrete Astro output file before returning a not-found response.
+      if (asset.status === 404) {
+        privateUrl.pathname = "/private-entry/index.html";
+        asset = await env.ASSETS.fetch(new Request(privateUrl, request));
+      }
       const headers = new Headers(asset.headers);
       headers.set("cache-control", "private, no-store, max-age=0");
       headers.set("cdn-cache-control", "no-store");
