@@ -9,7 +9,7 @@ const toolSlugs = [...toolsBlock.matchAll(/\{\s*slug:\s*"([^"]+)"/g)].map((match
 if (!categorySlugs.length || !toolSlugs.length) throw new Error("Cannot generate sitemap: the Toolora catalog is empty.");
 
 const paths = [
-  "/", "/search/", "/privacy/", "/terms/", "/community/",
+  "/", "/privacy/", "/terms/", "/community/",
   ...categorySlugs.map((slug) => "/categories/" + slug + "/"),
   ...toolSlugs.map((slug) => "/tools/" + slug + "/")
 ];
