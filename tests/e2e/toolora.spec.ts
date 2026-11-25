@@ -472,3 +472,41 @@ test("retired admin dashboard is not published", async ({ page }) => {
   const response = await page.goto("/admin/");
   expect(response?.status()).toBe(404);
 });
+
+
+test("Base64 converter round-trips multilingual UTF-8 text", async ({ page }) => {
+  await page.goto("/tools/base64-converter/");
+  const source = "Toolora — سلام — 日本語 — 🚀";
+  await page.locator("#tool-input").fill(source);
+  await page.getByRole("button", { name: /run tool/i }).click();
+  const encoded = await page.locator("#tool-output").inputValue();
+  expect(encoded).not.toBe(source);
+  await page.locator("#tool-input").fill("decode:" + encoded);
+  await page.getByRole("button", { name: /run tool/i }).click();
+  await expect(page.locator("#tool-output")).toHaveValue(source);
+});
+
+test("CSV to JSON preserves quoted commas, escaped quotes and embedded newlines", async ({ page }) => {
+  await page.goto("/tools/csv-to-json/");
+  await page.locator("#tool-input").fill('name,note\n"Ahmad, A.","He said ""hello""\nand left"');
+  await page.getByRole("button", { name: /run tool/i }).click();
+  const result = JSON.parse(await page.locator("#tool-output").inputValue());
+  expect(result).toEqual([{ name: "Ahmad, A.", note: 'He said "hello"\nand left' }]);
+});
+
+test("CSV to JSON rejects an unclosed quoted field with a readable error", async ({ page }) => {
+  await page.goto("/tools/csv-to-json/");
+  await page.locator("#tool-input").fill('name,note\nAhmad,"unfinished');
+  await page.getByRole("button", { name: /run tool/i }).click();
+  await expect(page.locator("#tool-status")).toContainText("CSV contains an unclosed quoted field.");
+  await expect(page.locator("#tool-output")).toHaveValue("");
+});
+
+test("word counter rejects whitespace-only input without stale output", async ({ page }) => {
+  await page.goto("/tools/word-counter/");
+  await page.locator("#tool-input").fill("   \n  \t  ");
+  await page.getByRole("button", { name: /run tool/i }).click();
+  await expect(page.locator("#tool-status")).toContainText("Please enter some input first.");
+  await expect(page.locator("#tool-status")).toHaveClass(/text-red-600/);
+  await expect(page.locator("#tool-output")).toHaveValue("");
+});
