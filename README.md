@@ -49,7 +49,7 @@ Browser-side resource limits are enforced for large text, image and PDF workload
 
 ## Community backend setup
 
-The Worker API and initial D1 schema are in place. To activate submissions, create a D1 database in your own Cloudflare account and follow [docs/COMMUNITY_BACKEND.md](docs/COMMUNITY_BACKEND.md). No Cloudflare credentials belong in Git. The admin moderation interface and Cloudflare Access protection are a separate phase and are not yet implemented.
+The Worker API and initial D1 schema are in place. To activate submissions, create a D1 database in your own Cloudflare account and follow [docs/COMMUNITY_BACKEND.md](docs/COMMUNITY_BACKEND.md). No Cloudflare credentials belong in Git. Owner moderation is performed directly in the owner's Cloudflare D1 Console; there is no website admin login or moderation dashboard. See [docs/COMMUNITY_BACKEND.md](docs/COMMUNITY_BACKEND.md) for safe review and approval SQL.
 
 ## Local development
 
