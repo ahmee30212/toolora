@@ -2,6 +2,27 @@
 import "../styles/global.css";
 const { title = "Toolora — Free Online Tools", description = "A thoughtfully designed collection of free online tools.", robots = "index, follow, max-image-preview:large" } = Astro.props;
 const canonical = new URL(Astro.url.pathname, Astro.site ?? "https://toolora.gettoolora.workers.dev").toString();
+const structuredData = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "https://toolora.gettoolora.workers.dev/#organization",
+      name: "Toolora",
+      url: "https://toolora.gettoolora.workers.dev/",
+      description: "Free online tools for images, PDFs, writing, calculations, security and developer workflows."
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://toolora.gettoolora.workers.dev/#website",
+      name: "Toolora",
+      url: "https://toolora.gettoolora.workers.dev/",
+      description: "Free online tools for everyone.",
+      inLanguage: "en",
+      publisher: { "@id": "https://toolora.gettoolora.workers.dev/#organization" }
+    }
+  ]
+};
 ---
 <!doctype html>
 <html lang="en">
@@ -11,6 +32,7 @@ const canonical = new URL(Astro.url.pathname, Astro.site ?? "https://toolora.get
     <meta name="theme-color" content="#101f3b" />
     <meta name="color-scheme" content="light" />
     <meta name="robots" content={robots} />
+    <script type="application/ld+json" set:html={JSON.stringify(structuredData)} />
     <link rel="canonical" href={canonical} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="description" content={description} />
