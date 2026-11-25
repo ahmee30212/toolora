@@ -1,6 +1,7 @@
 ---
 import "../styles/global.css";
-const { title = "Toolora — Free Online Tools", description = "A thoughtfully designed collection of free online tools.", robots = "index, follow, max-image-preview:large", breadcrumbs = [] } = Astro.props;
+const { title = "Toolora — Free Online Tools", description = "A thoughtfully designed collection of free online tools.", robots = "index, follow, max-image-preview:large" } = Astro.props;
+const breadcrumbs = (Astro.props.breadcrumbs ?? []) as Array<{ name: string; href: string }>;
 const canonical = new URL(Astro.url.pathname, Astro.site ?? "https://toolora.gettoolora.workers.dev").toString();
 const siteUrl = Astro.site?.toString().replace(/\/$/, "") ?? "https://toolora.gettoolora.workers.dev";
 const organizationId = siteUrl + "/#organization";
