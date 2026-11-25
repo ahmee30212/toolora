@@ -533,3 +533,34 @@ test("review rating distribution uses CSP-compatible progress indicators", async
   await expect(bars.nth(0)).not.toHaveAttribute("style", /.+/);
   await expect(bars.nth(0)).toHaveAttribute("aria-valuetext", "2 of 4 reviews");
 });
+
+
+test("homepage categories reveal only one category's tools at a time", async ({ page }) => {
+  await page.goto("/");
+  const accordions = page.locator(".category-accordion");
+  await expect(accordions).toHaveCount(categories.length);
+  for (let index = 0; index < categories.length; index++) {
+    const item = accordions.nth(index);
+    await expect(item).toHaveJSProperty("open", false);
+    await item.locator("summary").click();
+    await expect(item).toHaveJSProperty("open", true);
+    const expected = tools.filter((tool) => tool.category === categories[index].slug);
+    await expect(item.locator(".category-tool-link")).toHaveCount(expected.length);
+    for (const tool of expected) {
+      await expect(item.getByRole("link", { name: new RegExp(tool.name) })).toHaveAttribute("href", `/tools/${tool.slug}/`);
+    }
+    if (index > 0) await expect(accordions.nth(index - 1)).toHaveJSProperty("open", false);
+  }
+});
+
+test("tablet navigation switches to the compact accessible menu without horizontal overflow", async ({ page }) => {
+  await page.setViewportSize({ width: 768, height: 900 });
+  await page.goto("/");
+  await expect(page.locator(".desktop-nav")).toBeHidden();
+  await expect(page.locator(".mobile-menu summary")).toBeVisible();
+  const dimensions = await page.evaluate(() => ({
+    documentWidth: document.documentElement.scrollWidth,
+    viewportWidth: document.documentElement.clientWidth
+  }));
+  expect(dimensions.documentWidth).toBeLessThanOrEqual(dimensions.viewportWidth);
+});
