@@ -494,14 +494,22 @@ test("CSV to JSON preserves quoted commas, escaped quotes and embedded newlines"
   expect(result).toEqual([{ name: "Ahmad, A.", note: 'He said "hello"\nand left' }]);
 });
 
-test("CSV to JSON rejects an unclosed quoted field with a readable error", async ({ page }) => {
+test("CSV to JSON clears stale output and download data after invalid input", async ({ page }) => {
   await page.goto("/tools/csv-to-json/");
+  await page.locator("#tool-input").fill("name,note\nAhmad,hello");
+  await page.getByRole("button", { name: /run tool/i }).click();
+  await expect(page.locator("#tool-output")).toHaveValue(/Ahmad/);
+
   await page.locator("#tool-input").fill('name,note\nAhmad,"unfinished');
   await page.getByRole("button", { name: /run tool/i }).click();
   await expect(page.locator("#tool-status")).toContainText("CSV contains an unclosed quoted field.");
+  await expect(page.locator("#tool-status")).toHaveClass(/text-red-600/);
   await expect(page.locator("#tool-output")).toHaveValue("");
-});
+  await expect(page.locator("#result-meta")).toHaveText("No result");
 
+  await page.getByRole("button", { name: /download/i }).click();
+  await expect(page.locator("#tool-status")).toContainText("There is no result to download.");
+});
 test("word counter rejects whitespace-only input without stale output", async ({ page }) => {
   await page.goto("/tools/word-counter/");
   await page.locator("#tool-input").fill("   \n  \t  ");
