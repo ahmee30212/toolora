@@ -5,7 +5,9 @@ compatibility_date = "2026-11-24"
 [assets]
 directory = "./dist"
 binding = "ASSETS"
-run_worker_first = ["/*"]
+not_found_handling = "404-page"
+html_handling = "auto-trailing-slash"
+run_worker_first = ["/api/*"]
 
 [[d1_databases]]
 binding = "DB"

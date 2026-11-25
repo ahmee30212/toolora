@@ -33,10 +33,16 @@ for (const header of ["content-security-policy", "strict-transport-security", "x
 }
 
 const robotsResponse = await check("/robots.txt");
+for (const header of ["strict-transport-security", "x-content-type-options", "cross-origin-resource-policy"]) {
+  if (!robotsResponse.headers.get(header)) throw new Error("robots.txt is missing security header: " + header);
+}
 const robots = await robotsResponse.text();
 if (!robots.includes("Sitemap: " + expectedOrigin + "/sitemap.xml")) throw new Error("robots.txt does not reference the production sitemap.");
 
 const sitemapResponse = await check("/sitemap.xml");
+for (const header of ["strict-transport-security", "x-content-type-options", "cross-origin-resource-policy"]) {
+  if (!sitemapResponse.headers.get(header)) throw new Error("sitemap.xml is missing security header: " + header);
+}
 const sitemap = await sitemapResponse.text();
 if (sitemap.includes("m-ahmad30212.workers.dev")) throw new Error("Sitemap contains the legacy hostname.");
 for (const slug of categories) if (!sitemap.includes(expectedOrigin + "/categories/" + slug + "/")) throw new Error("Sitemap is missing category " + slug + ".");
