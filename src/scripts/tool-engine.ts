@@ -17,6 +17,18 @@ if (root) {
     status.textContent = message;
     status.className = `text-xs mt-4 ${error ? "text-red-600" : "text-slate-500"}`;
   };
+  const clearResult = () => {
+    output.value = "";
+    meta.textContent = "No result";
+    downloadBlob = null;
+    delete download.dataset.filename;
+    document.querySelector("#qr-preview")?.replaceChildren();
+    const preview = document.querySelector<HTMLElement>("#markdown-preview");
+    if (preview) {
+      preview.replaceChildren();
+      preview.classList.add("hidden");
+    }
+  };
   const setResult = (value: string, label = "Result ready") => {
     output.value = value;
     meta.textContent = label;
@@ -310,7 +322,10 @@ if (root) {
         if (!input.value.trim() && !["uuid-generator","lorem-ipsum-generator","age-calculator","bmi-calculator","percentage-calculator","password-generator"].includes(slug)) throw new Error("Please enter some input first.");
         runText();
       }
-    } catch (error) { setStatus(error instanceof Error ? error.message : "Something went wrong.", true); }
+    } catch (error) {
+      clearResult();
+      setStatus(error instanceof Error ? error.message : "Something went wrong.", true);
+    }
   });
 
   async function runSpecial() {
