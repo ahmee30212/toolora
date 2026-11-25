@@ -23,6 +23,7 @@ for (const route of routes) {
   const html = read(route);
   if (!/<title>[^<]+<\/title>/.test(html)) failures.push("Missing title: /" + route);
   if (!/<meta name="description" content="[^"]+"/.test(html)) failures.push("Missing meta description: /" + route);
+  if (!html.includes('"@context":"https://schema.org"') || !html.includes('"@type":"WebSite"') || !html.includes('"@type":"Organization"')) failures.push("Missing valid Toolora WebSite/Organization structured data: /" + route);
   if (route === "search/index.html" && !/<meta name="robots" content="noindex, follow"/.test(html)) failures.push("Internal search page must remain noindex, follow.");
   if (!/<link rel="canonical" href="https:\/\//.test(html)) failures.push("Missing canonical URL: /" + route);
   if (!html.includes('href="' + canonicalOrigin + '/')) failures.push("Canonical URL does not use the production hostname: /" + route);
