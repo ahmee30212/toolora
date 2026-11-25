@@ -407,3 +407,26 @@ body{background:#f5f7fc;color:#101a30}
 .community-status{margin:0;color:#65748b;font-size:11px;line-height:1.6}
 .review-privacy-note{margin:13px 0 0;color:#98a3b3;font-size:10px;line-height:1.6}
 @media(max-width:650px){.review-section-head{flex-direction:column}.review-summary{width:100%;min-width:0}.review-overview{grid-template-columns:1fr;gap:17px}.review-overview-note{padding:0;border:0}.review-toolbar{align-items:flex-start;flex-direction:column}.review-form-grid{grid-template-columns:1fr}.review-item-top{align-items:flex-start;flex-direction:column}.review-meta{padding-left:43px}.review-item>p{margin-left:0}.review-submit-row{align-items:flex-start;flex-direction:column}}
+
+
+/* Clear, consistent tool workspace layout */
+.tool-page-title-row{display:flex;align-items:center;justify-content:space-between;gap:24px}
+.tool-page-symbol{width:64px;height:64px;flex:none;display:grid;place-items:center;border:1px solid #dce7fb;border-radius:19px;background:linear-gradient(145deg,#fff,#edf3ff);color:#326cf4;box-shadow:0 12px 30px rgba(50,108,244,.09)}
+.tool-trust-pills{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px}
+.workspace-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px}
+.workspace-pane{min-width:0;padding:20px;border:1px solid #e8edf5;border-radius:16px;background:#fbfcff}
+.workspace-input-pane{background:#f8faff}
+.workspace-output-pane{background:#fff}
+.workspace-pane-title{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:17px}
+.workspace-step{display:block;margin-bottom:5px;color:#7890b5;font-size:9px;font-weight:850;letter-spacing:.14em}
+.workspace-pane-title h3{margin:0;color:#17243b;font-size:15px;font-weight:850;letter-spacing:-.025em}
+.workspace-pane-hint{color:#97a3b5;font-size:10px}
+.workspace-pane .tool-textarea{min-height:220px;background:#fff!important}
+.workspace-output-pane .tool-textarea{background:#fbfcfe!important}
+.workspace-actions,.workspace-output-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.workspace-actions button,.workspace-output-actions button{min-height:40px}
+.workspace-output-actions{padding-top:13px;border-top:1px solid #edf0f5}
+.workspace-output-note{display:flex;align-items:center;gap:7px;margin:13px 0 0;color:#8794a8;font-size:10px;line-height:1.5}
+.workspace-output-note svg{flex:none;color:#25a477}
+@media(max-width:800px){.workspace-grid{grid-template-columns:1fr}.workspace-pane .tool-textarea{min-height:170px}}
+@media(max-width:520px){.tool-page-title-row{align-items:flex-start}.tool-page-symbol{width:48px;height:48px;border-radius:14px}.workspace-pane{padding:15px}.workspace-pane-title{align-items:flex-start;flex-direction:column}.workspace-actions button,.workspace-output-actions button{flex:1}}
