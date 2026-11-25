@@ -7,7 +7,7 @@ const categoryBlock = catalog.match(/export const categories = \[([\s\S]*?)\] as
 const toolBlock = catalog.match(/export const tools: Tool\[\] = \[([\s\S]*?)\n\];/)?.[1] ?? "";
 const categories = [...categoryBlock.matchAll(/slug:\s*"([^"]+)"/g)].map((m) => m[1]);
 const tools = [...toolBlock.matchAll(/\{\s*slug:\s*"([^"]+)"/g)].map((m) => m[1]);
-const canonicalOrigin = "https://app.gettoolora.workers.dev";
+const canonicalOrigin = "https://toolora.gettoolora.workers.dev";
 const routes = [
   "index.html", "search/index.html", "privacy/index.html", "terms/index.html", "community/index.html", "404.html",
   ...categories.map((slug) => "categories/" + slug + "/index.html"),
