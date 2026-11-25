@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://app.gettoolora.workers.dev/sitemap.xml
+Sitemap: https://toolora.gettoolora.workers.dev/sitemap.xml
