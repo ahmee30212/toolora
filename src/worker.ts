@@ -148,6 +148,12 @@ async function api(request: Request, env: Env): Promise<Response> {
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
+    if (url.pathname === "/googlead9fa52a43aab137.html") {
+      return new Response("google-site-verification: googlead9fa52a43aab137.html", {
+        status: 200,
+        headers: { ...SECURITY_HEADERS, "content-type": "text/html; charset=utf-8", "cache-control": "no-store" }
+      });
+    }
     if (url.pathname.startsWith("/api/")) {
       try { return await api(request, env); }
       catch { return fail("The request could not be completed. Please try again later.", 500); }
