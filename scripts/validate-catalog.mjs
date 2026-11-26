@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 const data = readFileSync(new URL("../src/data/tools.ts", import.meta.url), "utf8");
 const iconSource = readFileSync(new URL("../src/components/Icon.astro", import.meta.url), "utf8");
 const engineSource = readFileSync(new URL("../src/scripts/tool-engine.ts", import.meta.url), "utf8");
+const guideSource = readFileSync(new URL("../src/data/tool-guides.ts", import.meta.url), "utf8");
 
 const categorySection = data.match(/export const categories = \[([\s\S]*?)\] as const/)?.[1] ?? "";
 const toolSection = data.match(/export const tools: Tool\[\] = \[([\s\S]*?)\n\];/)?.[1] ?? "";
@@ -13,7 +14,11 @@ const tools = [...toolSection.matchAll(/\{\s*slug:\s*"([^"]+)",\s*name:\s*"([^"]
   .map((match) => ({ slug: match[1], name: match[2], category: match[4], icon: match[5], status: match[6] }));
 
 if (tools.length === 0) throw new Error("No tools were discovered in the catalog.");
+const errors = [];
 const slugs = tools.map((tool) => tool.slug);
+const guideSlugs = new Set([...guideSource.matchAll(/"([a-z0-9-]+)": \{/g)].map((match) => match[1]));
+for (const slug of slugs) if (!guideSlugs.has(slug)) errors.push(`${slug}: missing original editorial guide`);
+for (const slug of guideSlugs) if (!slugs.includes(slug)) errors.push(`${slug}: editorial guide has no matching catalog tool`);
 const duplicates = slugs.filter((slug, index) => slugs.indexOf(slug) !== index);
 if (duplicates.length) throw new Error(`Duplicate tool slugs: ${[...new Set(duplicates)].join(", ")}`);
 
@@ -28,7 +33,6 @@ const specialHandlers = new Set([
   "image-compressor", "image-converter", "image-cropper", "image-resizer",
   "images-to-pdf", "pdf-to-images", "typing-speed-test", "text-to-speech"
 ]);
-const errors = [];
 for (const tool of tools) {
   if (!categories.has(tool.category)) errors.push(`${tool.slug}: unknown category "${tool.category}"`);
   if (!iconNames.has(tool.icon) && !extraNames.has(tool.icon)) errors.push(`${tool.slug}: missing SVG icon mapping "${tool.icon}"`);

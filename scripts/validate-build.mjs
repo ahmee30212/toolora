@@ -9,7 +9,7 @@ const categories = [...categoryBlock.matchAll(/slug:\s*"([^"]+)"/g)].map((m) => 
 const tools = [...toolBlock.matchAll(/\{\s*slug:\s*"([^"]+)"/g)].map((m) => m[1]);
 const canonicalOrigin = "https://toolora.gettoolora.workers.dev";
 const routes = [
-  "index.html", "search/index.html", "privacy/index.html", "terms/index.html", "community/index.html", "404.html",
+  "index.html", "about/index.html", "search/index.html", "privacy/index.html", "terms/index.html", "community/index.html", "404.html",
   ...categories.map((slug) => "categories/" + slug + "/index.html"),
   ...tools.map((slug) => "tools/" + slug + "/index.html")
 ];

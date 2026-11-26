@@ -4,7 +4,7 @@
 
 Toolora is a modern, browser-first collection of **41 free online tools across 9 categories**. Each category has its own focused tool list, and every tool has a dedicated workspace.
 
-**Live website:** https://app.gettoolora.workers.dev/
+**Live website:** https://toolora.gettoolora.workers.dev/
 
 **Created by Muhammad Ahmad ❤️**
 
@@ -14,7 +14,7 @@ Toolora is a modern, browser-first collection of **41 free online tools across 9
 - **Browser-first privacy:** text, image and PDF processing happens locally in the user's browser; files are not uploaded to a Toolora processing server.
 - **Responsive and accessible:** semantic controls, keyboard-visible focus, mobile navigation and reduced-motion support.
 - **Fast by design:** static Astro output, locally bundled PDF libraries, lazy-loaded tool dependencies and enforced JavaScript/CSS size budgets.
-- **Transparent:** read the [Privacy Policy](https://app.gettoolora.workers.dev/privacy/) and [Terms of Use](https://app.gettoolora.workers.dev/terms/).
+- **Transparent:** read the [Privacy Policy](https://toolora.gettoolora.workers.dev/privacy/) and [Terms of Use](https://toolora.gettoolora.workers.dev/terms/).
 
 ## Technology
 
@@ -72,8 +72,8 @@ The production build validates the catalog, generates the XML sitemap, runs Astr
 
 ## Cloudflare Workers deployment
 
-- Public hostname: https://app.gettoolora.workers.dev/
-- Worker name in wrangler.toml: app
+- Public hostname: https://toolora.gettoolora.workers.dev/
+- Worker name in wrangler.toml: toolora
 - Build command: npm run build
 - Deploy command: npx wrangler deploy
 - Static assets directory: dist
@@ -82,14 +82,15 @@ The production build validates the catalog, generates the XML sitemap, runs Astr
 - D1 binding: DB → toolora-community-db
 - Node.js build environment: 24
 
-Deploy the current main revision through the configured Cloudflare Worker deployment after GitHub Actions checks pass. Keep the previous toolora.gettoolora.workers.dev Worker available until the new app hostname has been deployed and verified.
+Deploy the current main revision through the configured Cloudflare Worker deployment after GitHub Actions checks pass. Keep the existing D1 database binding and ID intact, then verify the production smoke and DAST workflows.
 
 ## Project structure
 
 - src/data/tools.ts — category and tool catalog
+- src/data/tool-guides.ts — original usage guides, examples, tips and FAQs for all 41 tools
 - src/components/ — shared navigation, footer and SVG icons
 - src/layouts/SiteLayout.astro — document shell, canonical URLs and social metadata
-- src/pages/ — homepage, search, category, tool, privacy, terms and 404 pages
+- src/pages/ — homepage, About, search, category, tool, privacy, terms and 404 pages
 - src/scripts/tool-engine.ts — browser-side tool implementations
 - src/worker.ts — API routing, validation, rate limiting and D1 access
 - migrations/ — versioned D1 schema
