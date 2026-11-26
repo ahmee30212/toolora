@@ -8,15 +8,15 @@ export type Tool = {
 };
 
 export const categories = [
-  { slug: "image", name: "Image & Media", description: "Optimize and prepare images", icon: "image" },
-  { slug: "pdf", name: "PDF & Documents", description: "Convert and manage documents", icon: "file-text" },
-  { slug: "text", name: "Text & Writing", description: "Write, clean and analyze text", icon: "type" },
-  { slug: "calculators", name: "Calculators", description: "Useful everyday calculations", icon: "calculator" },
-  { slug: "speed", name: "Tests & Productivity", description: "Measure and improve productivity", icon: "gauge" },
-  { slug: "security", name: "Security", description: "Create and evaluate secure credentials", icon: "shield-check" },
-  { slug: "developer", name: "Developer & Data", description: "Format, encode and convert data", icon: "code" },
-  { slug: "design", name: "Color & Design", description: "Build and explore color palettes", icon: "palette" },
-  { slug: "social", name: "Social Media", description: "Create content for social platforms", icon: "at-sign" }
+  { slug: "image", name: "Image & Media", description: "Compress, resize, crop and convert images online with free browser-based tools. Prepare images for websites, documents and everyday sharing.", icon: "image" },
+  { slug: "pdf", name: "PDF & Documents", description: "Merge, split, rotate and convert PDF files with free online document tools. Prepare pages and images in your browser.", icon: "file-text" },
+  { slug: "text", name: "Text & Writing", description: "Clean, compare, format and analyze text with free browser-based writing tools for drafts, lists and everyday editing.", icon: "type" },
+  { slug: "calculators", name: "Calculators", description: "Use free online calculators for age, BMI and percentage questions, with quick results and clear inputs.", icon: "calculator" },
+  { slug: "speed", name: "Tests & Productivity", description: "Check typing speed and improve everyday productivity with simple browser-based tests and tools.", icon: "gauge" },
+  { slug: "security", name: "Security", description: "Generate strong passwords and check password strength locally in your browser without sending your input to a server.", icon: "shield-check" },
+  { slug: "developer", name: "Developer & Data", description: "Format JSON and XML, convert data, encode URLs and work with developer utilities directly in your browser.", icon: "code" },
+  { slug: "design", name: "Color & Design", description: "Pick colors and build CSS gradients with simple design tools that help you prepare consistent visual styles.", icon: "palette" },
+  { slug: "social", name: "Social Media", description: "Create profile bios, social captions and topic-based hashtags with free tools for planning social content.", icon: "at-sign" }
 ] as const;
 
 export const tools: Tool[] = [
