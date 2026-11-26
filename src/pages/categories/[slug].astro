@@ -103,7 +103,7 @@ const guideContent = categoryGuides[category.slug];
       <div class="tool-list">{categoryTools.map((tool) => <a class="tool-row" href={`/tools/${tool.slug}/`}><span class={`category-icon tool-icon tool-icon-${tool.slug}`}><Icon name={tool.icon} size={21} /></span><span><strong>{tool.name}</strong><p>{tool.description}</p></span><span class="arrow"><Icon name="arrow-up-right" size={18} /></span></a>)}</div>
       <section class="tool-panel p-6 md:p-8 mt-8">
         <span class="eyebrow">Category guide</span>
-        <h2 class="display text-2xl font-bold mt-2">Make the most of ${category.name.toLowerCase()} tools</h2>
+        <h2 class="display text-2xl font-bold mt-2">Make the most of {category.name.toLowerCase()} tools</h2>
         <p class="text-slate-600 text-sm leading-7 mt-3">{guideContent.intro}</p>
         <h3 class="font-bold text-lg mt-6">A practical workflow</h3>
         <ol class="mt-3 list-decimal pl-5 text-sm text-slate-600 space-y-2">{guideContent.workflow.map((item) => <li>{item}</li>)}</ol>
