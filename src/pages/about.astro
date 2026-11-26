@@ -1,0 +1,52 @@
+---
+import SiteLayout from "../layouts/SiteLayout.astro";
+import SiteHeader from "../components/SiteHeader.astro";
+import SiteFooter from "../components/SiteFooter.astro";
+import { categories, tools } from "../data/tools";
+---
+<SiteLayout title="About Toolora — Free Online Tools" description="Learn about Toolora, its browser-first approach to practical free online tools, privacy and community feedback.">
+  <SiteHeader />
+  <main id="main-content">
+    <section class="page-hero">
+      <div class="container">
+        <div class="breadcrumb"><a href="/">Home</a> / About</div>
+        <span class="eyebrow">About the project</span>
+        <h1 class="display text-4xl md:text-5xl font-extrabold mt-3">Useful tools. Clear workflows.</h1>
+        <p class="text-slate-500 mt-3 text-sm max-w-2xl">Toolora brings everyday browser-based utilities together in one straightforward place, helping people complete common digital tasks without installing desktop software.</p>
+      </div>
+    </section>
+    <section class="section">
+      <div class="container max-w-4xl grid gap-6">
+        <article class="tool-panel p-6 md:p-9">
+          <span class="eyebrow">What we make</span>
+          <h2 class="display text-2xl font-bold mt-2">A practical collection for everyday work</h2>
+          <p class="text-slate-600 text-sm leading-7 mt-4">Toolora currently brings together {tools.length} free tools across {categories.length} categories, including image and PDF utilities, writing helpers, calculators, security utilities, developer converters, design tools and social content helpers. Each tool has a dedicated workspace and a guide explaining common use cases, steps and limitations.</p>
+          <p class="text-slate-600 text-sm leading-7 mt-4">The project is designed to keep common tasks easy to find, simple to run and understandable for people with different levels of technical experience.</p>
+        </article>
+        <article class="tool-panel p-6 md:p-9">
+          <span class="eyebrow">How it works</span>
+          <h2 class="display text-2xl font-bold mt-2">Browser-first by design</h2>
+          <p class="text-slate-600 text-sm leading-7 mt-4">Most text, image and PDF operations are performed in your browser. This means selected content is generally processed on your device rather than uploaded to a Toolora processing service. Some features may use browser capabilities or a clearly documented third-party resource. Community reviews and tool suggestions are different: those submissions are sent to the Toolora community service for moderation and storage.</p>
+          <p class="text-slate-600 text-sm leading-7 mt-4">For details about information handling, infrastructure and third-party resources, read the <a class="text-brand-700 underline" href="/privacy/">Privacy Policy</a>.</p>
+        </article>
+        <article class="tool-panel p-6 md:p-9">
+          <span class="eyebrow">Our standards</span>
+          <h2 class="display text-2xl font-bold mt-2">Clarity, usefulness and responsible use</h2>
+          <ul class="mt-4 space-y-3 list-disc pl-5 text-sm leading-7 text-slate-600">
+            <li>Tools are intended to be free to use, with no account required for the core workflows.</li>
+            <li>Instructions explain how to use each tool and point out important limitations.</li>
+            <li>We aim to keep the interface responsive, accessible and understandable.</li>
+            <li>Community submissions are reviewed before publication; they are not automatically displayed.</li>
+            <li>Important outputs should be checked before use, especially for medical, legal, financial or security decisions.</li>
+          </ul>
+        </article>
+        <article class="tool-panel p-6 md:p-9">
+          <span class="eyebrow">Creator</span>
+          <h2 class="display text-2xl font-bold mt-2">Created by Muhammad Ahmad ❤️</h2>
+          <p class="text-slate-600 text-sm leading-7 mt-4">Toolora is an independent project created to make useful digital utilities easier to access. Suggestions and feedback are welcome through the <a class="text-brand-700 underline" href="/community/">Toolora Community</a> page.</p>
+        </article>
+      </div>
+    </section>
+  </main>
+  <SiteFooter />
+</SiteLayout>
