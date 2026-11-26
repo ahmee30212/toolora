@@ -73,6 +73,19 @@ const featuredTools = featuredSlugs.map((slug) => tools.find((tool) => tool.slug
         <div class="featured-grid">{featuredTools.map((tool) => <a class="featured-card" href={`/tools/${tool!.slug}/`}><span class="featured-icon"><Icon name={tool!.icon} size={19}/></span><span class="featured-copy"><strong>{tool!.name}</strong><small>{tool!.description}</small></span><Icon name="arrow-up-right" size={17}/></a>)}</div>
       </div>
     </section>
+    <section class="section">
+      <div class="container">
+        <div class="tool-panel p-6 md:p-8 flex flex-col md:flex-row md:items-center md:justify-between gap-5">
+          <div class="max-w-2xl">
+            <span class="eyebrow">For businesses & teams</span>
+            <h2 class="display text-2xl md:text-3xl font-bold mt-2">Need a website, business system or AI automation?</h2>
+            <p class="text-slate-600 text-sm leading-7 mt-3">Explore selected software development, ERP, web, mobile app and automation services from our Ezitech partner.</p>
+            <p class="text-xs text-slate-500 mt-2">Affiliate disclosure: Toolora may earn a commission from qualifying referrals.</p>
+          </div>
+          <a class="btn-primary inline-flex self-start md:self-center shrink-0" href="/partners/ezitech/">Explore business services ↗</a>
+        </div>
+      </div>
+    </section>
     <section class="section about-section" id="about"><div class="container about-panel">
       <div class="about-mark"><span class="brand-mark">T</span><span class="eyebrow">The Toolora approach</span></div>
       <div class="about-copy"><h2>Less busywork.<br/><span class="hero-gradient">More meaningful work.</span></h2><p>Toolora brings practical digital utilities together in one focused workspace. Find the right tool, complete your task and get back to what matters.</p><a class="btn-primary" href="#categories">Explore the toolkit <Icon name="arrow-up-right" size={16}/></a></div>
