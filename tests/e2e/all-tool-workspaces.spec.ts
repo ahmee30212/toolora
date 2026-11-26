@@ -10,6 +10,9 @@ test.describe("all catalog tool workspaces", () => {
       const response = await page.goto(`/tools/${tool.slug}/`);
       expect(response?.ok(), `route /tools/${tool.slug}/ should load`).toBeTruthy();
       await expect(page.getByRole("heading", { name: tool.name, level: 1 })).toBeVisible();
+      await expect(page.getByRole("heading", { name: `How to use the ${tool.name}` })).toBeVisible();
+      await expect(page.getByRole("heading", { name: "Step-by-step instructions" })).toBeVisible();
+      await expect(page.getByRole("heading", { name: "Frequently asked questions" })).toBeVisible();
       await expect(page.locator("#tool-form")).toHaveAttribute("data-tool", tool.slug);
       await expect(page.locator("#tool-input")).toHaveCount(1);
       await expect(page.locator("#tool-output")).toHaveCount(1);
@@ -22,6 +25,17 @@ test.describe("all catalog tool workspaces", () => {
       expect(pageErrors, `runtime errors on /tools/${tool.slug}/`).toEqual([]);
     });
   }
+});
+
+test.describe("site trust and editorial pages", () => {
+  test("about page explains the project and links to privacy and community information", async ({ page }) => {
+    const response = await page.goto("/about/");
+    expect(response?.ok()).toBeTruthy();
+    await expect(page.getByRole("heading", { name: "Useful tools. Clear workflows." })).toBeVisible();
+    await expect(page.getByText("Created by Muhammad Ahmad", { exact: false })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Privacy Policy" })).toHaveAttribute("href", "/privacy/");
+    await expect(page.getByRole("link", { name: "Toolora Community" })).toHaveAttribute("href", "/community/");
+  });
 });
 
 test.describe("representative tool execution", () => {
