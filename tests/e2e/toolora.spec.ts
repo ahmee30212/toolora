@@ -655,7 +655,7 @@ test("lorem ipsum generator clamps paragraph requests to its supported maximum",
   await page.locator("#tool-input").fill("999");
   await page.getByRole("button", { name: /run tool/i }).click();
   const result = await page.locator("#tool-output").inputValue();
-  expect(result.split("\\n")).toHaveLength(20);
+  expect(result.split("\n")).toHaveLength(20);
   await expect(page.locator("#result-meta")).toHaveText("20 paragraphs");
 });
 
