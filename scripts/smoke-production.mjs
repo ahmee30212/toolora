@@ -45,6 +45,7 @@ for (const header of ["strict-transport-security", "x-content-type-options", "cr
 }
 const sitemap = await sitemapResponse.text();
 if (sitemap.includes("m-ahmad30212.workers.dev")) throw new Error("Sitemap contains the legacy hostname.");
+if (!sitemap.includes(expectedOrigin + "/about/")) throw new Error("Sitemap is missing the About page.");
 for (const slug of categories) if (!sitemap.includes(expectedOrigin + "/categories/" + slug + "/")) throw new Error("Sitemap is missing category " + slug + ".");
 for (const slug of tools) if (!sitemap.includes(expectedOrigin + "/tools/" + slug + "/")) throw new Error("Sitemap is missing tool " + slug + ".");
 if (!sitemap.includes(expectedOrigin + "/community/")) throw new Error("Sitemap is missing the Community page.");
