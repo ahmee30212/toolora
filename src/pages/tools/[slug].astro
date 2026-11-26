@@ -12,7 +12,7 @@ const category = categories.find((item) => item.slug === tool.category);
 const guide = toolGuides[tool.slug];
 if (!guide) throw new Error("Missing editorial guide for " + tool.slug);
 ---
-<SiteLayout title={`${tool.name} — Toolora`} description={tool.description} breadcrumbs={[{ name: "Home", href: "/" }, { name: category?.name ?? "Category", href: `/categories/${tool.category}/` }, { name: tool.name, href: `/tools/${tool.slug}/` }]}>
+<SiteLayout title={`${tool.name} — Toolora`} description={guide.overview.slice(0, 155)} breadcrumbs={[{ name: "Home", href: "/" }, { name: category?.name ?? "Category", href: `/categories/${tool.category}/` }, { name: tool.name, href: `/tools/${tool.slug}/` }]}>
   <SiteHeader backHref={`/categories/${tool.category}/`} backLabel={category?.name ?? "Category"} />
   <main id="main-content">
     <section class="page-hero tool-page-hero">
