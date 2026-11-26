@@ -1,0 +1,70 @@
+/* Toolora Studio — distinctive premium home experience */
+:root{--studio-ink:#111827;--studio-muted:#64748b;--studio-line:#e2e8f0;--studio-accent:#0f9f91;--studio-accent-dark:#087f75}
+body{background:#f7f9fc;color:var(--studio-ink)}
+.site-header{height:76px;background:rgba(255,255,255,.94);border-bottom:1px solid #e4eaf1;box-shadow:0 8px 28px rgba(15,23,42,.045)}
+.brand-mark{background:linear-gradient(145deg,#15243a,#263e5d);box-shadow:0 7px 18px rgba(15,35,60,.18)}
+.brand-name{color:#172338}
+.nav-link.active,.nav-link:hover{color:var(--studio-accent-dark)}
+.btn-primary{background:linear-gradient(110deg,#0d9488,#0f766e);box-shadow:0 9px 22px rgba(13,148,136,.2);border-radius:11px}
+.btn-primary:hover{background:linear-gradient(110deg,#0f766e,#115e59)}
+.hero-premium{isolation:isolate;overflow:hidden;padding:82px 0 78px;background:radial-gradient(ellipse at 77% 43%,rgba(32,163,151,.22),transparent 34%),radial-gradient(ellipse at 5% 0%,rgba(104,133,177,.19),transparent 38%),linear-gradient(125deg,#101c2d 0%,#14263a 54%,#192d40 100%);color:#f8fafc}
+.hero-premium:before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;opacity:.14;background-image:linear-gradient(rgba(255,255,255,.09) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.09) 1px,transparent 1px);background-size:42px 42px;mask-image:linear-gradient(90deg,#000,transparent 88%)}
+.hero-eyebrow{background:rgba(255,255,255,.07);border:1px solid rgba(175,215,221,.25);color:#a7e5dd;box-shadow:none}
+.eyebrow-dot{background:#5eead4;box-shadow:0 0 0 4px rgba(94,234,212,.14)}
+.hero-premium h1{color:#f8fafc;letter-spacing:-.07em}
+.hero-gradient{background:linear-gradient(100deg,#5eead4 0%,#8be4d1 45%,#b8d8ff 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero-copy{color:#bdcad8}
+.hero-search{background:#fff;border:1px solid rgba(226,232,240,.8);box-shadow:0 20px 55px rgba(0,0,0,.22)}
+.hero-search:focus-within{border-color:#5eead4;box-shadow:0 0 0 4px rgba(94,234,212,.16),0 20px 55px rgba(0,0,0,.22)}
+.search-icon{color:#64748b}
+.hero-search input{color:#172338}
+.popular-searches{color:#aebdcd}
+.popular-searches>span{color:#e0e8ef}
+.popular-searches a{background:rgba(255,255,255,.09);color:#d8e5ec;border:1px solid rgba(255,255,255,.1)}
+.popular-searches a:hover{background:rgba(94,234,212,.14);color:#b7fff2}
+.hero-assurances{color:#c0ced9}
+.hero-assurances svg{color:#5eead4}
+.hero-visual{min-height:420px}
+.visual-orbit{border-color:rgba(94,234,212,.42)}
+.orbit-one{opacity:.52}.orbit-two{opacity:.25}
+.workspace-card{border:1px solid rgba(255,255,255,.48);background:rgba(250,252,255,.96);box-shadow:0 35px 90px rgba(0,0,0,.28),0 0 0 8px rgba(255,255,255,.025);transform:rotate(-1.2deg)}
+.workspace-live{color:#0f9f91}
+.workspace-spark{background:#e3f8f4;color:#0f9488}
+.tile-blue{background:#e6f7f5;color:#0f9488}
+.tile-violet{background:#eef0ff;color:#6d65c8}
+.tile-orange{background:#fff2e8;color:#cb7b35}
+.tile-green{background:#e8f7ee;color:#24865e}
+.workspace-foot b{color:#0f9488}
+.floating-note{border-color:#dce7e8;box-shadow:0 16px 38px rgba(0,0,0,.2)}
+.note-check{background:#e4f8f1;color:#0d967c}
+.note-icon{background:#e6f7f5;color:#0f9488}
+.stats-section{margin-top:-1px}
+.stats-panel{border-color:#dce6ec;box-shadow:0 16px 42px rgba(15,35,55,.07)}
+.stat-icon{background:#e6f7f5;color:#0f9488}
+.categories-section{padding-top:86px}
+.section-heading h2{color:#172338}
+.section-heading p{color:#68788d}
+.section-counter{border-color:#dce7e8;color:#5b6d7f}
+.section-counter span{color:#0f9488}
+.category-card,.featured-card{border-color:#e1e8ee;box-shadow:0 5px 18px rgba(15,35,55,.035)}
+.category-card{background:linear-gradient(145deg,#fff,#fbfdfd)}
+.category-card:hover,.featured-card:hover{border-color:#9bd8d0;box-shadow:0 18px 36px rgba(15,118,110,.1)}
+.category-icon{background:linear-gradient(145deg,#e8f8f5,#e4f1f2);color:#0f8f84}
+.category-count{color:#0f8f84}
+.category-accordion[open]{border-color:#8fd0c7;box-shadow:0 14px 32px rgba(15,118,110,.09)}
+.category-accordion[open] .category-toggle{background:#e6f7f4;color:#0f8f84}
+.category-tool-link:hover{color:#0f766e}
+.category-view-all{border-color:#cce9e4;background:#f2fbf9;color:#0f766e}
+.featured-icon{background:#e7f7f4;color:#0f8f84}
+.text-link{color:#0f8279}
+.about-panel{background:radial-gradient(ellipse at 100% 0%,#236b70 0,transparent 45%),linear-gradient(115deg,#101d30,#163447 70%,#1c5260);box-shadow:0 24px 55px rgba(15,35,55,.16)}
+.about-mark .eyebrow{color:#a7e5dd}
+.about-copy .btn-primary{background:#d8fbf3;color:#0d625b;box-shadow:none}
+.site-footer{background:linear-gradient(120deg,#0b1422,#112238 70%,#153346)}
+.footer-credit{color:#9bb6c4!important}
+.page-hero{background:radial-gradient(ellipse at 80% 0%,#e0f3f0,transparent 48%),linear-gradient(180deg,#f0f8f7,#f7f9fc)}
+.tool-panel{border-color:#e1e9ed;box-shadow:0 18px 45px rgba(15,35,55,.07)}
+a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline-color:#0f9f91}
+@media(max-width:900px){.hero-layout{gap:18px}.hero-visual{min-height:370px}}
+@media(max-width:640px){.hero-premium{padding:60px 0 52px}.hero-premium h1{font-size:clamp(43px,12vw,59px)}.hero-visual{min-height:320px}.workspace-card{transform:none}.categories-section{padding-top:65px}.site-header{height:68px}}
+@media(prefers-reduced-motion:reduce){.hero-premium,.workspace-card,.floating-note{transition:none!important}}
