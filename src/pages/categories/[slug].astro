@@ -9,6 +9,91 @@ const { slug } = Astro.params;
 const category = categories.find((item) => item.slug === slug);
 if (!category) throw new Error("Category not found");
 const categoryTools = getCategoryTools(category.slug);
+const categoryGuides: Record<string, { intro: string; workflow: string[]; tips: string[]; faqs: { question: string; answer: string }[] }> = {
+  image: {
+    intro: "Image tasks often involve balancing file size, dimensions and visual quality. Toolora brings together an image compressor, converter, cropper and resizer so you can prepare a file for a website, document, presentation or social post without switching between several utilities. Choose the operation that matches the change you need, then review the output before using it.",
+    workflow: ["Start with the original image and choose compression, conversion, cropping or resizing.", "Set the required format, dimensions or quality where the tool offers those controls.", "Preview the result and keep the original until you are happy with the output."],
+    tips: ["Use compression when the dimensions are already correct but the file is too large.", "Resize when you need specific pixel dimensions; crop when you need to change the visible frame.", "Choose PNG for transparency and JPEG for many photographic images; check format support before converting."],
+    faqs: [
+      { question: "Will resizing and compression do the same thing?", answer: "No. Resizing changes pixel dimensions, while compression changes how image data is stored and may affect file size or quality." },
+      { question: "Should I keep my original image?", answer: "Yes. Keep a source copy until you have checked the dimensions, format and visual quality of the exported file." }
+    ]
+  },
+  pdf: {
+    intro: "PDF workflows can involve combining scans, extracting pages, rotating documents or turning images into a shareable file. Toolora's PDF and document collection focuses on common page-management tasks, including images-to-PDF and PDF-to-images. Select a tool based on the final document you need, and check page order and readability before sharing it.",
+    workflow: ["Decide whether you need to combine images, export PDF pages or manage an existing file.", "Select the files and page options required by the tool.", "Review the resulting pages and download the finished document."],
+    tips: ["Check page orientation and order before exporting a multi-page file.", "Image-based PDF exports may not preserve selectable text; use the original PDF when text selection matters.", "Avoid uploading confidential documents to services you have not evaluated."],
+    faqs: [
+      { question: "Can an image become a PDF?", answer: "Yes. The Images to PDF tool combines supported image files into one PDF document." },
+      { question: "Will a PDF converted to images remain searchable?", answer: "The exported images are pictures of pages, so selectable text and document structure are not retained in those image files." }
+    ]
+  },
+  text: {
+    intro: "Writing and text-cleanup tasks range from changing capitalization to comparing drafts, removing repeated lines and checking word counts. Toolora groups these focused utilities together so you can choose one operation instead of manually editing a long passage. Most tasks are best handled in small steps: clean the input, apply the transformation and review the result.",
+    workflow: ["Choose the tool that matches the task: count, clean, sort, compare, convert or preview.", "Paste or type the text and inspect any options before processing.", "Review the result in context before copying it into a document or publishing it."],
+    tips: ["Use the diff checker when you need to inspect changes between two versions.", "Use the duplicate-line remover for repeated list entries, not for deduplicating similar meanings.", "Check formatting after converting text because capitalization and whitespace changes can affect meaning."],
+    faqs: [
+      { question: "Can I use these tools for long documents?", answer: "They are intended for practical text tasks. For very large documents, test a representative section first and check browser performance." },
+      { question: "Does a word counter decide whether writing is good?", answer: "No. It reports measurable counts; clarity, accuracy and tone still require editorial review." }
+    ]
+  },
+  calculators: {
+    intro: "Everyday calculations are easier when the inputs and assumptions are visible. Toolora's calculator collection currently includes age, BMI and percentage calculations. Each tool is designed for a specific question, so choose the calculator that matches the values you have rather than treating one result as a substitute for professional financial, legal or medical advice.",
+    workflow: ["Open the calculator that matches your question.", "Enter values in the units and date formats requested by the form.", "Check the result and the assumptions before using it in a decision."],
+    tips: ["Double-check dates and units before calculating age or body mass index.", "For percentages, distinguish a percentage of a value from a percentage change between two values.", "Use calculator results as estimates when real-world rules, fees or professional assessments also apply."],
+    faqs: [
+      { question: "Are calculator results professional advice?", answer: "No. These tools perform defined calculations and do not replace advice from a qualified professional." },
+      { question: "Why should I check the inputs?", answer: "A correct formula can still produce a misleading result when a date, unit or starting value is entered incorrectly." }
+    ]
+  },
+  speed: {
+    intro: "Productivity tools help you measure a task under consistent conditions. Toolora's current tests and productivity collection includes a typing-speed test. It can help you observe words per minute and accuracy during a timed exercise, but one session is only a snapshot and does not measure every aspect of writing or computer skill.",
+    workflow: ["Open the typing test and read the instructions before starting.", "Type the sample under the same conditions you plan to use for future comparisons.", "Review speed and accuracy together, then repeat later to observe changes."],
+    tips: ["Prioritize accuracy before trying to increase speed.", "Use similar test lengths and keyboard conditions when comparing sessions.", "Take breaks during repeated practice to avoid unnecessary strain."],
+    faqs: [
+      { question: "What does typing speed measure?", answer: "A typing test estimates how quickly and accurately you enter the displayed text during the timed session." },
+      { question: "Is one result a reliable benchmark?", answer: "One result can vary with the passage and conditions. Compare several similar sessions for a more useful picture." }
+    ]
+  },
+  security: {
+    intro: "Password tools can help with two distinct tasks: creating a new credential and reviewing the characteristics of an existing one. Toolora's password generator and strength checker run in the browser. Use unique passwords for different accounts, and never share a real password with another person or paste it into an untrusted website.",
+    workflow: ["Generate a new password when creating or replacing an account credential.", "Use the strength checker only when you understand how the input is processed.", "Store the final password in a reputable password manager and enable multi-factor authentication where available."],
+    tips: ["Prefer long, unique passwords rather than reusing a memorable password across sites.", "Do not send passwords in email, chat or support requests.", "A strength estimate cannot tell you whether a password has already been exposed in a data breach."],
+    faqs: [
+      { question: "Does a strength score guarantee account security?", answer: "No. Account security also depends on uniqueness, breach exposure, recovery settings and multi-factor authentication." },
+      { question: "Should I test my current account password online?", answer: "Only use tools you trust and understand. Never enter sensitive credentials into an unfamiliar service." }
+    ]
+  },
+  developer: {
+    intro: "Developer workflows often require inspecting structured data, converting formats and encoding values for transport. Toolora's developer and data utilities include JSON and XML formatting, CSV/JSON conversion, URL encoding, Base64 conversion, UUID generation and timestamp conversion. These tools help with routine transformations, but they do not replace application-level validation or security review.",
+    workflow: ["Identify the source format and the exact output format required by your application.", "Use the relevant formatter, converter or encoder and check for validation errors.", "Test the result in the target application or environment before relying on it."],
+    tips: ["Base64 is an encoding format, not encryption; do not use it to protect secrets.", "A formatted JSON document can still contain invalid business data or unsafe values.", "Check whether timestamps are in seconds or milliseconds before converting them."],
+    faqs: [
+      { question: "Does formatting JSON validate an API request?", answer: "It can check JSON syntax, but the receiving API may enforce additional schema and business rules." },
+      { question: "Is URL encoding the same as encrypting a URL?", answer: "No. Encoding makes characters safe for a URL component; it does not make the contents confidential." }
+    ]
+  },
+  design: {
+    intro: "Color choices affect readability, hierarchy and consistency across a digital product. Toolora's design collection includes a color picker for inspecting HEX, RGB and HSL values and a gradient generator for building CSS backgrounds. Use these utilities to explore a palette, then check contrast and appearance in the interface where the colors will actually be used.",
+    workflow: ["Pick a base color or enter a known color value.", "Inspect its HEX, RGB or HSL representation and build a gradient if needed.", "Test the selected colors against real text, controls and backgrounds."],
+    tips: ["Use consistent color tokens rather than choosing unrelated values on every page.", "Check text contrast in both normal and hover states.", "Preview gradients at the final component size because color transitions can look different across large and small areas."],
+    faqs: [
+      { question: "Which color format should I copy?", answer: "HEX is common in CSS, while RGB and HSL can be useful when adjusting channels or hue and saturation." },
+      { question: "Does a palette guarantee accessible contrast?", answer: "No. Test each foreground and background combination against applicable contrast requirements." }
+    ]
+  },
+  social: {
+    intro: "Social content preparation involves more than adding popular tags. Toolora's creator utilities help draft profile bios, captions and hashtag ideas for a topic. Treat generated suggestions as a starting point: adapt the wording to your audience, platform limits and actual post, and avoid tags that misrepresent the content.",
+    workflow: ["Describe the post topic and the audience you want to reach.", "Generate a bio, caption or relevant hashtag ideas.", "Edit the result to match the actual content and each platform's rules."],
+    tips: ["Use a small set of relevant hashtags instead of repeating unrelated trending tags.", "Keep bios specific about the account's subject and value.", "Review generated copy for accuracy, originality and platform character limits."],
+    faqs: [
+      { question: "Do hashtags guarantee more reach?", answer: "No. Hashtags can help categorize a post, but distribution also depends on content quality, audience response and platform systems." },
+      { question: "Should I publish generated captions without editing?", answer: "Review and personalize them first so the caption accurately describes the post and sounds natural for your audience." }
+    ]
+  }
+};
+const guideContent = categoryGuides[category.slug];
+
 ---
 <SiteLayout title={`${category.name} — Toolora`} description={category.description} breadcrumbs={[{ name: "Home", href: "/" }, { name: "Categories", href: "/#categories" }, { name: category.name, href: `/categories/${category.slug}/` }]}>
   <SiteHeader backHref="/" backLabel="All categories" />
@@ -16,6 +101,18 @@ const categoryTools = getCategoryTools(category.slug);
     <section class="page-hero"><div class="container"><div class="breadcrumb"><a href="/">Home</a> / <a href="/#categories">Categories</a> / {category.name}</div><span class="eyebrow">Tool collection</span><h1 class="display text-4xl md:text-5xl font-extrabold mt-3">{category.name}</h1><p class="text-slate-500 mt-3 text-sm">{category.description}. Choose a tool to get started.</p><span class="pill mt-5">{categoryTools.length} tools in this category</span></div></section>
     <section class="section"><div class="container"><div class="section-heading"><div><span class="eyebrow">Available tools</span><h2>Choose your tool</h2></div><a class="btn-secondary" href="/#categories">← Back to categories</a></div>
       <div class="tool-list">{categoryTools.map((tool) => <a class="tool-row" href={`/tools/${tool.slug}/`}><span class={`category-icon tool-icon tool-icon-${tool.slug}`}><Icon name={tool.icon} size={21} /></span><span><strong>{tool.name}</strong><p>{tool.description}</p></span><span class="arrow"><Icon name="arrow-up-right" size={18} /></span></a>)}</div>
+      <section class="tool-panel p-6 md:p-8 mt-8">
+        <span class="eyebrow">Category guide</span>
+        <h2 class="display text-2xl font-bold mt-2">Make the most of {category.name.toLowerCase()} tools</h2>
+        <p class="text-slate-600 text-sm leading-7 mt-3">{guideContent.intro}</p>
+        <h3 class="font-bold text-lg mt-6">A practical workflow</h3>
+        <ol class="mt-3 list-decimal pl-5 text-sm text-slate-600 space-y-2">{guideContent.workflow.map((item) => <li>{item}</li>)}</ol>
+        <h3 class="font-bold text-lg mt-6">Helpful tips</h3>
+        <ul class="mt-3 list-disc pl-5 text-sm text-slate-600 space-y-2">{guideContent.tips.map((item) => <li>{item}</li>)}</ul>
+        <h3 class="font-bold text-lg mt-6">Common questions</h3>
+        <div class="mt-3 grid gap-4">{guideContent.faqs.map((faq) => <div><h4 class="font-semibold">{faq.question}</h4><p class="text-slate-600 text-sm leading-7 mt-1">{faq.answer}</p></div>)}</div>
+        <p class="text-xs text-slate-500 mt-6">Toolora's utilities are provided for general use. Review each tool's notes and check important outputs before relying on them.</p>
+      </section>
     </div></section>
   </main>
   <SiteFooter />

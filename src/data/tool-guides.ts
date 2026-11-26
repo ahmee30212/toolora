@@ -191,10 +191,10 @@ export const toolGuides: Record<string, ToolGuide> = {
   },
   "json-formatter": {
     overview: "JSON is a structured data format used by APIs, configuration files and applications. Formatting makes nested objects easier to read, while validation helps identify syntax errors before data is used.",
-    steps: ["Paste the JSON source into the input area.", "Choose format or minify, then run the operation.", "If validation reports an error, inspect the indicated syntax and correct the source before using the output."],
+    steps: ["Paste the JSON source into the input area.", "Run the formatter to check the JSON syntax and display readable indentation.", "If the input is invalid, correct the syntax error and run the formatter again before using the output."],
     example: "Format a compact API response so nested properties and arrays are easier to inspect during debugging.",
     tip: "JSON requires double-quoted property names and strings, and it does not allow trailing commas or comments.",
-    faqs: [{ question: "Does formatting change the data?", answer: "Formatting changes whitespace and indentation, not the represented JSON values." }, { question: "Why is my JavaScript object rejected?", answer: "JavaScript object literals can contain syntax that JSON does not allow, such as unquoted keys, functions or trailing commas." }]
+    faqs: [{ question: "Does formatting change the data?", answer: "Formatting changes whitespace and indentation, not the represented JSON values. The tool parses JSON and displays it with readable indentation." }, { question: "Does the formatter validate an API schema?", answer: "No. It checks JSON syntax only. An API can enforce additional field, type and business rules after the JSON has been parsed." }]
   },
   "json-to-csv": {
     overview: "JSON-to-CSV conversion turns a collection of similarly shaped records into rows and columns. It is useful for moving structured data into spreadsheet applications for review and reporting.",
