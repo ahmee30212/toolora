@@ -72,7 +72,7 @@ export const toolGuides: Record<string, ToolGuide> = {
   },
   "remove-duplicate-lines": {
     overview: "Duplicate-line removal cleans lists by keeping one occurrence of repeated lines. It is useful for consolidating copied data, cleaning keyword lists and preparing unique values for another workflow.",
-    steps: ["Paste the list, with one item on each line.", "Choose the available duplicate-handling options, such as whether letter case or surrounding spaces should matter.", "Run the cleanup and compare the output with the original before copying it."],
+    steps: ["Paste the list, with one item on each line.", "The tool treats lines as duplicates when their trimmed text matches without regard to letter case.", "Run the cleanup and compare the output with the original. The first occurrence is kept and the remaining lines stay in their original order."],
     example: "Remove repeated entries from a pasted list of email subject ideas or product labels before sorting it.",
     tip: "If capitalization or whitespace distinguishes meaningful values in your data, preserve those differences rather than normalizing them automatically.",
     faqs: [{ question: "Does the order of unique lines stay the same?", answer: "Check the selected options and preview the result. Some cleanup workflows preserve first occurrence order, while sorting is a separate operation." }, { question: "Can blank lines be removed too?", answer: "Use the available blank-line or whitespace options if present, and inspect the output when empty lines have meaning." }]
@@ -107,7 +107,7 @@ export const toolGuides: Record<string, ToolGuide> = {
   },
   "text-sorter": {
     overview: "A text sorter rearranges line-based lists into a predictable order. Alphabetical or numeric sorting is useful for names, labels, identifiers and simple datasets.",
-    steps: ["Paste one item per line so each entry can be sorted independently.", "Choose the sorting direction and any case or numeric options available.", "Sort the list and inspect values such as numbers, punctuation and blank lines before using the result."],
+    steps: ["Paste one item per line so each entry can be sorted independently.", "The tool sorts lines in ascending order using case-insensitive, numeric-aware comparison.", "Inspect values such as numbers, punctuation and blank lines before using the sorted result."],
     example: "Sort a list of category names alphabetically to make a directory easier to scan.",
     tip: "Text sorting and natural numeric sorting are not always the same. Check how values such as 2, 10 and 100 are ordered.",
     faqs: [{ question: "Can I sort numbers?", answer: "Use a numeric sort option when available. Alphabetical sorting can place numbers in an order that differs from their numeric value." }, { question: "Will duplicate lines be removed?", answer: "Sorting changes order; duplicate removal is a separate operation." }]
