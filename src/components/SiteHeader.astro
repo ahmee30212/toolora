@@ -7,12 +7,12 @@ const { active = "", backHref = "", backLabel = "" } = Astro.props;
     <nav class="desktop-nav" aria-label="Main navigation">
       <a class={active === "home" ? "nav-link active" : "nav-link"} href="/">Home</a>
       <a class="nav-link" href="/#categories">Categories</a><a class="nav-link" href="/#popular">Popular tools</a>
-      <a class="nav-link" href="/services/">Services</a><a class="nav-link" href="/community/">Community</a><a class="nav-link" href="/about/">About</a>
+      <a class="nav-link" href="/services/">Services</a><a class="nav-link" href="/partners/ezitech/">Software deals</a><a class="nav-link" href="/community/">Community</a><a class="nav-link" href="/about/">About</a>
     </nav>
     <div class="header-actions">
       {backHref ? <a class="btn-secondary header-back" href={backHref}>← {backLabel || "Back"}</a> : <a class="btn-primary header-cta" href="/services/">Work with us ↗</a>}
       <details class="mobile-menu"><summary aria-label="Open navigation menu">☰</summary><nav aria-label="Mobile navigation">
-        <a href="/">Home</a><a href="/#categories">Categories</a><a href="/#popular">Popular tools</a><a href="/services/">Services</a><a href="/community/">Community</a><a href="/about/">About</a><a href="/search/">Search tools</a>
+        <a href="/">Home</a><a href="/#categories">Categories</a><a href="/#popular">Popular tools</a><a href="/services/">Services</a><a href="/partners/ezitech/">Software deals</a><a href="/community/">Community</a><a href="/about/">About</a><a href="/search/">Search tools</a>
       </nav></details>
     </div>
   </div>
