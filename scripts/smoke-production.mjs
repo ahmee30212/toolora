@@ -88,7 +88,7 @@ if (wrongMediaType.status !== 400) throw new Error("Non-JSON review submission w
 const routes = [
   ...categories.map((slug) => "/categories/" + slug + "/"),
   ...tools.map((tool) => "/tools/" + tool + "/"),
-  "/search/", "/privacy/", "/terms/", "/community/"
+  "/about/", "/search/", "/privacy/", "/terms/", "/community/"
 ];
 let next = 0;
 const failures = [];
