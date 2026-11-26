@@ -1,0 +1,48 @@
+---
+import SiteLayout from "../layouts/SiteLayout.astro";
+import SiteHeader from "../components/SiteHeader.astro";
+import SiteFooter from "../components/SiteFooter.astro";
+---
+<SiteLayout title="Website & Tool Development Services — Toolora" description="Practical website, browser-tool and quality-assurance services by the creator of Toolora. Clear scope, useful deliverables and no guaranteed-results claims.">
+  <SiteHeader />
+  <main id="main-content">
+    <section class="page-hero"><div class="container">
+      <div class="breadcrumb"><a href="/">Home</a> / Services</div>
+      <span class="eyebrow">Work with the creator</span>
+      <h1 class="display text-4xl md:text-5xl font-extrabold mt-3">Practical digital work.<br/>Clear deliverables.</h1>
+      <p class="text-slate-500 mt-3 text-sm max-w-2xl">Need a small website, a useful browser tool or a careful quality check? Explore the work available from the creator of Toolora.</p>
+    </div></section>
+    <section class="section"><div class="container max-w-5xl">
+      <div class="grid md:grid-cols-2 gap-5">
+        <article class="tool-panel p-6 md:p-8"><span class="eyebrow">01 · Websites</span><h2 class="display text-2xl font-bold mt-3">Landing pages & small websites</h2><p class="text-slate-600 text-sm leading-7 mt-3">Responsive pages for a small business, personal project or product. Scope can include page structure, visual styling, basic on-page SEO fields and deployment guidance.</p><ul class="mt-4 list-disc pl-5 text-sm text-slate-600 space-y-2"><li>Mobile-friendly layout</li><li>Clear calls to action and navigation</li><li>Basic metadata and accessibility checks</li></ul></article>
+        <article class="tool-panel p-6 md:p-8"><span class="eyebrow">02 · Browser tools</span><h2 class="display text-2xl font-bold mt-3">Simple custom web tools</h2><p class="text-slate-600 text-sm leading-7 mt-3">Focused browser utilities that solve one clearly defined task, such as a calculator, converter, formatter or lightweight generator.</p><ul class="mt-4 list-disc pl-5 text-sm text-slate-600 space-y-2"><li>Requirements and workflow definition</li><li>Responsive interface</li><li>Input validation and useful error states</li></ul></article>
+        <article class="tool-panel p-6 md:p-8"><span class="eyebrow">03 · Quality</span><h2 class="display text-2xl font-bold mt-3">Website QA & bug checks</h2><p class="text-slate-600 text-sm leading-7 mt-3">Structured checks for common user journeys, responsive behavior, broken links, form validation and obvious accessibility or security issues.</p><ul class="mt-4 list-disc pl-5 text-sm text-slate-600 space-y-2"><li>Reproducible issue list</li><li>Severity and practical fix suggestions</li><li>Retest of agreed fixes</li></ul></article>
+        <article class="tool-panel p-6 md:p-8"><span class="eyebrow">04 · Content & SEO basics</span><h2 class="display text-2xl font-bold mt-3">Tool pages & on-page content</h2><p class="text-slate-600 text-sm leading-7 mt-3">Helpful tool descriptions, usage guides, FAQs, page titles and metadata aligned to real search intent. No ranking or traffic guarantees.</p><ul class="mt-4 list-disc pl-5 text-sm text-slate-600 space-y-2"><li>Useful, original page copy</li><li>Search-intent and heading structure</li><li>Internal-linking suggestions</li></ul></article>
+      </div>
+      <article class="tool-panel p-6 md:p-8 mt-6">
+        <span class="eyebrow">Start with a clear brief</span><h2 class="display text-2xl font-bold mt-2">Tell us what you need.</h2>
+        <p class="text-slate-600 text-sm leading-7 mt-3">Toolora is currently setting up its client contact channel. Use the button below to copy a project brief, then keep it ready to share when you contact us. No payment is requested on this page.</p>
+        <div class="mt-5 grid gap-3 md:grid-cols-2">
+          <label class="text-sm font-semibold text-slate-700">Project type<select id="service-type" class="mt-2 w-full rounded-xl border border-slate-200 bg-white p-3"><option>Landing page / small website</option><option>Custom browser tool</option><option>Website QA / bug checks</option><option>Tool content / on-page SEO</option><option>Other / not sure yet</option></select></label>
+          <label class="text-sm font-semibold text-slate-700">Budget range<select id="service-budget" class="mt-2 w-full rounded-xl border border-slate-200 bg-white p-3"><option>Need a quote</option><option>Under PKR 5,000</option><option>PKR 5,000–15,000</option><option>PKR 15,000–40,000</option><option>PKR 40,000+</option></select></label>
+        </div>
+        <label class="block mt-3 text-sm font-semibold text-slate-700">Project details<textarea id="service-details" rows="4" maxlength="1200" placeholder="What do you want built or checked? Mention any deadline or example link." class="mt-2 w-full rounded-xl border border-slate-200 bg-white p-3 font-normal"></textarea></label>
+        <button id="copy-brief" type="button" class="btn-primary mt-4">Copy project brief ↗</button><p id="copy-status" class="text-sm text-slate-500 mt-3" role="status" aria-live="polite"></p>
+      </article>
+      <p class="text-xs text-slate-500 mt-5">Every project is scoped individually. Price, timeline and availability are confirmed only after reviewing the requirements. No guaranteed sales, search rankings or business outcomes.</p>
+    </div></section>
+  </main>
+  <SiteFooter />
+  <script>
+    const button = document.querySelector<HTMLButtonElement>("#copy-brief");
+    const status = document.querySelector<HTMLElement>("#copy-status");
+    button?.addEventListener("click", async () => {
+      const type = (document.querySelector<HTMLSelectElement>("#service-type")?.value || "").trim();
+      const budget = (document.querySelector<HTMLSelectElement>("#service-budget")?.value || "").trim();
+      const details = (document.querySelector<HTMLTextAreaElement>("#service-details")?.value || "").trim();
+      const brief = ["Toolora project enquiry", "Project: " + type, "Budget: " + budget, "Details: " + (details || "To be discussed"), "Please share scope, estimated cost and timeline."].join("\n");
+      try { await navigator.clipboard.writeText(brief); if (status) status.textContent = "Project brief copied. Keep it ready to share when the client contact channel is published."; }
+      catch { if (status) status.textContent = "Clipboard access was blocked. Please copy the project details manually."; }
+    });
+  </script>
+</SiteLayout>
