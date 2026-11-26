@@ -32,7 +32,7 @@ test.describe("site trust and editorial pages", () => {
     const response = await page.goto("/about/");
     expect(response?.ok()).toBeTruthy();
     await expect(page.getByRole("heading", { name: "Useful tools. Clear workflows." })).toBeVisible();
-    await expect(page.getByText("Created by Muhammad Ahmad", { exact: false })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Created by Muhammad Ahmad ❤️" })).toBeVisible();
     await expect(page.getByRole("link", { name: "Privacy Policy" })).toHaveAttribute("href", "/privacy/");
     await expect(page.getByRole("link", { name: "Toolora Community" })).toHaveAttribute("href", "/community/");
   });
