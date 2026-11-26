@@ -603,3 +603,70 @@ test("mobile navigation and category accordions work with keyboard activation", 
   await expect(firstCategory).toHaveJSProperty("open", true);
   await expect(firstCategory.locator(".category-tool-link").first()).toBeVisible();
 });
+
+
+test("JSON formatter rejects malformed JSON and clears previous results", async ({ page }) => {
+  await page.goto("/tools/json-formatter/");
+  await page.locator("#tool-input").fill('{"valid":true}');
+  await page.getByRole("button", { name: /run tool/i }).click();
+  await expect(page.locator("#tool-output")).toHaveValue(/"valid": true/);
+
+  await page.locator("#tool-input").fill('{"broken":');
+  await page.getByRole("button", { name: /run tool/i }).click();
+  await expect(page.locator("#tool-status")).toHaveClass(/text-red-600/);
+  await expect(page.locator("#tool-output")).toHaveValue("");
+  await expect(page.locator("#result-meta")).toHaveText("No result");
+});
+
+test("HTML encoder and decoder round-trip special characters safely", async ({ page }) => {
+  await page.goto("/tools/html-encoder-decoder/");
+  const source = '<div title="A & B">Toolora</div>';
+  await page.locator("#tool-input").fill(source);
+  await page.getByRole("button", { name: /run tool/i }).click();
+  const encoded = await page.locator("#tool-output").inputValue();
+  expect(encoded).toContain("&lt;div");
+  expect(encoded).not.toContain("<div");
+
+  await page.locator("#tool-input").fill("decode:" + encoded);
+  await page.getByRole("button", { name: /run tool/i }).click();
+  await expect(page.locator("#tool-output")).toHaveValue(source);
+});
+
+test("number system converter rejects digits outside the selected base", async ({ page }) => {
+  await page.goto("/tools/number-system-converter/");
+  await page.locator("#tool-input").fill("102");
+  await page.locator("#from-base").fill("2");
+  await page.locator("#to-base").fill("16");
+  await page.getByRole("button", { name: /run tool/i }).click();
+  await expect(page.locator("#tool-status")).toContainText("not valid in base 2");
+  await expect(page.locator("#tool-output")).toHaveValue("");
+});
+
+test("XML formatter rejects malformed markup without retaining stale output", async ({ page }) => {
+  await page.goto("/tools/xml-formatter/");
+  await page.locator("#tool-input").fill("<root><item>ok</item></root>");
+  await page.getByRole("button", { name: /run tool/i }).click();
+  await expect(page.locator("#tool-output")).toContainText("<root>");
+
+  await page.locator("#tool-input").fill("<root><item></root>");
+  await page.getByRole("button", { name: /run tool/i }).click();
+  await expect(page.locator("#tool-status")).toContainText("Invalid XML");
+  await expect(page.locator("#tool-output")).toHaveValue("");
+});
+
+test("lorem ipsum generator clamps paragraph requests to its supported maximum", async ({ page }) => {
+  await page.goto("/tools/lorem-ipsum-generator/");
+  await page.locator("#tool-input").fill("999");
+  await page.getByRole("button", { name: /run tool/i }).click();
+  const result = await page.locator("#tool-output").inputValue();
+  expect(result.split("\\n\\n")).toHaveLength(20);
+  await expect(page.locator("#result-meta")).toHaveText("20 paragraphs");
+});
+
+test("percentage calculator handles a zero denominator explicitly", async ({ page }) => {
+  await page.goto("/tools/percentage-calculator/");
+  await page.locator("#percent-value").fill("5");
+  await page.locator("#percent-total").fill("0");
+  await page.getByRole("button", { name: /run tool/i }).click();
+  await expect(page.locator("#tool-output")).toHaveValue(/5 is undefined of 0/);
+});
