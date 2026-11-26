@@ -39,7 +39,7 @@ The repository uses layered checks. See the [Security Policy](SECURITY.md) for r
 
 - npm audit blocks known dependency advisories at every severity level.
 - CodeQL performs JavaScript and TypeScript static analysis; uploaded results are available in GitHub Security.
-- OWASP ZAP Baseline performs a passive production scan after successful CI. A report gate fails on actionable low-, medium-, high- or critical-risk findings.
+- OWASP ZAP Baseline performs a passive production scan after successful CI. A report gate fails on actionable low-, medium-, high- or critical-risk findings; narrow, evidence-based false-positive handling is covered by regression tests.
 - Playwright provides end-to-end browser coverage for all 41 tool workspaces and representative tool execution, navigation, search, category and responsive flows.
 - Build validation checks route/catalog consistency, metadata, canonical sitemap routes and asset-size budgets.
 - Security headers include CSP, HSTS, clickjacking protection, MIME-sniffing protection, COOP, COEP and CORP.
@@ -66,6 +66,7 @@ Requirements: Node.js 24 or newer.
     npx playwright install chromium
     npm run test:e2e
     npm run test:worker
+    npm run test:security-gate
     npm run build
 
 The production build validates the catalog, generates the XML sitemap, runs Astro diagnostics, copies the pinned PDF.js runtime assets, builds the static site and checks security and performance budgets.
