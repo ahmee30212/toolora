@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 const data = readFileSync(new URL("../src/data/tools.ts", import.meta.url), "utf8");
 const iconSource = readFileSync(new URL("../src/components/Icon.astro", import.meta.url), "utf8");
 const engineSource = readFileSync(new URL("../src/scripts/tool-engine.ts", import.meta.url), "utf8");
+const guideSource = readFileSync(new URL("../src/data/tool-guides.ts", import.meta.url), "utf8");
 
 const categorySection = data.match(/export const categories = \[([\s\S]*?)\] as const/)?.[1] ?? "";
 const toolSection = data.match(/export const tools: Tool\[\] = \[([\s\S]*?)\n\];/)?.[1] ?? "";
@@ -14,6 +15,9 @@ const tools = [...toolSection.matchAll(/\{\s*slug:\s*"([^"]+)",\s*name:\s*"([^"]
 
 if (tools.length === 0) throw new Error("No tools were discovered in the catalog.");
 const slugs = tools.map((tool) => tool.slug);
+const guideSlugs = new Set([...guideSource.matchAll(/^\\s*"([^"]+)":\\s*\\{/gm)].map((match) => match[1]));
+for (const slug of slugs) if (!guideSlugs.has(slug)) errors.push(`${slug}: missing original editorial guide`);
+for (const slug of guideSlugs) if (!slugs.includes(slug)) errors.push(`${slug}: editorial guide has no matching catalog tool`);
 const duplicates = slugs.filter((slug, index) => slugs.indexOf(slug) !== index);
 if (duplicates.length) throw new Error(`Duplicate tool slugs: ${[...new Set(duplicates)].join(", ")}`);
 
