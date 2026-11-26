@@ -46,7 +46,7 @@ const publicEmail = "ahmaddigitlstudio@gmail.com";
       const type = (document.querySelector<HTMLSelectElement>("#service-type")?.value || "").trim();
       const budget = (document.querySelector<HTMLSelectElement>("#service-budget")?.value || "").trim();
       const details = (document.querySelector<HTMLTextAreaElement>("#service-details")?.value || "").trim();
-      const body = ["Hello Toolora! I would like to discuss a project.", "Project: " + type, "Budget: " + budget, "Details: " + (details || "I would like to discuss the requirements.")].join("\\n");
+      const body = ["Hello Toolora! I would like to discuss a project.", "Project: " + type, "Budget: " + budget, "Details: " + (details || "I would like to discuss the requirements.")].join("\n");
       const url = "mailto:ahmaddigitlstudio@gmail.com?subject=" + encodeURIComponent("Toolora project enquiry") + "&body=" + encodeURIComponent(body);
       window.location.href = url;
     });
