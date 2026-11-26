@@ -33,8 +33,10 @@ jobs:
         run: npm audit --audit-level=low
       - name: Install dependencies from lockfile
         run: npm ci
-      - name: Validate production smoke script syntax
-        run: node --check scripts/smoke-production.mjs
+      - name: Validate production smoke and ZAP gate scripts
+        run: node --check scripts/smoke-production.mjs && node --check scripts/check-zap-report.mjs
+      - name: Test OWASP ZAP report gate
+        run: npm run test:security-gate
       - run: npm run build
       - name: Test community API security and validation
         run: npm run test:worker
