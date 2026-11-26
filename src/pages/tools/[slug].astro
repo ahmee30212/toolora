@@ -82,6 +82,11 @@ if (!guide) throw new Error("Missing editorial guide for " + tool.slug);
           </div>
         </section>
       </article>
+      {tool.slug === "image-converter" && <aside class="tool-panel p-5 mt-6">
+        <h2 class="font-bold text-lg">Need to convert a JFIF image to JPG?</h2>
+        <p class="text-slate-600 text-sm leading-7 mt-2">Follow our JFIF to JPG guide for the steps, compatibility notes and common fixes.</p>
+        <a class="text-brand-700 underline font-semibold text-sm inline-flex mt-3" href="/guides/jfif-to-jpg/">Read the JFIF to JPG guide ↗</a>
+      </aside>}
       <ToolReviews toolSlug={tool.slug} toolName={tool.name} />
     </div></section>
   </main>
