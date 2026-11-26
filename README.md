@@ -4,7 +4,7 @@
 
 Toolora is a modern, browser-first collection of **41 free online tools across 9 categories**. Each category has its own focused tool list, and every tool has a dedicated workspace.
 
-**Live website:** https://app.gettoolora.workers.dev/
+**Live website:** https://toolora.gettoolora.workers.dev/
 
 **Created by Muhammad Ahmad ❤️**
 
