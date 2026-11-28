@@ -14,8 +14,8 @@ export const categories = [
   { slug: "calculators", name: "Calculators", description: "Useful everyday calculations", icon: "calculator" },
   { slug: "speed", name: "Tests & Productivity", description: "Measure and improve productivity", icon: "gauge" },
   { slug: "security", name: "Security", description: "Create and evaluate secure credentials", icon: "shield-check" },
-  { slug: "developer", name: "Developer & Data", description: "Format, encode and convert data", icon: "code" },
-  { slug: "design", name: "Color & Design", description: "Build and explore color palettes", icon: "palette" },
+  { slug: "developer", name: "Developer & Data", description: "Format code, generate SEO files and convert developer data", icon: "code" },
+  { slug: "design", name: "Color & Design", description: "Check accessible contrast, choose colors and build gradients", icon: "palette" },
   { slug: "social", name: "Social Media", description: "Create content for social platforms", icon: "at-sign" }
 ] as const;
 
