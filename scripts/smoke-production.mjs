@@ -9,7 +9,7 @@ const categoryBlock = catalog.match(/export const categories = \[([\s\S]*?)\] as
 const toolBlock = catalog.match(/export const tools: Tool\[\] = \[([\s\S]*?)\n\];/)?.[1] ?? "";
 const categories = [...categoryBlock.matchAll(/slug:\s*"([^"]+)"/g)].map((match) => match[1]);
 const tools = [...toolBlock.matchAll(/\{\s*slug:\s*"([^"]+)"/g)].map((match) => match[1]);
-if (categories.length !== 9 || tools.length !== 41) {
+if (categories.length !== 9 || tools.length !== 46) {
   throw new Error("Expected 9 categories and 41 tools; found " + categories.length + " categories and " + tools.length + " tools.");
 }
 
@@ -112,4 +112,4 @@ const worker = async () => {
 await Promise.all(Array.from({ length: 8 }, worker));
 if (failures.length) throw new Error("Production route smoke failures:\n" + failures.join("\n"));
 
-console.log("Production smoke checks passed: homepage, security headers, D1 health, community API, moderation isolation, robots, sitemap, 9 categories, 41 tool routes and legal/community pages.");
+console.log("Production smoke checks passed: homepage, security headers, D1 health, community API, moderation isolation, robots, sitemap, 9 categories, 46 tool routes and legal/community pages.");
