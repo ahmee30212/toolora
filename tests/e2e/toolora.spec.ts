@@ -704,6 +704,11 @@ test("CSS formatter preserves quoted semicolons and formats declarations", async
   expect(output).toContain('content: "a;b";');
   expect(output).toContain("color: #123456;");
   expect(output).toContain("padding: 8px;");
+  await page.locator("#tool-input").fill(".card:hover{color:#123456}");
+  await page.getByRole("button", { name: /run tool/i }).click();
+  const pseudoOutput = await page.locator("#tool-output").inputValue();
+  expect(pseudoOutput).toContain(".card:hover {");
+  expect(pseudoOutput).toContain("color: #123456;");
 });
 
 test("meta tag generator escapes values and requires HTTPS URLs", async ({ page }) => {
