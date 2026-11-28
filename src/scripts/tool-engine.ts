@@ -226,6 +226,7 @@ if (root) {
     const value = input.value;
     switch (slug) {
 
+
       case "html-formatter": {
         if (value.length > 200000) throw new Error("HTML input is limited to 200,000 characters.");
         const parsed = new DOMParser().parseFromString(value, "text/html");
@@ -245,13 +246,14 @@ if (root) {
           const opening = "<" + tag + attrs + ">";
           if (voidTags.has(tag)) return indent(depth) + opening;
           if (rawTags.has(tag)) return indent(depth) + opening + (node.textContent ?? "") + "</" + tag + ">";
-          const children = Array.from(node.childNodes).map((child) => render(child, depth + 1)).filter(Boolean);
+          const meaningful = Array.from(node.childNodes).filter((child) => child.nodeType !== Node.TEXT_NODE || (child.textContent ?? "").trim());
+          if (meaningful.length === 1 && meaningful[0].nodeType === Node.TEXT_NODE) return indent(depth) + opening + escapeHtml(meaningful[0].textContent ?? "") + "</" + tag + ">";
+          const children = meaningful.map((child) => render(child, depth + 1)).filter(Boolean);
           if (!children.length) return indent(depth) + opening + "</" + tag + ">";
-          return indent(depth) + opening + "\\n" + children.join("\\n") + "\\n" + indent(depth) + "</" + tag + ">";
+          return indent(depth) + opening + "\n" + children.join("\n") + "\n" + indent(depth) + "</" + tag + ">";
         };
         const body = parsed.documentElement;
-        const doctype = "<!doctype html>";
-        return setResult(doctype + "\\n" + render(body, 0), "Formatted HTML");
+        return setResult("<!doctype html>\n" + render(body, 0), "Formatted HTML");
       }
       case "css-formatter": {
         if (value.length > 200000) throw new Error("CSS input is limited to 200,000 characters.");
@@ -261,19 +263,20 @@ if (root) {
         for (let i = 0; i < value.length; i++) {
           const ch = value[i], next = value[i + 1] ?? "";
           if (comment) { token += ch; if (ch === "*" && next === "/") { token += "/"; i++; comment = false; } continue; }
-          if (quote) { token += ch; if (escaped) escaped = false; else if (ch === "\\\\") escaped = true; else if (ch === quote) quote = ""; continue; }
+          if (quote) { token += ch; if (escaped) escaped = false; else if (ch === "\\") escaped = true; else if (ch === quote) quote = ""; continue; }
           if (ch === "/" && next === "*") { token += "/*"; i++; comment = true; continue; }
           if (ch === '"' || ch === "'") { token += ch; quote = ch; continue; }
           if (ch === "(") parens++;
           if (ch === ")") parens = Math.max(0, parens - 1);
-          if (parens === 0 && ch === "{") { flush(); result = result.trimEnd() + " {\\n"; indent++; }
-          else if (parens === 0 && ch === "}") { flush(); result = result.trimEnd() + "\\n"; indent = Math.max(0, indent - 1); result += pad() + "}\\n"; }
-          else if (parens === 0 && ch === ";") { token = token.trimEnd() + ";"; flush(); result += "\\n"; }
-          else if (ch === "\\n" || ch === "\\r" || ch === "\\t" || ch === " ") { if (token && !token.endsWith(" ")) token += " "; }
+          if (parens === 0 && ch === "{") { flush(); result = result.trimEnd() + " {\n"; indent++; }
+          else if (parens === 0 && ch === "}") { flush(); result = result.trimEnd() + "\n"; indent = Math.max(0, indent - 1); result += pad() + "}\n"; }
+          else if (parens === 0 && ch === ";") { token = token.trimEnd() + ";"; flush(); result += "\n"; }
+          else if (parens === 0 && ch === ":" && indent > 0 && /^[\\w-]+$/.test(token.trim())) token = token.trimEnd() + ": ";
+          else if (ch === "\n" || ch === "\r" || ch === "\t" || ch === " ") { if (token && !token.endsWith(" ")) token += " "; }
           else token += ch;
         }
         flush();
-        const formatted = result.split("\\n").map((line) => line.trimEnd()).filter((line, index, rows) => line || rows[index - 1]).join("\\n").trim();
+        const formatted = result.split("\n").map((line) => line.trimEnd()).filter((line, index, rows) => line || rows[index - 1]).join("\n").trim();
         if (!formatted) throw new Error("Enter CSS rules to format.");
         if (quote || comment || parens !== 0 || (value.includes("{") && (value.match(/{/g)?.length ?? 0) !== (value.match(/}/g)?.length ?? 0))) throw new Error("The CSS appears to contain an unfinished string, comment, parenthesis or block.");
         return setResult(formatted, "Formatted CSS");
@@ -298,7 +301,7 @@ if (root) {
           '<meta name="twitter:card" content="' + (image ? "summary_large_image" : "summary") + '">',
           ...(image ? ['<meta property="og:image" content="' + esc(image) + '">'] : [])
         ];
-        return setResult(tags.join("\\n"), "SEO metadata generated");
+        return setResult(tags.join("\n"), "SEO metadata generated");
       }
       case "robots-txt-generator": {
         const sitemap = get("sitemap-url").trim();
@@ -306,7 +309,7 @@ if (root) {
         if (paths.some((path) => !path.startsWith("/") || path.startsWith("//") || /[\\s#]/.test(path))) throw new Error("Each disallowed path must start with / and contain no spaces or # characters.");
         if (sitemap) { let parsed:URL; try { parsed = new URL(sitemap); } catch { throw new Error("Sitemap must be a complete HTTPS URL."); } if (parsed.protocol !== "https:" || parsed.username || parsed.password) throw new Error("Sitemap must be a complete HTTPS URL."); }
         const lines = ["User-agent: *", "Allow: /", ...paths.map((path) => "Disallow: " + path), ...(sitemap ? ["", "Sitemap: " + new URL(sitemap).href] : [])];
-        return setResult(lines.join("\\n"), "robots.txt generated");
+        return setResult(lines.join("\n"), "robots.txt generated");
       }
       case "color-contrast-checker": {
         const parse = (raw:string, label:string) => { const hex = raw.trim().replace(/^#/,""); if (!/^(?:[0-9a-f]{3}|[0-9a-f]{6})$/i.test(hex)) throw new Error(label + " must be a 3- or 6-digit HEX color."); const full = hex.length === 3 ? [...hex].map((part) => part + part).join("") : hex; return [0,2,4].map((offset) => parseInt(full.slice(offset,offset+2),16)); };
@@ -314,7 +317,7 @@ if (root) {
         const foreground = parse(value, "Foreground"), background = parse(get("contrast-background"), "Background");
         const l1 = luminance(foreground), l2 = luminance(background), ratio = (Math.max(l1,l2)+0.05)/(Math.min(l1,l2)+0.05);
         const aa = ratio >= 4.5, aaLarge = ratio >= 3, aaa = ratio >= 7, aaaLarge = ratio >= 4.5;
-        return setResult("Contrast ratio: " + ratio.toFixed(2) + ":1\\nWCAG AA normal text (4.5:1): " + (aa ? "PASS" : "FAIL") + "\\nWCAG AA large text (3:1): " + (aaLarge ? "PASS" : "FAIL") + "\\nWCAG AAA normal text (7:1): " + (aaa ? "PASS" : "FAIL") + "\\nWCAG AAA large text (4.5:1): " + (aaaLarge ? "PASS" : "FAIL") + "\\n\\nLarge text means at least 18 pt regular or 14 pt bold under WCAG definitions.");
+        return setResult("Contrast ratio: " + ratio.toFixed(2) + ":1\nWCAG AA normal text (4.5:1): " + (aa ? "PASS" : "FAIL") + "\nWCAG AA large text (3:1): " + (aaLarge ? "PASS" : "FAIL") + "\nWCAG AAA normal text (7:1): " + (aaa ? "PASS" : "FAIL") + "\nWCAG AAA large text (4.5:1): " + (aaaLarge ? "PASS" : "FAIL") + "\n\nLarge text means at least 18 pt regular or 14 pt bold under WCAG definitions.");
       }
       case "case-converter": {
         const mode = get("case-mode");
@@ -430,7 +433,7 @@ if (root) {
       if (["image-compressor","image-converter","image-cropper","image-resizer","images-to-pdf","pdf-to-images","typing-speed-test","text-to-speech"].includes(slug)) {
         await runSpecial();
       } else {
-        if (!input.value.trim() && !["uuid-generator","lorem-ipsum-generator","age-calculator","bmi-calculator","percentage-calculator","password-generator"].includes(slug)) throw new Error("Please enter some input first.");
+        if (!input.value.trim() && !["uuid-generator","lorem-ipsum-generator","age-calculator","bmi-calculator","percentage-calculator","password-generator","robots-txt-generator"].includes(slug)) throw new Error("Please enter some input first.");
         runText();
       }
     } catch (error) {
