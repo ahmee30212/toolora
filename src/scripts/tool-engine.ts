@@ -271,7 +271,7 @@ if (root) {
           if (parens === 0 && ch === "{") { flush(); result = result.trimEnd() + " {\n"; indent++; }
           else if (parens === 0 && ch === "}") { flush(); result = result.trimEnd() + "\n"; indent = Math.max(0, indent - 1); result += pad() + "}\n"; }
           else if (parens === 0 && ch === ";") { token = token.trimEnd() + ";"; flush(); result += "\n"; }
-          else if (parens === 0 && ch === ":" && indent > 0 && /^[\\w-]+$/.test(token.trim())) token = token.trimEnd() + ": ";
+          else if (parens === 0 && ch === ":" && indent > 0 && /^[\w-]+$/.test(token.trim())) token = token.trimEnd() + ": ";
           else if (ch === "\n" || ch === "\r" || ch === "\t" || ch === " ") { if (token && !token.endsWith(" ")) token += " "; }
           else token += ch;
         }
@@ -305,8 +305,8 @@ if (root) {
       }
       case "robots-txt-generator": {
         const sitemap = get("sitemap-url").trim();
-        const paths = value.split(/\\r?\\n/).map((path) => path.trim()).filter(Boolean);
-        if (paths.some((path) => !path.startsWith("/") || path.startsWith("//") || /[\\s#]/.test(path))) throw new Error("Each disallowed path must start with / and contain no spaces or # characters.");
+        const paths = value.split(/\r?\n/).map((path) => path.trim()).filter(Boolean);
+        if (paths.some((path) => !path.startsWith("/") || path.startsWith("//") || /[\s#]/.test(path))) throw new Error("Each disallowed path must start with / and contain no spaces or # characters.");
         if (sitemap) { let parsed:URL; try { parsed = new URL(sitemap); } catch { throw new Error("Sitemap must be a complete HTTPS URL."); } if (parsed.protocol !== "https:" || parsed.username || parsed.password) throw new Error("Sitemap must be a complete HTTPS URL."); }
         const lines = ["User-agent: *", "Allow: /", ...paths.map((path) => "Disallow: " + path), ...(sitemap ? ["", "Sitemap: " + new URL(sitemap).href] : [])];
         return setResult(lines.join("\n"), "robots.txt generated");
