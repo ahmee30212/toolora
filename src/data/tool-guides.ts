@@ -294,4 +294,40 @@ export const toolGuides: Record<string, ToolGuide> = {
     tip: "Test the final printed or displayed code at its real size. A QR code that scans on a large monitor may fail when printed too small.",
     faqs: [{ question: "Does a QR code expire?", answer: "A static QR code does not normally expire, but the URL or service it points to can change or stop working." }, { question: "Should I put private information in a QR code?", answer: "Only encode information you are comfortable sharing with anyone who can scan it. A QR code is not access control." }]
   }
+
+  "html-formatter": {
+    overview: "An HTML formatter, also called an HTML beautifier, reorganizes markup with consistent indentation so nested elements are easier to inspect and maintain. This browser-based formatter parses the supplied document locally and produces readable source without sending it to a formatting server.",
+    steps: ["Paste an HTML fragment or complete page into the editor.", "Run the formatter and review the indentation, element nesting and attributes.", "Copy the formatted markup or download it as a text file before using it in your project."],
+    example: "Format a compact one-line HTML component before reviewing its structure in a code review.",
+    tip: "Formatting changes whitespace and layout, not the intended design. Review whitespace-sensitive content such as preformatted blocks and template syntax before replacing production files.",
+    faqs: [{ question: "Does the HTML formatter execute scripts?", answer: "No. The input is parsed as an inert document in your browser and is returned as text; it is not inserted into the live page." }, { question: "Can I format a full HTML document?", answer: "Yes. Paste a complete document or a smaller fragment. Very large inputs are subject to the browser workspace input limit." }]
+  },
+  "css-formatter": {
+    overview: "A CSS formatter, sometimes called a CSS beautifier, adds consistent line breaks and indentation to stylesheet rules. Readable CSS makes selectors, declarations and nested blocks easier to inspect when maintaining a website or debugging layout behavior.",
+    steps: ["Paste CSS declarations or a stylesheet into the editor.", "Run the formatter to arrange rules and declarations on separate lines.", "Review comments, strings and nested at-rules, then copy or download the formatted stylesheet."],
+    example: "Turn a compact minified CSS rule into a readable block before adjusting its spacing or responsive behavior.",
+    tip: "A formatter is not a CSS validator or browser compatibility checker. Test the resulting stylesheet in the target browsers and build pipeline.",
+    faqs: [{ question: "Does formatting change CSS values?", answer: "The formatter is intended to change whitespace and indentation only. Always compare the output when working with complex or unusual CSS syntax." }, { question: "Does it support nested CSS and media queries?", answer: "The formatter preserves braces and nested blocks, including common at-rules. Use your project's compiler or linter for full standards validation." }]
+  },
+  "meta-tag-generator": {
+    overview: "A meta tag generator creates the basic page metadata used by browsers, search engines and social sharing previews. A clear title and accurate description help people understand a page in search results, while canonical and Open Graph fields describe the preferred URL and share preview.",
+    steps: ["Enter a descriptive page title and a concise summary of the actual page.", "Add the canonical page URL and, optionally, an absolute image URL for social previews.", "Generate the tags, review every value and add the markup to the document head of the relevant page."],
+    example: "Create a unique title, meta description, canonical link and Open Graph tags for a new product or article page.",
+    tip: "Write a useful, page-specific description for people rather than repeating keywords. Search engines may choose a different snippet and do not guarantee rankings or indexing because tags exist.",
+    faqs: [{ question: "Will meta tags guarantee a Google ranking?", answer: "No. Accurate metadata can help describe a page, but rankings and indexing depend on many factors including content usefulness, crawlability, site quality and search systems." }, { question: "Should every page use the same title and description?", answer: "No. Each indexable page should have a distinctive title and description that accurately summarize its own content." }]
+  },
+  "robots-txt-generator": {
+    overview: "A robots.txt file gives compliant search crawlers instructions about which URL paths they may request. This generator creates a simple robots.txt file with a user-agent rule, optional disallowed paths and an optional sitemap URL.",
+    steps: ["Enter one path per line that you want compliant crawlers not to request.", "Add your public sitemap URL using the full HTTPS address.", "Generate the file, review the rules carefully and publish it at the root of your website as /robots.txt."],
+    example: "Allow ordinary public pages to be crawled while excluding a private application path from routine crawler requests.",
+    tip: "Robots.txt is not access control and does not keep confidential pages secure. Use authentication and server-side authorization for private content; a disallowed URL may still appear in search results if discovered elsewhere.",
+    faqs: [{ question: "Does robots.txt remove a URL from Google?", answer: "No. Blocking crawling does not guarantee deindexing. Use an appropriate noindex mechanism on crawlable pages or Search Console removal tools when applicable." }, { question: "Where should I upload the file?", answer: "Publish it at the origin root, for example https://example.com/robots.txt. Rules generally apply only to the host and protocol where the file is served." }]
+  },
+  "color-contrast-checker": {
+    overview: "A color contrast checker measures the luminance difference between foreground text and its background. The contrast ratio helps designers assess text readability against the Web Content Accessibility Guidelines (WCAG) thresholds.",
+    steps: ["Enter a foreground text color as a three- or six-digit HEX value.", "Enter the background color and run the check.", "Review the contrast ratio and the separate WCAG AA and AAA results for normal and large text."],
+    example: "Check whether light-grey body text on a white card has enough contrast before publishing a design.",
+    tip: "WCAG contrast is one part of accessibility. Also provide visible focus states, meaningful labels, keyboard access and do not communicate information by color alone.",
+    faqs: [{ question: "What contrast ratio does WCAG AA require?", answer: "The usual minimum is 4.5:1 for normal text and 3:1 for large text. WCAG AAA uses 7:1 for normal text and 4.5:1 for large text." }, { question: "Does a passing ratio make the whole page accessible?", answer: "No. This tool checks a color pair only. Page accessibility also depends on semantics, keyboard operation, labels, focus visibility, content and many other criteria." }]
+  },
 };
