@@ -9,7 +9,7 @@ const categories = [...categoryBlock.matchAll(/slug:\s*"([^"]+)"/g)].map((m) => 
 const tools = [...toolBlock.matchAll(/\{\s*slug:\s*"([^"]+)"/g)].map((m) => m[1]);
 const canonicalOrigin = "https://toolora.gettoolora.workers.dev";
 const routes = [
-  "index.html", "about/index.html", "search/index.html", "privacy/index.html", "terms/index.html", "community/index.html", "404.html",
+  "index.html", "about/index.html", "search/index.html", "privacy/index.html", "terms/index.html", "community/index.html", "services/index.html", "disclosure/index.html", "partners/ezitech/index.html", "404.html",
   ...categories.map((slug) => "categories/" + slug + "/index.html"),
   ...tools.map((slug) => "tools/" + slug + "/index.html")
 ];
@@ -70,10 +70,29 @@ for (const route of routes) {
   if (!html.includes("Created by Muhammad Ahmad")) failures.push("Missing creator credit: /" + route);
 }
 const sitemap = read("sitemap.xml");
+const expectedSitemapPaths = [
+  "/", "/about/", "/privacy/", "/terms/", "/community/", "/services/", "/disclosure/", "/partners/ezitech/",
+  ...categories.map((slug) => "/categories/" + slug + "/"),
+  ...tools.map((slug) => "/tools/" + slug + "/")
+];
+const sitemapLocations = [...sitemap.matchAll(/<loc>([^<]+)<\\/loc>/g)].map((match) => match[1]);
+const expectedSitemapLocations = expectedSitemapPaths.map((path) => canonicalOrigin + path);
+if (!sitemap.includes('<?xml version="1.0" encoding="UTF-8"?>') || !sitemap.includes('xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"')) {
+  failures.push("Sitemap is missing its XML declaration or sitemap namespace.");
+}
+if (sitemapLocations.length !== expectedSitemapLocations.length) {
+  failures.push("Sitemap URL count does not match the expected canonical route count: found " + sitemapLocations.length + ", expected " + expectedSitemapLocations.length + ".");
+}
+const duplicateSitemapLocations = sitemapLocations.filter((location, index) => sitemapLocations.indexOf(location) !== index);
+if (duplicateSitemapLocations.length) failures.push("Sitemap contains duplicate URLs: " + [...new Set(duplicateSitemapLocations)].join(", "));
+const actualSitemapSet = new Set(sitemapLocations);
+for (const location of expectedSitemapLocations) {
+  if (!actualSitemapSet.has(location)) failures.push("Sitemap is missing canonical URL: " + location);
+}
+for (const location of sitemapLocations) {
+  if (!expectedSitemapLocations.includes(location)) failures.push("Sitemap contains an unexpected or non-canonical URL: " + location);
+}
 if (sitemap.includes("<loc>" + canonicalOrigin + "/search/</loc>")) failures.push("Noindex internal search page must not be included in the sitemap.");
-for (const slug of categories) if (!sitemap.includes("/categories/" + slug + "/")) failures.push("Sitemap missing category: " + slug);
-for (const slug of tools) if (!sitemap.includes("/tools/" + slug + "/")) failures.push("Sitemap missing tool: " + slug);
-if (!sitemap.includes("<loc>" + canonicalOrigin + "/</loc>")) failures.push("Sitemap is missing the production homepage URL.");
 if (sitemap.includes("m-ahmad30212.workers.dev")) failures.push("Sitemap contains the legacy hostname.");
 const robots = read("robots.txt");
 if (!robots.includes("Sitemap: " + canonicalOrigin + "/sitemap.xml")) failures.push("robots.txt does not reference the production sitemap.");
