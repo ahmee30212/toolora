@@ -719,7 +719,7 @@ test("meta tag generator escapes values and requires HTTPS URLs", async ({ page 
 
 test("robots.txt generator validates paths and adds sitemap directives", async ({ page }) => {
   await page.goto("/tools/robots-txt-generator/");
-  await page.locator("#tool-input").fill("/admin/\\n/private/");
+  await page.locator("#tool-input").fill("/admin/" + String.fromCharCode(10) + "/private/");
   await page.locator("#sitemap-url").fill("https://example.com/sitemap.xml");
   await page.getByRole("button", { name: /run tool/i }).click();
   const output = await page.locator("#tool-output").inputValue();
