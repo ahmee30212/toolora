@@ -263,6 +263,21 @@ if (root) {
         if (value.length > 200000) throw new Error("CSS input is limited to 200,000 characters.");
         let result = "", token = "", indent = 0, quote = "", escaped = false, comment = false, parens = 0;
         const pad = () => "  ".repeat(Math.max(0, indent));
+        const colonStartsSelector = (start:number) => {
+          let quoteAhead = "", escapedAhead = false, commentAhead = false, depthAhead = 0;
+          for (let j = start + 1; j < value.length; j++) {
+            const current = value[j], next = value[j + 1] ?? "";
+            if (commentAhead) { if (current === "*" && next === "/") { j++; commentAhead = false; } continue; }
+            if (quoteAhead) { if (escapedAhead) escapedAhead = false; else if (current === "\\\\") escapedAhead = true; else if (current === quoteAhead) quoteAhead = ""; continue; }
+            if (current === "/" && next === "*") { commentAhead = true; j++; continue; }
+            if (current === "'" || current === '"') { quoteAhead = current; continue; }
+            if (current === "(") depthAhead++;
+            if (current === ")") depthAhead = Math.max(0, depthAhead - 1);
+            if (depthAhead === 0 && current === "{") return true;
+            if (depthAhead === 0 && (current === ";" || current === "}")) return false;
+          }
+          return false;
+        };
         const flush = () => { const part = token.trim(); if (part) { result += pad() + part; token = ""; } else token = ""; };
         for (let i = 0; i < value.length; i++) {
           const ch = value[i], next = value[i + 1] ?? "";
@@ -275,7 +290,7 @@ if (root) {
           if (parens === 0 && ch === "{") { flush(); result = result.trimEnd() + " {\n"; indent++; }
           else if (parens === 0 && ch === "}") { if (indent === 0) throw new Error("Unexpected closing brace."); flush(); result = result.trimEnd() + "\n"; indent--; result += pad() + "}\n"; }
           else if (parens === 0 && ch === ";") { token = token.trimEnd() + ";"; flush(); result += "\n"; }
-          else if (parens === 0 && ch === ":" && indent > 0 && /^[\w-]+$/.test(token.trim())) token = token.trimEnd() + ": ";
+          else if (parens === 0 && ch === ":" && indent > 0 && /^[\w-]+$/.test(token.trim()) && !colonStartsSelector(i)) token = token.trimEnd() + ": ";
           else if (ch === "\n" || ch === "\r" || ch === "\t" || ch === " ") { if (token && !token.endsWith(" ")) token += " "; }
           else token += ch;
         }
