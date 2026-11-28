@@ -31,7 +31,7 @@ const { active = "", backHref = "", backLabel = "" } = Astro.props;
       if (icon) icon.textContent = dark ? "☀" : "☾";
     }
     const themeColor = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
-    if (themeColor) themeColor.content = theme === "dark" ? "#0b1220" : "#f5f7fc";
+    if (themeColor) themeColor.content = theme === "dark" ? "#2b3544" : "#e8edf3";
   };
 
   let savedTheme: string | null = null;
