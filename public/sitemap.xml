@@ -58,4 +58,9 @@
   <url><loc>https://toolora.gettoolora.workers.dev/tools/caption-generator/</loc></url>
   <url><loc>https://toolora.gettoolora.workers.dev/tools/hashtag-generator/</loc></url>
   <url><loc>https://toolora.gettoolora.workers.dev/tools/qr-generator/</loc></url>
+  <url><loc>https://toolora.gettoolora.workers.dev/tools/html-formatter/</loc></url>
+  <url><loc>https://toolora.gettoolora.workers.dev/tools/css-formatter/</loc></url>
+  <url><loc>https://toolora.gettoolora.workers.dev/tools/meta-tag-generator/</loc></url>
+  <url><loc>https://toolora.gettoolora.workers.dev/tools/robots-txt-generator/</loc></url>
+  <url><loc>https://toolora.gettoolora.workers.dev/tools/color-contrast-checker/</loc></url>
 </urlset>
