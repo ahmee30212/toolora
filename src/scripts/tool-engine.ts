@@ -231,33 +231,90 @@ if (root) {
     switch (slug) {
 
 
+
       case "html-formatter": {
         if (value.length > 200000) throw new Error("HTML input is limited to 200,000 characters.");
-        const parsed = new DOMParser().parseFromString(value, "text/html");
         const voidTags = new Set(["area","base","br","col","embed","hr","img","input","link","meta","param","source","track","wbr"]);
         const rawTags = new Set(["pre","textarea","script","style"]);
-        const indent = (depth:number) => "  ".repeat(depth);
-        const render = (node: Node, depth:number): string => {
-          if (node.nodeType === Node.COMMENT_NODE) return indent(depth) + "<!--" + (node.textContent ?? "") + "-->";
-          if (node.nodeType === Node.TEXT_NODE) {
-            const text = node.textContent ?? "";
-            if (!text.trim()) return "";
-            return indent(depth) + escapeHtml(text.trim());
-          }
-          if (!(node instanceof Element)) return "";
-          const tag = node.tagName.toLowerCase();
-          const attrs = Array.from(node.attributes).map((attribute) => " " + attribute.name + '="' + escapeHtml(attribute.value) + '"').join("");
-          const opening = "<" + tag + attrs + ">";
-          if (voidTags.has(tag)) return indent(depth) + opening;
-          if (rawTags.has(tag)) return indent(depth) + opening + (node.textContent ?? "") + "</" + tag + ">";
-          const meaningful = Array.from(node.childNodes).filter((child) => child.nodeType !== Node.TEXT_NODE || (child.textContent ?? "").trim());
-          if (meaningful.length === 1 && meaningful[0].nodeType === Node.TEXT_NODE) return indent(depth) + opening + escapeHtml(meaningful[0].textContent ?? "") + "</" + tag + ">";
-          const children = meaningful.map((child) => render(child, depth + 1)).filter(Boolean);
-          if (!children.length) return indent(depth) + opening + "</" + tag + ">";
-          return indent(depth) + opening + "\n" + children.join("\n") + "\n" + indent(depth) + "</" + tag + ">";
+        const tokens: Array<{ kind: "tag" | "text"; value: string; name?: string; closing?: boolean; void?: boolean }> = [];
+        const isTagStart = (index:number) => {
+          const next = value[index + 1] ?? "";
+          return next === "/" || next === "!" || next === "?" || /[a-z]/i.test(next);
         };
-        const body = parsed.documentElement;
-        return setResult("<!doctype html>\n" + render(body, 0), "Formatted HTML");
+        let cursor = 0;
+        while (cursor < value.length) {
+          if (value.startsWith("<!--", cursor)) {
+            const close = value.indexOf("-->", cursor + 4);
+            const finish = close < 0 ? value.length : close + 3;
+            tokens.push({ kind: "tag", value: value.slice(cursor, finish), name: "", closing: false, void: true });
+            cursor = finish;
+            continue;
+          }
+          if (value[cursor] === "<" && isTagStart(cursor)) {
+            let quote = "", finish = cursor + 1;
+            for (; finish < value.length; finish++) {
+              const char = value[finish];
+              if (quote) { if (char === quote) quote = ""; continue; }
+              if (char === '"' || char === "'") { quote = char; continue; }
+              if (char === ">") break;
+            }
+            if (finish >= value.length) {
+              tokens.push({ kind: "text", value: value.slice(cursor) });
+              break;
+            }
+            const tag = value.slice(cursor, finish + 1);
+            const name = tag.match(/^<\\s*\\/?\\s*([a-z][a-z0-9:-]*)/i)?.[1]?.toLowerCase() ?? "";
+            const closing = /^<\\s*\\//.test(tag);
+            const selfClosing = /\\/\\s*>$/.test(tag);
+            const special = tag.startsWith("<!") || tag.startsWith("<?");
+            tokens.push({ kind: "tag", value: tag, name, closing, void: selfClosing || voidTags.has(name) || special });
+            cursor = finish + 1;
+            if (!closing && !selfClosing && rawTags.has(name)) {
+              const lower = value.toLowerCase();
+              const closeAt = lower.indexOf("</" + name, cursor);
+              if (closeAt >= 0) {
+                const afterName = lower[closeAt + name.length + 2] ?? "";
+                if (afterName === ">" || /\\s/.test(afterName)) {
+                  if (closeAt > cursor) tokens.push({ kind: "text", value: value.slice(cursor, closeAt) });
+                  cursor = closeAt;
+                }
+              } else if (cursor < value.length) {
+                tokens.push({ kind: "text", value: value.slice(cursor) });
+                cursor = value.length;
+              }
+            }
+            continue;
+          }
+          let finish = cursor + 1;
+          while (finish < value.length && !(value[finish] === "<" && isTagStart(finish))) finish++;
+          tokens.push({ kind: "text", value: value.slice(cursor, finish) });
+          cursor = finish;
+        }
+        const lines: string[] = [];
+        const pad = (depth:number) => "  ".repeat(Math.max(0, depth));
+        let depth = 0;
+        for (let index = 0; index < tokens.length; index++) {
+          const token = tokens[index];
+          if (token.kind === "text") {
+            const text = token.value.trim();
+            if (text) lines.push(pad(depth) + text);
+            continue;
+          }
+          if (token.closing) {
+            depth = Math.max(0, depth - 1);
+            lines.push(pad(depth) + token.value);
+            continue;
+          }
+          const next = tokens[index + 1], after = tokens[index + 2];
+          if (!token.void && token.name && next?.kind === "text" && next.value.trim() && after?.kind === "tag" && after.closing && after.name === token.name) {
+            lines.push(pad(depth) + token.value + next.value.trim() + after.value);
+            index += 2;
+            continue;
+          }
+          lines.push(pad(depth) + token.value);
+          if (!token.void) depth++;
+        }
+        return setResult(lines.join("\\n"), "Formatted HTML");
       }
       case "css-formatter": {
         if (value.length > 200000) throw new Error("CSS input is limited to 200,000 characters.");
