@@ -750,7 +750,7 @@ test("color contrast checker reports WCAG pass and fail thresholds", async ({ pa
   await page.getByRole("button", { name: /run tool/i }).click();
   await expect(page.locator("#tool-output")).toHaveValue(/Contrast ratio: 21.00:1/);
   await expect(page.locator("#tool-output")).toHaveValue(/WCAG AAA normal text \(7:1\): PASS/);
-  await page.locator("#contrast-background").fill("#808080");
+  await page.locator("#contrast-background").fill("#707070");
   await page.getByRole("button", { name: /run tool/i }).click();
   await expect(page.locator("#tool-output")).toHaveValue(/WCAG AA normal text \(4.5:1\): FAIL/);
 });
