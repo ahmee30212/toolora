@@ -11,9 +11,39 @@ const { active = "", backHref = "", backLabel = "" } = Astro.props;
     </nav>
     <div class="header-actions">
       {backHref ? <a class="btn-secondary header-back" href={backHref}>← {backLabel || "Back"}</a> : <a class="btn-primary header-cta" href="/services/">Work with us ↗</a>}
+      <button class="theme-toggle" type="button" id="theme-toggle" aria-label="Switch to dark theme" title="Switch theme"><span class="theme-toggle-icon" aria-hidden="true">☾</span><span class="sr-only">Switch colour theme</span></button>
       <details class="mobile-menu"><summary aria-label="Open navigation menu">☰</summary><nav aria-label="Mobile navigation">
         <a href="/">Home</a><a href="/#categories">Categories</a><a href="/#popular">Popular tools</a><a href="/services/">Services</a><a href="/partners/ezitech/">Software deals</a><a href="/community/">Community</a><a href="/about/">About</a><a href="/search/">Search tools</a>
       </nav></details>
     </div>
   </div>
 </header>
+
+<script>
+  const themeToggle = document.querySelector<HTMLButtonElement>("#theme-toggle");
+  const applyTheme = (theme: "light" | "dark") => {
+    document.documentElement.dataset.theme = theme;
+    if (themeToggle) {
+      const dark = theme === "dark";
+      themeToggle.setAttribute("aria-label", dark ? "Switch to light theme" : "Switch to dark theme");
+      themeToggle.setAttribute("aria-pressed", String(dark));
+      const icon = themeToggle.querySelector(".theme-toggle-icon");
+      if (icon) icon.textContent = dark ? "☀" : "☾";
+    }
+    const themeColor = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
+    if (themeColor) themeColor.content = theme === "dark" ? "#0b1220" : "#f5f7fc";
+  };
+
+  let savedTheme: string | null = null;
+  try { savedTheme = localStorage.getItem("toolora-theme"); } catch { /* Storage can be unavailable in private contexts. */ }
+  const initialTheme = savedTheme === "light" || savedTheme === "dark"
+    ? savedTheme
+    : window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  applyTheme(initialTheme);
+
+  themeToggle?.addEventListener("click", () => {
+    const nextTheme = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
+    applyTheme(nextTheme);
+    try { localStorage.setItem("toolora-theme", nextTheme); } catch { /* Theme still works for this page view. */ }
+  });
+</script>

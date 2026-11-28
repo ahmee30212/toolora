@@ -35,6 +35,17 @@ const structuredData = {
       isPartOf: { "@id": websiteId },
       publisher: { "@id": organizationId }
     },
+    ...(Astro.url.pathname.startsWith("/tools/") ? [{
+      "@type": "SoftwareApplication",
+      "@id": canonical + "#application",
+      name: title.replace(/ — Toolora$/, ""),
+      description,
+      url: canonical,
+      applicationCategory: "UtilitiesApplication",
+      operatingSystem: "Any",
+      offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+      provider: { "@id": organizationId }
+    }] : []),
     ...(breadcrumbs.length ? [{
       "@type": "BreadcrumbList",
       itemListElement: breadcrumbs.map((item: { name: string; href: string }, index: number) => ({
@@ -53,7 +64,7 @@ const structuredData = {
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#101f3b" />
-    <meta name="color-scheme" content="light" />
+    <meta name="color-scheme" content="light dark" />
     <meta name="robots" content={robots} />
     <script type="application/ld+json" set:html={JSON.stringify(structuredData)}></script>
     <link rel="canonical" href={canonical} />

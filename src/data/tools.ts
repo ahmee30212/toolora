@@ -14,8 +14,8 @@ export const categories = [
   { slug: "calculators", name: "Calculators", description: "Useful everyday calculations", icon: "calculator" },
   { slug: "speed", name: "Tests & Productivity", description: "Measure and improve productivity", icon: "gauge" },
   { slug: "security", name: "Security", description: "Create and evaluate secure credentials", icon: "shield-check" },
-  { slug: "developer", name: "Developer & Data", description: "Format, encode and convert data", icon: "code" },
-  { slug: "design", name: "Color & Design", description: "Build and explore color palettes", icon: "palette" },
+  { slug: "developer", name: "Developer & Data", description: "Format code, generate SEO files and convert developer data", icon: "code" },
+  { slug: "design", name: "Color & Design", description: "Check accessible contrast, choose colors and build gradients", icon: "palette" },
   { slug: "social", name: "Social Media", description: "Create content for social platforms", icon: "at-sign" }
 ] as const;
 
@@ -60,7 +60,12 @@ export const tools: Tool[] = [
   { slug: "bio-generator", name: "Bio Generator", description: "Draft profile bio ideas for social platforms.", category: "social", icon: "user-round", status: "ready" },
   { slug: "caption-generator", name: "Caption Generator", description: "Create caption ideas for social posts.", category: "social", icon: "message-square-text", status: "ready" },
   { slug: "hashtag-generator", name: "Hashtag Generator", description: "Generate relevant hashtag ideas from a topic.", category: "social", icon: "hash", status: "ready" },
-  { slug: "qr-generator", name: "QR Code Generator", description: "Create QR codes from text, links and contact details.", category: "developer", icon: "qr-code", status: "ready" }
+  { slug: "qr-generator", name: "QR Code Generator", description: "Create QR codes from text, links and contact details.", category: "developer", icon: "qr-code", status: "ready" },
+  { slug: "html-formatter", name: "HTML Formatter", description: "Beautify HTML markup with readable indentation in your browser.", category: "developer", icon: "code-xml", status: "ready" },
+  { slug: "css-formatter", name: "CSS Formatter", description: "Format CSS rules and declarations into a readable stylesheet.", category: "developer", icon: "file-code", status: "ready" },
+  { slug: "meta-tag-generator", name: "Meta Tag Generator", description: "Create title, description and social preview metadata for a web page.", category: "developer", icon: "code", status: "ready" },
+  { slug: "robots-txt-generator", name: "Robots.txt Generator", description: "Build a robots.txt file with crawler rules and your sitemap location.", category: "developer", icon: "file-text", status: "ready" },
+  { slug: "color-contrast-checker", name: "Color Contrast Checker", description: "Check text and background contrast against WCAG accessibility thresholds.", category: "design", icon: "pipette", status: "ready" },
 ];
 
 export const getTool = (slug: string) => tools.find((tool) => tool.slug === slug);

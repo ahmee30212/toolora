@@ -35,6 +35,12 @@ for (const route of routes) {
         failures.push("Missing expected Organization, WebSite or WebPage schema: /" + route);
       }
       const page = graph.find((entry) => entry["@type"] === "WebPage");
+      if (route.startsWith("tools/")) {
+        const application = graph.find((entry) => entry["@type"] === "SoftwareApplication");
+        if (!application || application.applicationCategory !== "UtilitiesApplication" || application.offers?.price !== "0" || !application.name || !application.description) {
+          failures.push("Missing or invalid free SoftwareApplication structured data: /" + route);
+        }
+      }
       const expectsBreadcrumbs = route.startsWith("categories/") || route.startsWith("tools/");
       const breadcrumb = graph.find((entry) => entry["@type"] === "BreadcrumbList");
       if (expectsBreadcrumbs) {

@@ -465,6 +465,9 @@ test("production canonical metadata, robots and sitemap use the branded hostname
   const xml = await sitemap.text();
   expect(xml).toContain("https://toolora.gettoolora.workers.dev/");
   expect(xml).toContain("https://toolora.gettoolora.workers.dev/community/");
+  for (const slug of ["html-formatter", "css-formatter", "meta-tag-generator", "robots-txt-generator", "color-contrast-checker"]) {
+    expect(xml).toContain("https://toolora.gettoolora.workers.dev/tools/" + slug + "/");
+  }
   expect(xml).not.toContain("m-ahmad30212.workers.dev");
 });
 
@@ -665,4 +668,89 @@ test("percentage calculator handles a zero denominator explicitly", async ({ pag
   await page.locator("#percent-total").fill("0");
   await page.getByRole("button", { name: /run tool/i }).click();
   await expect(page.locator("#tool-output")).toHaveValue(/5 is undefined of 0/);
+});
+
+
+
+test("theme toggle switches modes and persists the visitor preference", async ({ page }) => {
+  await page.goto("/");
+  await page.evaluate(() => localStorage.setItem("toolora-theme", "light"));
+  await page.reload();
+  await expect(page.getByRole("button", { name: /switch to dark theme/i })).toBeVisible();
+  await page.getByRole("button", { name: /switch to dark theme/i }).click();
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  await page.reload();
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  await page.getByRole("button", { name: /switch to light theme/i }).click();
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+});
+
+test("HTML formatter prettifies nested markup as inert text", async ({ page }) => {
+  await page.goto("/tools/html-formatter/");
+  await page.locator("#tool-input").fill("<main><h1>Toolora</h1><p>Useful <strong>tools</strong></p></main>");
+  await page.getByRole("button", { name: /run tool/i }).click();
+  const output = await page.locator("#tool-output").inputValue();
+  expect(output).toContain("<main>");
+  expect(output).toContain("<h1>Toolora</h1>");
+  expect(output).toContain("<strong>tools</strong>");
+});
+
+test("CSS formatter preserves quoted semicolons and formats declarations", async ({ page }) => {
+  await page.goto("/tools/css-formatter/");
+  await page.locator("#tool-input").fill('.card{content:"a;b";color:#123456;padding:8px}');
+  await page.getByRole("button", { name: /run tool/i }).click();
+  const output = await page.locator("#tool-output").inputValue();
+  expect(output).toContain(".card {");
+  expect(output).toContain('content: "a;b";');
+  expect(output).toContain("color: #123456;");
+  expect(output).toContain("padding: 8px;");
+  await page.locator("#tool-input").fill(".card:hover{color:#123456}");
+  await page.getByRole("button", { name: /run tool/i }).click();
+  const pseudoOutput = await page.locator("#tool-output").inputValue();
+  expect(pseudoOutput).toContain(".card:hover {");
+  expect(pseudoOutput).toContain("color: #123456;");
+});
+
+test("meta tag generator escapes values and requires HTTPS URLs", async ({ page }) => {
+  await page.goto("/tools/meta-tag-generator/");
+  await page.locator("#tool-input").fill('A "useful" page');
+  await page.locator("#meta-description").fill("A practical guide for Toolora users.");
+  await page.locator("#meta-url").fill("https://example.com/tools/example/");
+  await page.locator("#meta-image").fill("https://example.com/social.png");
+  await page.getByRole("button", { name: /run tool/i }).click();
+  await expect(page.locator("#tool-output")).toHaveValue(/A &quot;useful&quot; page/);
+  await expect(page.locator("#tool-output")).toHaveValue(/og:image/);
+  await page.locator("#meta-url").fill("javascript:alert(1)");
+  await page.getByRole("button", { name: /run tool/i }).click();
+  await expect(page.locator("#tool-status")).toContainText("HTTPS URL");
+  await expect(page.locator("#tool-output")).toHaveValue("");
+});
+
+test("robots.txt generator validates paths and adds sitemap directives", async ({ page }) => {
+  await page.goto("/tools/robots-txt-generator/");
+  await page.locator("#tool-input").fill("/admin/" + String.fromCharCode(10) + "/private/");
+  await page.locator("#sitemap-url").fill("https://example.com/sitemap.xml");
+  await page.getByRole("button", { name: /run tool/i }).click();
+  const output = await page.locator("#tool-output").inputValue();
+  expect(output).toContain("User-agent: *");
+  expect(output).toContain("Allow: /");
+  expect(output).toContain("Disallow: /admin/");
+  expect(output).toContain("Disallow: /private/");
+  expect(output).toContain("Sitemap: https://example.com/sitemap.xml");
+  await page.locator("#tool-input").fill("https://evil.example");
+  await page.getByRole("button", { name: /run tool/i }).click();
+  await expect(page.locator("#tool-status")).toContainText("must start with /");
+});
+
+test("color contrast checker reports WCAG pass and fail thresholds", async ({ page }) => {
+  await page.goto("/tools/color-contrast-checker/");
+  await page.locator("#tool-input").fill("#000000");
+  await expect(page.locator("#contrast-background")).toHaveValue("#FFFFFF");
+  await page.locator("#contrast-background").fill("#FFFFFF");
+  await page.getByRole("button", { name: /run tool/i }).click();
+  await expect(page.locator("#tool-output")).toHaveValue(/Contrast ratio: 21.00:1/);
+  await expect(page.locator("#tool-output")).toHaveValue(/WCAG AAA normal text \(7:1\): PASS/);
+  await page.locator("#contrast-background").fill("#707070");
+  await page.getByRole("button", { name: /run tool/i }).click();
+  await expect(page.locator("#tool-output")).toHaveValue(/WCAG AA normal text \(4.5:1\): FAIL/);
 });

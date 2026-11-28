@@ -2,7 +2,7 @@
 
 **Free Online Tools for Everyone.**
 
-Toolora is a modern, browser-first collection of **41 free online tools across 9 categories**. Each category has its own focused tool list, and every tool has a dedicated workspace.
+Toolora is a modern, browser-first collection of **46 free online tools across 9 categories**. Each category has its own focused tool list, and every tool has a dedicated workspace.
 
 **Live website:** https://toolora.gettoolora.workers.dev/
 
@@ -12,7 +12,7 @@ Toolora is a modern, browser-first collection of **41 free online tools across 9
 
 - **Focused UX:** category-first navigation, dedicated tool workspaces, live search and consistent page layouts.
 - **Browser-first privacy:** text, image and PDF processing happens locally in the user's browser; files are not uploaded to a Toolora processing server.
-- **Responsive and accessible:** semantic controls, keyboard-visible focus, mobile navigation and reduced-motion support.
+- **Responsive and accessible:** persistent light/dark themes, semantic controls, keyboard-visible focus, mobile navigation and reduced-motion support.
 - **Fast by design:** static Astro output, locally bundled PDF libraries, lazy-loaded tool dependencies and enforced JavaScript/CSS size budgets.
 - **Transparent:** read the [Privacy Policy](https://toolora.gettoolora.workers.dev/privacy/) and [Terms of Use](https://toolora.gettoolora.workers.dev/terms/).
 
@@ -40,7 +40,7 @@ The repository uses layered checks. See the [Security Policy](SECURITY.md) for r
 - npm audit blocks known dependency advisories at every severity level.
 - CodeQL performs JavaScript and TypeScript static analysis; uploaded results are available in GitHub Security.
 - OWASP ZAP Baseline performs a passive production scan after successful CI. A report gate fails on actionable low-, medium-, high- or critical-risk findings; narrow, evidence-based false-positive handling is covered by regression tests.
-- Playwright provides end-to-end browser coverage for all 41 tool workspaces and representative tool execution, navigation, search, category and responsive flows.
+- Playwright provides end-to-end browser coverage for all 46 tool workspaces and representative tool execution, navigation, search, category and responsive flows.
 - Build validation checks route/catalog consistency, metadata, canonical sitemap routes and asset-size budgets.
 - Security headers include CSP, HSTS, clickjacking protection, MIME-sniffing protection, COOP, COEP and CORP.
 - Community API validates same-origin requests, JSON content types, payload size, field constraints and submission frequency; submissions remain pending for owner moderation.
@@ -88,7 +88,7 @@ Deploy the current main revision through the configured Cloudflare Worker deploy
 ## Project structure
 
 - src/data/tools.ts — category and tool catalog
-- src/data/tool-guides.ts — original usage guides, examples, tips and FAQs for all 41 tools
+- src/data/tool-guides.ts — original usage guides, examples, tips and FAQs for all 46 tools
 - src/components/ — shared navigation, footer and SVG icons
 - src/layouts/SiteLayout.astro — document shell, canonical URLs and social metadata
 - src/pages/ — homepage, About, search, category, tool, privacy, terms and 404 pages
