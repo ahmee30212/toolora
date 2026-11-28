@@ -75,7 +75,7 @@ const expectedSitemapPaths = [
   ...categories.map((slug) => "/categories/" + slug + "/"),
   ...tools.map((slug) => "/tools/" + slug + "/")
 ];
-const sitemapLocations = [...sitemap.matchAll(/<loc>([^<]+)<\\/loc>/g)].map((match) => match[1]);
+const sitemapLocations = [...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map((match) => match[1]);
 const expectedSitemapLocations = expectedSitemapPaths.map((path) => canonicalOrigin + path);
 if (!sitemap.includes('<?xml version="1.0" encoding="UTF-8"?>') || !sitemap.includes('xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"')) {
   failures.push("Sitemap is missing its XML declaration or sitemap namespace.");
