@@ -268,7 +268,7 @@ if (root) {
           for (let j = start + 1; j < value.length; j++) {
             const current = value[j], next = value[j + 1] ?? "";
             if (commentAhead) { if (current === "*" && next === "/") { j++; commentAhead = false; } continue; }
-            if (quoteAhead) { if (escapedAhead) escapedAhead = false; else if (current === "\\\\") escapedAhead = true; else if (current === quoteAhead) quoteAhead = ""; continue; }
+            if (quoteAhead) { if (escapedAhead) escapedAhead = false; else if (current === "\\") escapedAhead = true; else if (current === quoteAhead) quoteAhead = ""; continue; }
             if (current === "/" && next === "*") { commentAhead = true; j++; continue; }
             if (current === "'" || current === '"') { quoteAhead = current; continue; }
             if (current === "(") depthAhead++;
