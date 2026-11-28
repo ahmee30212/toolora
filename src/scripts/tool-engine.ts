@@ -232,6 +232,7 @@ if (root) {
 
 
 
+
       case "html-formatter": {
         if (value.length > 200000) throw new Error("HTML input is limited to 200,000 characters.");
         const voidTags = new Set(["area","base","br","col","embed","hr","img","input","link","meta","param","source","track","wbr"]);
@@ -263,9 +264,11 @@ if (root) {
               break;
             }
             const tag = value.slice(cursor, finish + 1);
-            const name = tag.match(/^<\\s*\\/?\\s*([a-z][a-z0-9:-]*)/i)?.[1]?.toLowerCase() ?? "";
-            const closing = /^<\\s*\\//.test(tag);
-            const selfClosing = /\\/\\s*>$/.test(tag);
+            const inner = tag.slice(1, -1).trim();
+            const closing = inner.startsWith("/");
+            const content = closing ? inner.slice(1).trimStart() : inner;
+            const name = content.match(/^[A-Za-z][A-Za-z0-9:-]*/)?.[0].toLowerCase() ?? "";
+            const selfClosing = inner.endsWith("/");
             const special = tag.startsWith("<!") || tag.startsWith("<?");
             tokens.push({ kind: "tag", value: tag, name, closing, void: selfClosing || voidTags.has(name) || special });
             cursor = finish + 1;
@@ -274,7 +277,7 @@ if (root) {
               const closeAt = lower.indexOf("</" + name, cursor);
               if (closeAt >= 0) {
                 const afterName = lower[closeAt + name.length + 2] ?? "";
-                if (afterName === ">" || /\\s/.test(afterName)) {
+                if (afterName === ">" || afterName === " " || afterName === "\n" || afterName === "\t" || afterName === "\r") {
                   if (closeAt > cursor) tokens.push({ kind: "text", value: value.slice(cursor, closeAt) });
                   cursor = closeAt;
                 }
