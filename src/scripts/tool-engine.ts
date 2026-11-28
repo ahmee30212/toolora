@@ -212,7 +212,7 @@ if (root) {
     }
     if (slug === "robots-txt-generator") {
       document.querySelector("#input-label")!.textContent = "Disallow paths (one per line)";
-      input.placeholder = "Example:\\n/private/\\n/admin/";
+      input.placeholder = "Example:\n/private/\n/admin/";
       field("sitemap-url", "Public sitemap URL (optional)", "", "url");
     }
     if (slug === "color-contrast-checker") {
