@@ -745,6 +745,7 @@ test("robots.txt generator validates paths and adds sitemap directives", async (
 test("color contrast checker reports WCAG pass and fail thresholds", async ({ page }) => {
   await page.goto("/tools/color-contrast-checker/");
   await page.locator("#tool-input").fill("#000000");
+  await expect(page.locator("#contrast-background")).toHaveValue("#FFFFFF");
   await page.locator("#contrast-background").fill("#FFFFFF");
   await page.getByRole("button", { name: /run tool/i }).click();
   await expect(page.locator("#tool-output")).toContainText("Contrast ratio: 21.00:1");
