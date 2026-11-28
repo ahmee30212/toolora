@@ -317,7 +317,7 @@ if (root) {
           lines.push(pad(depth) + token.value);
           if (!token.void) depth++;
         }
-        return setResult(lines.join("\\n"), "Formatted HTML");
+        return setResult(lines.join("\n"), "Formatted HTML");
       }
       case "css-formatter": {
         if (value.length > 200000) throw new Error("CSS input is limited to 200,000 characters.");
