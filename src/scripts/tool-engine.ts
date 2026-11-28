@@ -269,7 +269,7 @@ if (root) {
           if (ch === "(") parens++;
           if (ch === ")") parens = Math.max(0, parens - 1);
           if (parens === 0 && ch === "{") { flush(); result = result.trimEnd() + " {\n"; indent++; }
-          else if (parens === 0 && ch === "}") { flush(); result = result.trimEnd() + "\n"; indent = Math.max(0, indent - 1); result += pad() + "}\n"; }
+          else if (parens === 0 && ch === "}") { if (indent === 0) throw new Error("Unexpected closing brace."); flush(); result = result.trimEnd() + "\n"; indent--; result += pad() + "}\n"; }
           else if (parens === 0 && ch === ";") { token = token.trimEnd() + ";"; flush(); result += "\n"; }
           else if (parens === 0 && ch === ":" && indent > 0 && /^[\w-]+$/.test(token.trim())) token = token.trimEnd() + ": ";
           else if (ch === "\n" || ch === "\r" || ch === "\t" || ch === " ") { if (token && !token.endsWith(" ")) token += " "; }
@@ -278,7 +278,7 @@ if (root) {
         flush();
         const formatted = result.split("\n").map((line) => line.trimEnd()).filter((line, index, rows) => line || rows[index - 1]).join("\n").trim();
         if (!formatted) throw new Error("Enter CSS rules to format.");
-        if (quote || comment || parens !== 0 || (value.includes("{") && (value.match(/{/g)?.length ?? 0) !== (value.match(/}/g)?.length ?? 0))) throw new Error("The CSS appears to contain an unfinished string, comment, parenthesis or block.");
+        if (quote || comment || parens !== 0 || indent !== 0) throw new Error("The CSS appears to contain an unfinished string, comment, parenthesis or block.");
         return setResult(formatted, "Formatted CSS");
       }
       case "meta-tag-generator": {
