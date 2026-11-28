@@ -203,6 +203,10 @@ if (root) {
     if (slug === "qr-generator") input.placeholder = "Enter a URL or text to encode as a QR code.";
     if (slug === "html-formatter") input.placeholder = "Paste HTML markup to format...";
     if (slug === "css-formatter") input.placeholder = "Paste CSS rules to format...";
+    if (["html-formatter", "css-formatter", "meta-tag-generator", "robots-txt-generator"].includes(slug)) {
+      input.classList.add("font-mono");
+      output.classList.add("font-mono");
+    }
     if (slug === "meta-tag-generator") {
       document.querySelector("#input-label")!.textContent = "Page title";
       input.placeholder = "Example: Free Online HTML Formatter | Toolora";
