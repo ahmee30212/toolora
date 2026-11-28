@@ -186,7 +186,8 @@ if (root) {
   const textTools = new Set([
     "case-converter", "lorem-ipsum-generator", "text-diff-checker",
     "number-system-converter", "bmi-calculator", "percentage-calculator",
-    "keyword-density-checker", "age-calculator", "password-generator", "qr-generator"
+    "keyword-density-checker", "age-calculator", "password-generator", "qr-generator",
+    "html-formatter", "css-formatter", "meta-tag-generator", "robots-txt-generator", "color-contrast-checker"
   ]);
 
   if (textTools.has(slug)) {
@@ -200,11 +201,121 @@ if (root) {
     if (slug === "age-calculator") { input.classList.add("hidden"); field("dob","Date of birth","","date"); }
     if (slug === "password-generator") { field("pass-length","Password length","20","number"); }
     if (slug === "qr-generator") input.placeholder = "Enter a URL or text to encode as a QR code.";
+    if (slug === "html-formatter") input.placeholder = "Paste HTML markup to format...";
+    if (slug === "css-formatter") input.placeholder = "Paste CSS rules to format...";
+    if (slug === "meta-tag-generator") {
+      document.querySelector("#input-label")!.textContent = "Page title";
+      input.placeholder = "Example: Free Online HTML Formatter | Toolora";
+      field("meta-description", "Meta description", "", "text");
+      field("meta-url", "Canonical page URL", "", "url");
+      field("meta-image", "Social preview image URL (optional)", "", "url");
+    }
+    if (slug === "robots-txt-generator") {
+      document.querySelector("#input-label")!.textContent = "Disallow paths (one per line)";
+      input.placeholder = "Example:\\n/private/\\n/admin/";
+      field("sitemap-url", "Public sitemap URL (optional)", "", "url");
+    }
+    if (slug === "color-contrast-checker") {
+      document.querySelector("#input-label")!.textContent = "Foreground text color (HEX)";
+      input.placeholder = "#1F2937";
+      field("contrast-background", "Background color (HEX)", "#FFFFFF");
+    }
   }
 
   const runText = () => {
     const value = input.value;
     switch (slug) {
+
+      case "html-formatter": {
+        if (value.length > 200000) throw new Error("HTML input is limited to 200,000 characters.");
+        const parsed = new DOMParser().parseFromString(value, "text/html");
+        const voidTags = new Set(["area","base","br","col","embed","hr","img","input","link","meta","param","source","track","wbr"]);
+        const rawTags = new Set(["pre","textarea","script","style"]);
+        const indent = (depth:number) => "  ".repeat(depth);
+        const render = (node: Node, depth:number): string => {
+          if (node.nodeType === Node.COMMENT_NODE) return indent(depth) + "<!--" + (node.textContent ?? "") + "-->";
+          if (node.nodeType === Node.TEXT_NODE) {
+            const text = node.textContent ?? "";
+            if (!text.trim()) return "";
+            return indent(depth) + escapeHtml(text.trim());
+          }
+          if (!(node instanceof Element)) return "";
+          const tag = node.tagName.toLowerCase();
+          const attrs = Array.from(node.attributes).map((attribute) => " " + attribute.name + '="' + escapeHtml(attribute.value) + '"').join("");
+          const opening = "<" + tag + attrs + ">";
+          if (voidTags.has(tag)) return indent(depth) + opening;
+          if (rawTags.has(tag)) return indent(depth) + opening + (node.textContent ?? "") + "</" + tag + ">";
+          const children = Array.from(node.childNodes).map((child) => render(child, depth + 1)).filter(Boolean);
+          if (!children.length) return indent(depth) + opening + "</" + tag + ">";
+          return indent(depth) + opening + "\\n" + children.join("\\n") + "\\n" + indent(depth) + "</" + tag + ">";
+        };
+        const body = parsed.documentElement;
+        const doctype = "<!doctype html>";
+        return setResult(doctype + "\\n" + render(body, 0), "Formatted HTML");
+      }
+      case "css-formatter": {
+        if (value.length > 200000) throw new Error("CSS input is limited to 200,000 characters.");
+        let result = "", token = "", indent = 0, quote = "", escaped = false, comment = false, parens = 0;
+        const pad = () => "  ".repeat(Math.max(0, indent));
+        const flush = () => { const part = token.trim(); if (part) { result += pad() + part; token = ""; } else token = ""; };
+        for (let i = 0; i < value.length; i++) {
+          const ch = value[i], next = value[i + 1] ?? "";
+          if (comment) { token += ch; if (ch === "*" && next === "/") { token += "/"; i++; comment = false; } continue; }
+          if (quote) { token += ch; if (escaped) escaped = false; else if (ch === "\\\\") escaped = true; else if (ch === quote) quote = ""; continue; }
+          if (ch === "/" && next === "*") { token += "/*"; i++; comment = true; continue; }
+          if (ch === '"' || ch === "'") { token += ch; quote = ch; continue; }
+          if (ch === "(") parens++;
+          if (ch === ")") parens = Math.max(0, parens - 1);
+          if (parens === 0 && ch === "{") { flush(); result = result.trimEnd() + " {\\n"; indent++; }
+          else if (parens === 0 && ch === "}") { flush(); result = result.trimEnd() + "\\n"; indent = Math.max(0, indent - 1); result += pad() + "}\\n"; }
+          else if (parens === 0 && ch === ";") { token = token.trimEnd() + ";"; flush(); result += "\\n"; }
+          else if (ch === "\\n" || ch === "\\r" || ch === "\\t" || ch === " ") { if (token && !token.endsWith(" ")) token += " "; }
+          else token += ch;
+        }
+        flush();
+        const formatted = result.split("\\n").map((line) => line.trimEnd()).filter((line, index, rows) => line || rows[index - 1]).join("\\n").trim();
+        if (!formatted) throw new Error("Enter CSS rules to format.");
+        if (quote || comment || parens !== 0 || (value.includes("{") && (value.match(/{/g)?.length ?? 0) !== (value.match(/}/g)?.length ?? 0))) throw new Error("The CSS appears to contain an unfinished string, comment, parenthesis or block.");
+        return setResult(formatted, "Formatted CSS");
+      }
+      case "meta-tag-generator": {
+        const title = value.trim(), description = get("meta-description").trim(), pageUrl = get("meta-url").trim(), imageUrl = get("meta-image").trim();
+        if (!title || title.length > 120) throw new Error("Enter a page title between 1 and 120 characters.");
+        if (!description || description.length > 320) throw new Error("Enter a useful meta description between 1 and 320 characters.");
+        const safeUrl = (raw:string, label:string) => { if (!raw) return ""; let parsed:URL; try { parsed = new URL(raw); } catch { throw new Error(label + " must be a complete HTTPS URL."); } if (parsed.protocol !== "https:" || parsed.username || parsed.password) throw new Error(label + " must be a complete HTTPS URL."); return parsed.href; };
+        const canonical = safeUrl(pageUrl, "Canonical URL");
+        if (!canonical) throw new Error("Enter the canonical page URL.");
+        const image = safeUrl(imageUrl, "Social image URL");
+        const esc = (text:string) => text.replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+        const tags = [
+          "<title>" + esc(title) + "</title>",
+          '<meta name="description" content="' + esc(description) + '">',
+          '<link rel="canonical" href="' + esc(canonical) + '">',
+          '<meta property="og:type" content="website">',
+          '<meta property="og:title" content="' + esc(title) + '">',
+          '<meta property="og:description" content="' + esc(description) + '">',
+          '<meta property="og:url" content="' + esc(canonical) + '">',
+          '<meta name="twitter:card" content="' + (image ? "summary_large_image" : "summary") + '">',
+          ...(image ? ['<meta property="og:image" content="' + esc(image) + '">'] : [])
+        ];
+        return setResult(tags.join("\\n"), "SEO metadata generated");
+      }
+      case "robots-txt-generator": {
+        const sitemap = get("sitemap-url").trim();
+        const paths = value.split(/\\r?\\n/).map((path) => path.trim()).filter(Boolean);
+        if (paths.some((path) => !path.startsWith("/") || path.startsWith("//") || /[\\s#]/.test(path))) throw new Error("Each disallowed path must start with / and contain no spaces or # characters.");
+        if (sitemap) { let parsed:URL; try { parsed = new URL(sitemap); } catch { throw new Error("Sitemap must be a complete HTTPS URL."); } if (parsed.protocol !== "https:" || parsed.username || parsed.password) throw new Error("Sitemap must be a complete HTTPS URL."); }
+        const lines = ["User-agent: *", "Allow: /", ...paths.map((path) => "Disallow: " + path), ...(sitemap ? ["", "Sitemap: " + new URL(sitemap).href] : [])];
+        return setResult(lines.join("\\n"), "robots.txt generated");
+      }
+      case "color-contrast-checker": {
+        const parse = (raw:string, label:string) => { const hex = raw.trim().replace(/^#/,""); if (!/^(?:[0-9a-f]{3}|[0-9a-f]{6})$/i.test(hex)) throw new Error(label + " must be a 3- or 6-digit HEX color."); const full = hex.length === 3 ? [...hex].map((part) => part + part).join("") : hex; return [0,2,4].map((offset) => parseInt(full.slice(offset,offset+2),16)); };
+        const luminance = (rgb:number[]) => rgb.map((channel) => { const value = channel / 255; return value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4; }).reduce((sum, value, index) => sum + value * [0.2126,0.7152,0.0722][index],0);
+        const foreground = parse(value, "Foreground"), background = parse(get("contrast-background"), "Background");
+        const l1 = luminance(foreground), l2 = luminance(background), ratio = (Math.max(l1,l2)+0.05)/(Math.min(l1,l2)+0.05);
+        const aa = ratio >= 4.5, aaLarge = ratio >= 3, aaa = ratio >= 7, aaaLarge = ratio >= 4.5;
+        return setResult("Contrast ratio: " + ratio.toFixed(2) + ":1\\nWCAG AA normal text (4.5:1): " + (aa ? "PASS" : "FAIL") + "\\nWCAG AA large text (3:1): " + (aaLarge ? "PASS" : "FAIL") + "\\nWCAG AAA normal text (7:1): " + (aaa ? "PASS" : "FAIL") + "\\nWCAG AAA large text (4.5:1): " + (aaaLarge ? "PASS" : "FAIL") + "\\n\\nLarge text means at least 18 pt regular or 14 pt bold under WCAG definitions.");
+      }
       case "case-converter": {
         const mode = get("case-mode");
         const result = mode === "UPPERCASE" ? value.toUpperCase() : mode === "lowercase" ? value.toLowerCase() : mode === "Title Case" ? value.toLowerCase().replace(/\b\p{L}/gu, c => c.toUpperCase()) : value.toLowerCase().replace(/(^\s*\p{L}|[.!?]\s+\p{L})/gu, c => c.toUpperCase());
