@@ -673,8 +673,9 @@ test("percentage calculator handles a zero denominator explicitly", async ({ pag
 
 
 test("theme toggle switches modes and persists the visitor preference", async ({ page }) => {
-  await page.addInitScript(() => localStorage.setItem("toolora-theme", "light"));
   await page.goto("/");
+  await page.evaluate(() => localStorage.setItem("toolora-theme", "light"));
+  await page.reload();
   await expect(page.getByRole("button", { name: /switch to dark theme/i })).toBeVisible();
   await page.getByRole("button", { name: /switch to dark theme/i }).click();
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
