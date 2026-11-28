@@ -293,8 +293,7 @@ export const toolGuides: Record<string, ToolGuide> = {
     example: "Create a QR code for a public event page and test it on a phone before printing it on a poster.",
     tip: "Test the final printed or displayed code at its real size. A QR code that scans on a large monitor may fail when printed too small.",
     faqs: [{ question: "Does a QR code expire?", answer: "A static QR code does not normally expire, but the URL or service it points to can change or stop working." }, { question: "Should I put private information in a QR code?", answer: "Only encode information you are comfortable sharing with anyone who can scan it. A QR code is not access control." }]
-  }
-
+  },
   "html-formatter": {
     overview: "An HTML formatter, also called an HTML beautifier, reorganizes markup with consistent indentation so nested elements are easier to inspect and maintain. This browser-based formatter parses the supplied document locally and produces readable source without sending it to a formatting server.",
     steps: ["Paste an HTML fragment or complete page into the editor.", "Run the formatter and review the indentation, element nesting and attributes.", "Copy the formatted markup or download it as a text file before using it in your project."],
