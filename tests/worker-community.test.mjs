@@ -162,3 +162,25 @@ test("rate-limit records older than one day are pruned", async () => {
   assert.equal(response.status, 201);
   assert.ok(db.inserted.some(item => item.sql.includes("DELETE FROM rate_limits WHERE window_start < ?")));
 });
+
+
+test("oversized JSON bodies without a trustworthy content length are rejected while streaming", async () => {
+  const { env } = setup();
+  const payload = JSON.stringify({ tool: "word-counter", rating: 5, review: "x".repeat(9000) });
+  const response = await worker.fetch(new Request("https://toolora.test/api/reviews", {
+    method: "POST",
+    headers: { origin: "https://toolora.test", "content-type": "application/json" },
+    body: payload
+  }), env);
+  assert.equal(response.status, 400);
+});
+
+test("invalid declared content lengths are rejected before JSON parsing", async () => {
+  const { env } = setup();
+  const response = await worker.fetch(new Request("https://toolora.test/api/reviews", {
+    method: "POST",
+    headers: { origin: "https://toolora.test", "content-type": "application/json", "content-length": "not-a-number" },
+    body: JSON.stringify({ tool: "word-counter", rating: 5, review: "A valid review with enough characters." })
+  }), env);
+  assert.equal(response.status, 400);
+});
