@@ -465,6 +465,9 @@ test("production canonical metadata, robots and sitemap use the branded hostname
   const xml = await sitemap.text();
   expect(xml).toContain("https://toolora.gettoolora.workers.dev/");
   expect(xml).toContain("https://toolora.gettoolora.workers.dev/community/");
+  for (const slug of ["html-formatter", "css-formatter", "meta-tag-generator", "robots-txt-generator", "color-contrast-checker"]) {
+    expect(xml).toContain("https://toolora.gettoolora.workers.dev/tools/" + slug + "/");
+  }
   expect(xml).not.toContain("m-ahmad30212.workers.dev");
 });
 
