@@ -552,3 +552,104 @@ body{background:#f5f7fc;color:#101a30}
   .theme-toggle,.tool-panel,.category-card,.featured-card,.tool-row { transition:none!important; }
 }
 @media(max-width:640px) { .theme-toggle { width:36px;height:36px;border-radius:10px;font-size:18px; } .header-actions { gap:7px; } }
+
+
+/* Balanced mid-tone palette: avoid stark white and near-black surfaces. */
+:root:not([data-theme="dark"]) {
+  color-scheme: light;
+  --ink:#2b3749;
+  --muted:#68768a;
+  --line:#d4dbe5;
+  --surface:#f0f2f5;
+}
+:root:not([data-theme="dark"]) body { background:#e8edf3!important; color:#2b3749!important; }
+:root:not([data-theme="dark"]) .site-header { background:rgba(226,232,239,.94)!important; border-color:#d2dae4!important; }
+:root:not([data-theme="dark"]) .hero-premium { background:radial-gradient(ellipse at 77% 44%,rgba(195,211,235,.8),transparent 39%),radial-gradient(ellipse at 10% 0%,#e1e7ef 0,transparent 45%),linear-gradient(180deg,#e9edf3 0%,#e4e9f0 100%)!important; }
+:root:not([data-theme="dark"]) .page-hero { background:linear-gradient(180deg,#dfe6ef,#e8edf3)!important; }
+:root:not([data-theme="dark"]) .stats-panel,
+:root:not([data-theme="dark"]) .category-card,
+:root:not([data-theme="dark"]) .featured-card,
+:root:not([data-theme="dark"]) .tool-row,
+:root:not([data-theme="dark"]) .tool-panel,
+:root:not([data-theme="dark"]) .workspace-card,
+:root:not([data-theme="dark"]) .floating-note,
+:root:not([data-theme="dark"]) .feature,
+:root:not([data-theme="dark"]) .section-counter,
+:root:not([data-theme="dark"]) .review-section,
+:root:not([data-theme="dark"]) .review-item,
+:root:not([data-theme="dark"]) .workspace-pane {
+  background:#f0f2f5!important;
+  border-color:#d4dce6!important;
+}
+:root:not([data-theme="dark"]) .tool-panel,
+:root:not([data-theme="dark"]) .workspace-card,
+:root:not([data-theme="dark"]) .category-card,
+:root:not([data-theme="dark"]) .tool-row { box-shadow:0 8px 24px rgba(42,57,78,.07)!important; }
+:root:not([data-theme="dark"]) .search-shell,
+:root:not([data-theme="dark"]) .hero-search { background:#f2f4f7!important; border-color:#d1d9e4!important; }
+:root:not([data-theme="dark"]) .pill,
+:root:not([data-theme="dark"]) .btn-secondary { background:#e3e8ef!important; border-color:#cbd4df!important; color:#344257!important; }
+:root:not([data-theme="dark"]) .workspace-pane { background:#e9edf2!important; }
+:root:not([data-theme="dark"]) .workspace-input-pane { background:#e5eaf1!important; }
+:root:not([data-theme="dark"]) .workspace-output-pane { background:#f0f2f5!important; }
+:root:not([data-theme="dark"]) .tool-textarea,
+:root:not([data-theme="dark"]) .review-form input,
+:root:not([data-theme="dark"]) .review-form select,
+:root:not([data-theme="dark"]) .review-form textarea { background:#e6ebf1!important; border-color:#cbd4df!important; color:#2b3749!important; }
+:root:not([data-theme="dark"]) .theme-toggle { background:#dce3ec; border-color:#c4cedb; color:#34445a; }
+:root:not([data-theme="dark"]) .mobile-menu nav { background:#e9edf2; border-color:#cbd4df; }
+
+:root[data-theme="dark"] {
+  color-scheme:dark;
+  --ink:#e5eaf1;
+  --muted:#b4bfce;
+  --line:#4a586b;
+  --surface:#374354;
+}
+:root[data-theme="dark"] body { background:#2b3544!important; color:#e5eaf1!important; }
+:root[data-theme="dark"] .site-header { background:rgba(43,53,68,.96)!important; border-color:#465468!important; }
+:root[data-theme="dark"] .hero-premium { background:radial-gradient(ellipse at 78% 38%,rgba(69,105,132,.32),transparent 38%),radial-gradient(ellipse at 5% 0%,rgba(74,91,125,.34),transparent 45%),linear-gradient(135deg,#303c4d,#354255 60%,#39485a)!important; }
+:root[data-theme="dark"] .page-hero { background:radial-gradient(ellipse at 80% 0%,rgba(91,117,153,.3),transparent 48%),linear-gradient(180deg,#354255,#2b3544)!important; }
+:root[data-theme="dark"] .stats-panel,
+:root[data-theme="dark"] .category-card,
+:root[data-theme="dark"] .featured-card,
+:root[data-theme="dark"] .tool-row,
+:root[data-theme="dark"] .tool-panel,
+:root[data-theme="dark"] .workspace-card,
+:root[data-theme="dark"] .floating-note,
+:root[data-theme="dark"] .feature,
+:root[data-theme="dark"] .section-counter,
+:root[data-theme="dark"] .review-section,
+:root[data-theme="dark"] .review-item,
+:root[data-theme="dark"] .review-form {
+  background:#374354!important;
+  border-color:#4a586b!important;
+  color:#e5eaf1!important;
+  box-shadow:0 10px 26px rgba(13,20,31,.14)!important;
+}
+:root[data-theme="dark"] .category-card:hover,
+:root[data-theme="dark"] .featured-card:hover,
+:root[data-theme="dark"] .tool-row:hover { background:#3d4b5e!important; border-color:#6c83a3!important; }
+:root[data-theme="dark"] .workspace-pane { background:#303c4d!important; border-color:#4a586b!important; }
+:root[data-theme="dark"] .workspace-input-pane { background:#334153!important; }
+:root[data-theme="dark"] .workspace-output-pane { background:#39475a!important; }
+:root[data-theme="dark"] .tool-textarea,
+:root[data-theme="dark"] #tool-input,
+:root[data-theme="dark"] #tool-output,
+:root[data-theme="dark"] .workspace-pane input,
+:root[data-theme="dark"] .workspace-pane select,
+:root[data-theme="dark"] .workspace-pane textarea,
+:root[data-theme="dark"] .review-form input,
+:root[data-theme="dark"] .review-form select,
+:root[data-theme="dark"] .review-form textarea {
+  background:#303c4d!important;
+  color:#e5eaf1!important;
+  border-color:#58677b!important;
+}
+:root[data-theme="dark"] .search-shell,
+:root[data-theme="dark"] .hero-search { background:#e1e6ed!important; border-color:#58677b!important; }
+:root[data-theme="dark"] .pill,
+:root[data-theme="dark"] .btn-secondary { background:#465468!important; color:#e5eaf1!important; border-color:#607087!important; }
+:root[data-theme="dark"] .theme-toggle { background:#465468!important; color:#f1d69b!important; border-color:#607087!important; }
+:root[data-theme="dark"] .mobile-menu nav { background:#354255!important; border-color:#58677b!important; }
+:root[data-theme="dark"] .site-footer { background:linear-gradient(120deg,#222c3a,#2b394b 65%,#304355)!important; }
