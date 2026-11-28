@@ -288,7 +288,7 @@ if (root) {
           if (ch === "(") parens++;
           if (ch === ")") parens = Math.max(0, parens - 1);
           if (parens === 0 && ch === "{") { flush(); result = result.trimEnd() + " {\n"; indent++; }
-          else if (parens === 0 && ch === "}") { if (indent === 0) throw new Error("Unexpected closing brace."); flush(); result = result.trimEnd() + "\n"; indent--; result += pad() + "}\n"; }
+          else if (parens === 0 && ch === "}") { if (indent === 0) throw new Error("Unexpected closing brace."); if (token.trim() && !token.trimEnd().endsWith(";")) token = token.trimEnd() + ";"; flush(); result = result.trimEnd() + "\n"; indent--; result += pad() + "}\n"; }
           else if (parens === 0 && ch === ";") { token = token.trimEnd() + ";"; flush(); result += "\n"; }
           else if (parens === 0 && ch === ":" && indent > 0 && /^[\w-]+$/.test(token.trim()) && !colonStartsSelector(i)) token = token.trimEnd() + ": ";
           else if (ch === "\n" || ch === "\r" || ch === "\t" || ch === " ") { if (token && !token.endsWith(" ")) token += " "; }
@@ -333,7 +333,7 @@ if (root) {
       case "color-contrast-checker": {
         const parse = (raw:string, label:string) => { const hex = raw.trim().replace(/^#/,""); if (!/^(?:[0-9a-f]{3}|[0-9a-f]{6})$/i.test(hex)) throw new Error(label + " must be a 3- or 6-digit HEX color."); const full = hex.length === 3 ? [...hex].map((part) => part + part).join("") : hex; return [0,2,4].map((offset) => parseInt(full.slice(offset,offset+2),16)); };
         const luminance = (rgb:number[]) => rgb.map((channel) => { const value = channel / 255; return value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4; }).reduce((sum, value, index) => sum + value * [0.2126,0.7152,0.0722][index],0);
-        const foreground = parse(value, "Foreground"), background = parse(get("contrast-background"), "Background");
+        const foreground = parse(value, "Foreground"), background = parse(document.querySelector<HTMLInputElement>("#contrast-background")?.value || "#FFFFFF", "Background");
         const l1 = luminance(foreground), l2 = luminance(background), ratio = (Math.max(l1,l2)+0.05)/(Math.min(l1,l2)+0.05);
         const aa = ratio >= 4.5, aaLarge = ratio >= 3, aaa = ratio >= 7, aaaLarge = ratio >= 4.5;
         return setResult("Contrast ratio: " + ratio.toFixed(2) + ":1\nWCAG AA normal text (4.5:1): " + (aa ? "PASS" : "FAIL") + "\nWCAG AA large text (3:1): " + (aaLarge ? "PASS" : "FAIL") + "\nWCAG AAA normal text (7:1): " + (aaa ? "PASS" : "FAIL") + "\nWCAG AAA large text (4.5:1): " + (aaaLarge ? "PASS" : "FAIL") + "\n\nLarge text means at least 18 pt regular or 14 pt bold under WCAG definitions.");
